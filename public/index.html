@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Level Up Chess</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f1ea;--card:#fff;--tx:#1d1b16;--mu:#6b665a;--bd:#e2ddd0;--ac:#4f8a3c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161512;--card:#23211c;--tx:#f1ede2;--mu:#a49e8e;--bd:#38352d}}
+:root[data-theme="dark"]{--bg:#161512;--card:#23211c;--tx:#f1ede2;--mu:#a49e8e;--bd:#38352d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:4px 0 2px}h2{font-size:17px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:14px 0}
+.mu{color:var(--mu);font-size:14px}
+input{width:100%;padding:11px 12px;margin:5px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--ac);color:#fff;font-weight:600}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+.bar{height:14px;background:var(--bd);border-radius:9px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--ac);transition:width .6s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stats b{display:block;font-size:22px}
+.item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--bd)}
+.item:first-of-type{border-top:0}.item button{flex:none}
+.top{display:flex;justify-content:space-between;align-items:center}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);background:var(--tx);color:var(--bg);padding:12px 18px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center;font-weight:600}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.pop{position:fixed;font-size:28px;pointer-events:none;animation:up 1.2s ease-out forwards}
+@keyframes up{to{transform:translate(var(--dx),-220px) rotate(240deg);opacity:0}}
+.err{color:#c0392b;font-size:14px;min-height:20px}
+</style></head><body><main id="app"></main><div id="toast"></div>
+<script>
+var S=null,LB=[];
+function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
+async function api(p,b){var o=b===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)};
+ var r=await fetch("/api/"+p,o),j={};try{j=await r.json()}catch(e){}if(!r.ok){var e=new Error(j.error||"Request failed");e.status=r.status;throw e}return j}
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=""},3000)}
+function burst(){var e=["♟️","♞","⭐","✨","🔥","♛"];for(var i=0;i<18;i++){var p=document.createElement("span");p.className="pop";p.textContent=e[i%e.length];p.style.left=(20+Math.random()*60)+"vw";p.style.top="60vh";p.style.setProperty("--dx",(Math.random()*160-80)+"px");document.body.appendChild(p);setTimeout(function(x){x.remove()}.bind(null,p),1300)}}
+async function boot(){try{S=await api("me")}catch(e){S=null}await loadLB();render()}
+async function loadLB(){try{LB=await api("leaderboard")}catch(e){LB=[]}}
+function authView(){
+ document.getElementById("app").innerHTML='<h1>♟️ Level Up Chess</h1><p class="mu">Turn your chess.com games into XP, levels and upgrades.</p><div class="card"><h2>Log in or create an account</h2><input id="un" placeholder="Username" autocomplete="username"><input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="current-password"><div class="err" id="er"></div><div class="row"><button id="li">Log in</button><button class="g" id="su">Sign up</button></div></div>'+lbHTML();
+ function go(p){return async function(){try{await api(p,{username:document.getElementById("un").value,password:document.getElementById("pw").value});await boot()}catch(e){document.getElementById("er").textContent=e.message}}}
+ document.getElementById("li").onclick=go("login");document.getElementById("su").onclick=go("signup")}
+function lbHTML(){var m=["🥇","🥈","🥉"];
+ return'<div class="card"><h2>🏆 Leaderboard</h2>'+(LB.length?LB.map(function(x,i){return'<div class="item"><div><b>'+(m[i]||(i+1)+".")+" "+esc(x.username)+(S&&S.username===x.username?" (you)":"")+'</b><div class="mu">'+(x.title?esc(x.title)+" · ":"")+"Level "+x.level+" · "+x.wins+' wins · best streak '+x.best+'</div></div><b>'+x.xp+' XP</b></div>'}).join(""):'<p class="mu">No verified players yet. Be the first!</p>')+'</div>'}
+function ccHTML(){
+ if(!S.changing&&S.pending)return'<h2>Verify your chess.com account</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile (Settings → Profile), save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Use a different username</button></div>';
+ if(!S.changing&&S.cc)return'<h2>Chess.com account</h2><p class="mu">Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3. Beat higher-rated players for bonus XP; win streaks multiply everything.</p>';
+ return'<h2>Link your chess.com account</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
+function render(){
+ if(!S){authView();return}
+ document.documentElement.style.setProperty("--ac",S.accent||"#4f8a3c");
+ var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100);
+ var shop=S.shop.map(function(s){var own=s.t!=="cons"&&S.owned.indexOf(s.id)>-1,b;
+  if(own)b=(s.t==="theme"||s.t==="title")?'<button class="g" data-a="equip" data-i="'+s.id+'">'+((s.t==="theme"?S.accent===s.v:S.title===s.v)?"Equipped":"Equip")+'</button>':'<button class="g" disabled>Owned</button>';
+  else b='<button data-a="buy" data-i="'+s.id+'"'+(S.coins<s.c?" disabled":"")+'>🪙 '+s.c+'</button>';
+  return'<div class="item"><div><b>'+s.n+(s.t==="cons"?" ×"+S.shield:"")+'</b><div class="mu">'+s.d+'</div></div>'+b+'</div>'}).join("");
+ document.getElementById("app").innerHTML='<div class="top"><div><h1>♟️ '+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title)+" · ":"")+"Level "+S.level+'</div></div><button class="g" id="lo">Log out</button></div>'
+ +'<div class="card"><div class="top"><b>Level '+S.level+'</b><span class="mu">'+S.xp+" / "+S.hi+' XP</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="stats"><div><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div><b>'+S.wins+"/"+S.games+'</b><span class="mu">Wins / games</span></div></div></div>'
+ +'<div class="card">'+ccHTML()+'<div class="err" id="se"></div></div>'+lbHTML()+'<div class="card"><h2>Upgrade shop</h2>'+shop+'</div>';
+ var $=function(i){return document.getElementById(i)};
+ $("lo").onclick=async function(){await api("logout",{});S=null;render()};
+ if($("lk"))$("lk").onclick=act(function(){return api("cc",{cc:$("cc").value})});
+ if($("vf"))$("vf").onclick=act(function(){return api("cc/verify",{})},"Linked! Hit Sync to set your baseline.");
+ if($("cx"))$("cx").onclick=function(){S.changing=true;render()};
+ if($("sy"))$("sy").onclick=sync}
+function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await loadLB();render();if(ok)toast(ok)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message}}}
+async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";
+ try{var r=await api("sync",{}),fx=S.owned.indexOf("fx")>-1;S=r;await loadLB();render();
+  if(r.msg)toast(r.msg);else if(r.count){toast(r.count+" new games: +"+r.gained+" XP!"+(r.leveled?" 🎉 Level up!":""));if(r.won&&fx)burst()}else toast("No new rated games since last sync.")
+ }catch(e){se.textContent=e.message}}
+document.addEventListener("click",async function(e){var b=e.target.closest("[data-a]");if(!b)return;
+ try{S=await api(b.dataset.a,{id:b.dataset.i});await loadLB();render();if(b.dataset.a==="buy")toast("Purchased!")}catch(er){toast(er.message)}});
+boot();
+</script></body></html>
