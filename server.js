@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users(
   games INTEGER DEFAULT 0, wins INTEGER DEFAULT 0, shield INTEGER DEFAULT 0,
   accent TEXT DEFAULT '', title TEXT DEFAULT '', owned TEXT DEFAULT '[]');
 CREATE TABLE IF NOT EXISTS seen(url TEXT PRIMARY KEY);`);
+try { db.exec("ALTER TABLE users ADD COLUMN equipped TEXT DEFAULT '{}'"); } catch {} // safe upgrade for existing databases
 
 // ---- session secret (env var, or generated once and kept next to the db) ----
 const secretFile = path.join(__dirname, ".secret");
@@ -23,17 +24,29 @@ if (!SECRET) {
   SECRET = fs.readFileSync(secretFile, "utf8");
 }
 
+// [id, name, slot, rarity 0-3, cost, stat bonuses, glyph, flavor]
 const SHOP = [
-  { id: "boost", n: "Double Espresso", d: "+25% XP on every game", c: 150, t: "perm" },
-  { id: "shield", n: "Streak Shield", d: "Next loss won’t break your streak", c: 80, t: "cons" },
-  { id: "neon", n: "Neon theme", d: "Cyan glow for your dashboard", c: 120, t: "theme", v: "#06b6d4" },
-  { id: "sunset", n: "Sunset theme", d: "Warm orange accents", c: 120, t: "theme", v: "#f97316" },
-  { id: "royal", n: "Royal theme", d: "Purple, fit for a king", c: 120, t: "theme", v: "#8b5cf6" },
-  { id: "t1", n: "Title: Tactician", d: "Show it under your name", c: 100, t: "title", v: "Tactician" },
-  { id: "t2", n: "Title: Blunder Survivor", d: "Wear it with pride", c: 100, t: "title", v: "Blunder Survivor" },
-  { id: "t3", n: "Title: Endgame Wizard", d: "For the patient ones", c: 100, t: "title", v: "Endgame Wizard" },
-  { id: "fx", n: "Victory confetti", d: "Emoji burst when you win", c: 200, t: "perm" },
-];
+ ["k1","Iron King","throne",0,120,{xp:3},"♚","Heavy is the head. Heavier is the helmet."],
+ ["q1","Crimson Queen","throne",2,450,{xp:6,upset:10},"♛","She never loses a tempo, only a few pawns."],
+ ["k2","Obsidian Monarch","throne",3,900,{xp:10,coin:10},"♚","Forged in the heat of a thousand resignations."],
+ ["n1","Shadow Knight","flank",1,220,{upset:12},"♞","Strikes from the dark, always from an L."],
+ ["b1","Venom Bishop","flank",1,220,{coin:12},"♝","Every diagonal pays a toll."],
+ ["n2","Ghost Stallion","flank",2,500,{upset:20,streak:3},"♞","Haunts the strongest opponents in your pool."],
+ ["r1","Iron Rook","bastion",0,100,{streak:3},"♜","Holds the line when everything else falls."],
+ ["r2","Magma Fortress","bastion",2,480,{xp:5,streak:5},"♜","Castled in lava. Nobody dares to check it."],
+ ["p1","Lucky Pawn","vanguard",0,80,{coin:6},"♟\uFE0E","Found it on the floor. Still counts."],
+ ["p2","Bloodline Pawn","vanguard",1,260,{xp:5,coin:5},"♟\uFE0E","Descended from a long line of promotions."],
+ ["p3","Promoted Pawn","vanguard",3,800,{xp:8,upset:15,streak:5},"♟\uFE0E","Walked the whole board. Became a legend."],
+ ["a1","Ember Aura","aura",1,300,{xp:2},"🔥","Victories burst into flames."],
+ ["a2","Blood Moon Aura","aura",3,700,{xp:4,coin:6},"🌑","Rises when you win. Sets when you blunder."],
+ ["t1","Tactician","title",0,100,{},"✦","A title for your profile and the leaderboard."],
+ ["t2","Blunder Survivor","title",0,100,{},"✦","Lost the queen. Won the game."],
+ ["t3","Endgame Wizard","title",1,200,{},"✦","Turns a pawn up into a trophy."],
+].map(([id,n,slot,r,c,s,g,f])=>({id,n,slot,r,c,s,g,f,t:"item"}));
+SHOP.push({id:"shield",n:"Streak Shield",slot:"consumable",r:0,c:80,s:{},g:"🛡",f:"Your next loss won’t break your streak.",t:"cons"});
+const bonus = u => { const b = { xp: 0, coin: 0, upset: 0, streak: 0 };
+  for (const id of Object.values(u.equipped || {})) { const it = SHOP.find(x => x.id === id); if (it) for (const k in it.s) b[k] += it.s[k]; }
+  return b; };
 const lvl = xp => Math.floor(Math.sqrt(xp / 50)) + 1;
 const need = l => 50 * (l - 1) * (l - 1);
 
@@ -73,12 +86,13 @@ async function cj(url) {
 const DRAWS = ["agreed", "repetition", "stalemate", "insufficient", "50move", "timevsinsufficient"];
 
 function award(u, res, diff) {
+  const b = bonus(u);
   let x = res === "win" ? 20 : res === "draw" ? 8 : 3;
-  if (res === "win" && diff > 0) x += Math.min(25, Math.round(diff / 10));
-  if (res === "win") { u.streak++; u.best = Math.max(u.best, u.streak); x = Math.round(x * (1 + Math.min(u.streak - 1, 5) * 0.1)); }
+  if (res === "win" && diff > 0) x += Math.round(Math.min(25, diff / 10) * (1 + b.upset / 100));
+  if (res === "win") { u.streak++; u.best = Math.max(u.best, u.streak); x = Math.round(x * (1 + Math.min(u.streak - 1, 5) * (0.1 + b.streak / 100))); }
   else if (res === "loss") { if (u.shield > 0) u.shield--; else u.streak = 0; }
-  if (u.owned.includes("boost")) x = Math.round(x * 1.25);
-  u.xp += x; u.coins += x; u.games++; if (res === "win") u.wins++;
+  x = Math.round(x * (1 + b.xp / 100));
+  u.xp += x; u.coins += Math.round(x * (1 + b.coin / 100)); u.games++; if (res === "win") u.wins++;
   return x;
 }
 
@@ -87,13 +101,13 @@ const app = express();
 app.use(express.json({ limit: "10kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-const getUser = id => { const r = db.prepare("SELECT * FROM users WHERE id=?").get(id); if (r) r.owned = JSON.parse(r.owned); return r; };
+const getUser = id => { const r = db.prepare("SELECT * FROM users WHERE id=?").get(id); if (r) { r.owned = JSON.parse(r.owned); r.equipped = JSON.parse(r.equipped || "{}"); } return r; };
 const saveUser = u => db.prepare(`UPDATE users SET cc=@cc,cc_pending=@cc_pending,cc_code=@cc_code,last_end=@last_end,xp=@xp,coins=@coins,
-  streak=@streak,best=@best,games=@games,wins=@wins,shield=@shield,accent=@accent,title=@title,owned=@owned WHERE id=@id`)
-  .run({ ...u, owned: JSON.stringify(u.owned) });
+  streak=@streak,best=@best,games=@games,wins=@wins,shield=@shield,accent=@accent,title=@title,owned=@owned,equipped=@equipped WHERE id=@id`)
+  .run({ ...u, owned: JSON.stringify(u.owned), equipped: JSON.stringify(u.equipped) });
 const view = u => ({ username: u.username, cc: u.cc, pending: u.cc_pending, code: u.cc_code, xp: u.xp, coins: u.coins,
-  streak: u.streak, best: u.best, games: u.games, wins: u.wins, shield: u.shield, accent: u.accent, title: u.title,
-  owned: u.owned, level: lvl(u.xp), lo: need(lvl(u.xp)), hi: need(lvl(u.xp) + 1), shop: SHOP });
+  streak: u.streak, best: u.best, games: u.games, wins: u.wins, shield: u.shield, title: u.title,
+  owned: u.owned, equipped: u.equipped, bonus: bonus(u), level: lvl(u.xp), lo: need(lvl(u.xp)), hi: need(lvl(u.xp) + 1), shop: SHOP });
 
 function auth(req, res, next) {
   const id = readToken(cookie(req, "sid")), u = id && getUser(id);
@@ -184,20 +198,21 @@ app.post("/api/buy", auth, (req, res) => {
   if (u.coins < s.c) return res.status(400).json({ error: "Not enough coins." });
   u.coins -= s.c;
   if (s.t === "cons") u.shield++; else u.owned.push(s.id);
-  if (s.t === "theme") u.accent = s.v; if (s.t === "title") u.title = s.v;
   saveUser(u); res.json(view(u));
 });
 
+// Equip toggles: equipping an owned item fills its slot; equipping it again empties the slot.
 app.post("/api/equip", auth, (req, res) => {
   const u = req.u, s = SHOP.find(x => x.id === req.body.id);
-  if (!s || !u.owned.includes(s.id)) return res.status(400).json({ error: "You don’t own that." });
-  if (s.t === "theme") u.accent = s.v; else if (s.t === "title") u.title = s.v;
+  if (!s || s.t === "cons" || !u.owned.includes(s.id)) return res.status(400).json({ error: "You don’t own that." });
+  if (u.equipped[s.slot] === s.id) { delete u.equipped[s.slot]; if (s.slot === "title") u.title = ""; }
+  else { u.equipped[s.slot] = s.id; if (s.slot === "title") u.title = s.n; }
   saveUser(u); res.json(view(u));
 });
 
 app.get("/api/leaderboard", (req, res) => {
-  const rows = db.prepare("SELECT username,cc,xp,wins,best,title FROM users WHERE cc IS NOT NULL ORDER BY xp DESC LIMIT 20").all();
-  res.json(rows.map(r => ({ ...r, level: lvl(r.xp) })));
+  const rows = db.prepare("SELECT username,cc,xp,wins,best,title,equipped FROM users WHERE cc IS NOT NULL ORDER BY xp DESC LIMIT 20").all();
+  res.json(rows.map(r => { const e = JSON.parse(r.equipped || "{}"), t = SHOP.find(x => x.id === e.throne); delete r.equipped; return { ...r, level: lvl(r.xp), g: t ? t.g : "♟\uFE0E" }; }));
 });
 
 app.listen(PORT, () => console.log("Level Up Chess running on http://localhost:" + PORT));
