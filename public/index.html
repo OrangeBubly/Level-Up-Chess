@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Level Up Chess</title>
 <style>
-:root{--bg:#09090c;--p:#121217;--p2:#1a1a22;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--c0:#8e8e9e;--c1:#3da9ff;--c2:#b44dff;--c3:#ffb020}
+:root{--bg:#09090c;--p:#121217;--p2:#1a1a22;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--c0:#8e8e9e;--c1:#3ddc84;--c2:#3da9ff;--c3:#b44dff;--c4:#ffb020;--c5:#ff2d3d}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(900px 500px at 90% -10%,rgba(255,45,61,.14),transparent),var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
 .app{display:grid;grid-template-columns:230px 1fr;min-height:100vh;max-width:1400px;margin:0 auto}
@@ -55,21 +55,21 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgba(255,45,61
 @media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}.nav{flex:1;text-align:center;padding:9px 4px;font-size:12px}main{padding:18px 14px 96px}.g2{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}}
 </style></head><body><div id="root"></div><div id="toast"></div>
 <script>
-var S=null,LB=[],tab="home",flt="all",RN=["COMMON","RARE","EPIC","LEGENDARY"],ST={xp:"XP",coin:"Coins",upset:"Underdog",streak:"Streak"};
-var SL=[["throne","Throne"],["flank","Flank"],["bastion","Bastion"],["vanguard","Vanguard"],["aura","Aura"],["title","Banner"]];
+var S=null,CAT=null,LB=[],tab="home",flt="all",RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],ST={xp:"XP",coin:"Coins",upset:"Underdog",streak:"Streak"};
 function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
 async function api(p,b){var o=b===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)};var r=await fetch("/api/"+p,o),j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||"Request failed");return j}
 function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=""},3000)}
-function burst(){var a=S&&S.equipped.aura,e=a==="a2"?["🌑","🩸","✨","♛"]:["🔥","✨","♟️","⭐"];for(var i=0;i<20;i++){var p=document.createElement("span");p.className="pop";p.textContent=e[i%e.length];p.style.left=(15+Math.random()*70)+"vw";p.style.top="65vh";p.style.setProperty("--dx",(Math.random()*180-90)+"px");document.body.appendChild(p);setTimeout(function(x){x.remove()}.bind(null,p),1400)}}
-function item(id){return S.shop.filter(function(s){return s.id===id})[0]}
+function burst(){var a=auraId(),e=a==="x2"?["🌑","🩸","✨","♛"]:["🔥","✨","♟️","⭐"];for(var i=0;i<20;i++){var p=document.createElement("span");p.className="pop";p.textContent=e[i%e.length];p.style.left=(15+Math.random()*70)+"vw";p.style.top="65vh";p.style.setProperty("--dx",(Math.random()*180-90)+"px");document.body.appendChild(p);setTimeout(function(x){x.remove()}.bind(null,p),1400)}}
+function item(id){return CAT.items.filter(function(s){return s.id===id})[0]}
+function auraId(){var r=S&&S.items.filter(function(i){return i.slot==="aura"})[0];return r&&r.def}
 function chips(s){var o="";for(var k in s)o+='<span class="chip">+'+s[k]+"% "+ST[k]+"</span>";return o||'<span class="mu">Cosmetic</span>'}
-async function boot(){try{S=await api("me")}catch(e){S=null}try{LB=await api("leaderboard")}catch(e){LB=[]}render()}
+async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}try{LB=await api("leaderboard")}catch(e){LB=[]}render()}
 async function refresh(){try{LB=await api("leaderboard")}catch(e){}}
-function card(it,vault){var own=S.owned.indexOf(it.id)>-1,eq=S.equipped[it.slot]===it.id,b;
- if(it.t==="cons")b='<button data-a="buy" data-i="'+it.id+'"'+(S.coins<it.c?" disabled":"")+'>🪙 '+it.c+" · own "+S.shield+"</button>";
- else if(own)b='<button class="'+(eq?"":"g")+'" data-a="equip" data-i="'+it.id+'">'+(eq?(vault===true?"Unequip":"Equipped ✔"):"Equip")+"</button>";
- else b='<button data-a="buy" data-i="'+it.id+'"'+(S.coins<it.c?" disabled":"")+'>🪙 '+it.c+"</button>";
- return'<div class="it" style="--rc:var(--c'+it.r+')"><span class="rar">'+RN[it.r]+" · "+it.slot.toUpperCase()+'</span><div class="glyph">'+it.g+"</div><b>"+it.n+"</b><div>"+chips(it.s)+'</div><div class="fl">'+it.f+'</div><div class="row">'+b+"</div></div>"}
+function chipsLv(d,lv){var m=1+0.2*((lv||1)-1),o="";for(var k in d.stats)o+='<span class="chip">+'+(Math.round(d.stats[k]*m*10)/10)+"% "+ST[k]+"</span>";return o||'<span class="mu">Cosmetic</span>'}
+function card(d,opt){opt=opt||{};var inst=opt.inst,b="";
+ if(opt.buy)b='<button data-a="buy" data-i="'+d.id+'"'+(S.coins<d.price?" disabled":"")+'>🪙 '+d.price+(opt.n?" · own "+opt.n:"")+"</button>";
+ else if(inst)b='<button class="'+(inst.slot?"":"g")+'" data-a="equip" data-i="'+inst.id+'">'+(inst.slot?"Unequip":"Equip")+"</button>";
+ return'<div class="it" style="--rc:var(--c'+d.r+')"><span class="rar">'+RN[d.r]+" · "+d.slot.toUpperCase()+(inst?" · LV "+inst.level:"")+'</span><div class="glyph">'+d.g+"</div><b>"+d.name+"</b><div>"+chipsLv(d,inst?inst.level:1)+"</div>"+(d.set?'<div class="mu">Set: '+CAT.sets[d.set].name+"</div>":"")+'<div class="fl">'+d.f+'</div><div class="row">'+b+"</div></div>"}
 function ccHTML(){
  if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
  if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3. Upsets and streaks add bonus XP.</p>';
@@ -78,20 +78,29 @@ function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc=""
  return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
  +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
  +'<div class="card"><h2>Active bonuses from your loadout</h2><div class="bn">'+bc+"</div></div>"}
-function vShop(){var f=[["all","All"]].concat(SL,[["consumable","Consumables"]]);
+function vShop(){var f=[["all","All"]].concat(CAT.slots);
  var t='<div class="tabs">'+f.map(function(x){return'<button class="'+(flt===x[0]?"on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
- var l=S.shop.filter(function(s){return flt==="all"||s.slot===flt}).sort(function(a,b){return a.r-b.r||a.c-b.c});
- return'<h1>Shop</h1><p class="mu" style="margin:4px 0 16px">Spend coins on artifacts, then equip them in your Vault. You have <b>🪙 '+S.coins+'</b>.</p>'+t+'<div class="grid">'+l.map(function(i){return card(i)}).join("")+"</div>"}
-function vVault(){var s=SL.map(function(x){var id=S.equipped[x[0]],it=id&&item(id);
-  return it?card(it,true).replace('<span class="rar">','<span class="sn">'+x[1].toUpperCase()+'</span><span class="rar">'):'<div class="it slot empty"><span class="sn">'+x[1].toUpperCase()+'</span><div class="glyph" style="color:#333;text-shadow:none">＋</div><div>Empty slot</div><button class="g" data-t="shop">Browse shop</button></div>'}).join("");
- var own=S.shop.filter(function(i){return S.owned.indexOf(i.id)>-1&&S.equipped[i.slot]!==i.id});
- return'<h1>Vault</h1><p class="mu" style="margin:4px 0 16px">Your trophy room. One artifact per slot, and each one boosts how much you earn.</p><div class="slots">'+s+'</div><h2>Collection</h2>'+(own.length?'<div class="grid">'+own.map(function(i){return card(i)}).join("")+"</div>":'<p class="mu">Nothing waiting in storage. Buy artifacts in the shop!</p>')}
+ var l=CAT.items.filter(function(s){return s.price>0&&(flt==="all"||s.slot===flt)}).sort(function(a,b){return a.r-b.r||a.price-b.price});
+ var own=function(id){return S.items.filter(function(i){return i.def===id}).length};
+ var sh=flt==="all"?'<div class="it" style="--rc:var(--c0)"><span class="rar">CONSUMABLE</span><div class="glyph">🛡</div><b>Streak Shield</b><div class="fl">Your next loss won’t break your streak. You hold '+S.shield+'.</div><div class="row"><button data-a="buy" data-i="shield"'+(S.coins<CAT.shield.price?" disabled":"")+'>🪙 '+CAT.shield.price+"</button></div></div>":"";
+ return'<h1>Shop</h1><p class="mu" style="margin:4px 0 16px">Buy starter gear here. Rare and better gear is crafted in the Workshop. You have <b>🪙 '+S.coins+'</b>.</p>'+t+'<div class="grid">'+sh+l.map(function(d){return card(d,{buy:1,n:own(d.id)})}).join("")+"</div>"}
+function vVault(){var s=CAT.slots.map(function(x){var inst=S.items.filter(function(i){return i.slot===x[0]})[0];
+  return inst?card(item(inst.def),{inst:inst}).replace('<span class="rar">','<span class="sn">'+x[1].toUpperCase()+'</span><span class="rar">'):'<div class="it slot empty"><span class="sn">'+x[1].toUpperCase()+'</span><div class="glyph" style="color:#333;text-shadow:none">＋</div><div>Empty slot</div><button class="g" data-t="shop">Browse shop</button></div>'}).join("");
+ var inv=S.items.filter(function(i){return !i.slot});
+ var sets=S.sets.length?'<div class="card" style="margin-bottom:18px"><h2>Active set bonuses</h2>'+S.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join("")+"</div>":"";
+ return'<h1>Vault</h1><p class="mu" style="margin:4px 0 16px">Eight slots, one item each. Every equipped item boosts what you earn, and matching sets add bonuses.</p>'+sets+'<div class="slots">'+s+'</div><h2>Inventory</h2>'+(inv.length?'<div class="grid">'+inv.map(function(i){return card(item(i.def),{inst:i})}).join("")+"</div>":'<p class="mu">Nothing in storage.</p>')}
+function costTxt(c){var n={coins:"🪙",shard:"Shards",essence:"Essence",relic:"Relics"},o=[];for(var k in c)o.push(c[k]+" "+n[k]);return o.join(" · ")}
+function canPay(c){for(var k in c){var have=k==="coins"?S.coins:S.mats[k];if((have||0)<c[k])return false}return true}
+function vWork(){var m=CAT.mats,mh='<div class="stats" style="grid-template-columns:repeat(3,1fr)">'+Object.keys(m).map(function(k){return'<div class="stat"><b>'+S.mats[k]+'</b><span class="mu">'+m[k]+"</span></div>"}).join("")+"</div>";
+ var inv=S.items.map(function(i){var d=item(i.def);return'<div class="lb"><span class="gl" style="color:var(--c'+d.r+')">'+d.g+'</span><div><b>'+d.name+' <span class="mu">LV '+i.level+"/"+CAT.maxLevel+'</span></b><div class="mu">'+(i.up?"Upgrade: "+costTxt(i.up):"Max level")+" · Dismantle: "+costTxt(i.dis)+'</div></div><div class="row" style="margin-left:auto;flex:none"><button data-a="upgrade" data-i="'+i.id+'"'+(i.up&&canPay(i.up)?"":" disabled")+'>Upgrade</button><button class="g" data-a="dismantle" data-i="'+i.id+'"'+(i.slot?" disabled":"")+'>Dismantle</button></div></div>'}).join("")||'<p class="mu">No items yet. Visit the shop!</p>';
+ var rc=CAT.recipes.map(function(r){var d=item(r.out);return'<div class="lb"><span class="gl" style="color:var(--c'+d.r+')">'+d.g+'</span><div><b>'+d.name+' <span class="mu">'+RN[d.r]+'</span></b><div class="mu">'+costTxt(r.cost)+'</div></div><button data-a="craft" data-i="'+r.out+'" style="margin-left:auto"'+(canPay(r.cost)?"":" disabled")+'>Craft</button></div>'}).join("");
+ return'<h1>Workshop</h1><p class="mu" style="margin:4px 0 16px">Dismantle spare gear into materials, upgrade your best items, and craft Rare and better gear.</p>'+mh+'<div class="card" style="margin-bottom:18px"><h2>Your items</h2>'+inv+'</div><div class="card"><h2>Crafting recipes</h2>'+rc+"</div>"}
 function vRanks(){var m=["🥇","🥈","🥉"];return'<h1>Leaderboard</h1><p class="mu" style="margin:4px 0 16px">Top verified players by total XP.</p><div class="card">'+(LB.length?LB.map(function(x,i){return'<div class="lb'+(i===0?" top1":"")+'"><span class="n">'+(m[i]||i+1)+'</span><span class="gl">'+x.g+"</span><div><b>"+esc(x.username)+(S&&S.username===x.username?" (you)":"")+'</b><div class="mu">'+(x.title?esc(x.title)+" · ":"")+"Level "+x.level+" · "+x.wins+" wins · best streak "+x.best+'</div></div><span class="x">'+x.xp+" XP</span></div>"}).join(""):'<p class="mu">No verified players yet. Be the first!</p>')+"</div>"}
 function render(){var R=document.getElementById("root");
  if(!S){R.innerHTML='<div class="auth"><div class="logo" style="margin:0 0 6px;font-size:30px">LEVEL UP <b>CHESS</b></div><p class="mu">Turn every chess.com game into XP, loot and glory.</p><div class="card"><input id="un" placeholder="Username" autocomplete="username"><input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="current-password"><div class="err" id="er"></div><div class="row"><button id="li">Log in</button><button class="g" id="su">Sign up</button></div></div></div>';
   var go=function(p){return async function(){try{await api(p,{username:document.getElementById("un").value,password:document.getElementById("pw").value});tab="home";await boot()}catch(e){document.getElementById("er").textContent=e.message}}};
   document.getElementById("li").onclick=go("login");document.getElementById("su").onclick=go("signup");return}
- var N=[["home","⌂ Home"],["shop","◆ Shop"],["vault","♛ Vault"],["ranks","☰ Ranks"]],V={home:vHome,shop:vShop,vault:vVault,ranks:vRanks};
+ var N=[["home","⌂ Home"],["shop","◆ Shop"],["vault","♛ Vault"],["work","⚒ Workshop"],["ranks","☰ Ranks"]],V={home:vHome,shop:vShop,vault:vVault,work:vWork,ranks:vRanks};
  R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'">'+n[1]+"</button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><button class="g" id="lo" style="margin-top:8px;width:100%;padding:6px">Log out</button></div></aside><main>'+V[tab]()+"</main></div>";
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
@@ -101,12 +110,14 @@ function render(){var R=document.getElementById("root");
  if($("sy"))$("sy").onclick=sync}
 function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();if(ok)toast(ok)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message}}}
 async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";
- try{var r=await api("sync",{}),fx=!!S.equipped.aura;S=r;await refresh();render();
+ try{var r=await api("sync",{}),fx=!!auraId();S=r;await refresh();render();
   if(r.msg)toast(r.msg);else if(r.count){toast(r.count+" new games: +"+r.gained+" XP!"+(r.leveled?" 🎉 Level up!":""));if(r.won&&fx)burst()}else toast("No new rated games since last sync.")
  }catch(e){se.textContent=e.message}}
 document.addEventListener("click",async function(e){var b=e.target.closest("[data-a],[data-t],[data-f]");if(!b||!S)return;
  if(b.dataset.t){tab=b.dataset.t;render();window.scrollTo(0,0);return}
  if(b.dataset.f){flt=b.dataset.f;render();return}
- try{var it=item(b.dataset.i),was=it&&S.equipped[it.slot];S=await api(b.dataset.a,{id:b.dataset.i});await refresh();render();toast(b.dataset.a==="buy"?"Purchased! Equip it in your Vault.":was===b.dataset.i?"Unequipped":"Equipped!")}catch(er){toast(er.message)}});
+ var a=b.dataset.a,bd=a==="buy"||a==="craft"?{id:b.dataset.i}:{iid:+b.dataset.i};
+ if(a==="dismantle"&&!confirm("Dismantle this item for materials? This can’t be undone."))return;
+ try{S=await api(a,bd);await refresh();render();toast({buy:"Purchased!",craft:"Crafted!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!"}[a])}catch(er){toast(er.message)}});
 boot();
 </script></body></html>

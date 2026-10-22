@@ -1,9 +1,9 @@
 {
   "name": "level-up-chess",
-  "version": "1.0.0",
-  "description": "Gamified XP, upgrades and leaderboard for chess.com players",
+  "version": "2.0.0",
+  "description": "Gamified XP, loot, crafting and leaderboards for chess.com players",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" },
+  "scripts": { "start": "node server.js", "test": "node --test" },
+  "engines": { "node": ">=20" },
   "dependencies": { "better-sqlite3": "^13.0.3", "express": "^5.3.0" }
 }

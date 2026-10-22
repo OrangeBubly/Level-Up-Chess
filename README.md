@@ -1,28 +1,40 @@
-# Level Up Chess: backend + frontend
+# Level Up Chess (v2)
 
-Accounts, verified chess.com linking, server-side XP, upgrade shop and a public leaderboard.
+Turn chess.com games into XP, loot and glory. Accounts, verified chess.com linking, server-side rewards,
+item collection with eight equipment slots, upgrades, dismantling, crafting and a leaderboard.
 
 ## Run it
     npm install
-    CONTACT_EMAIL=you@example.com npm start      # http://localhost:3000
+    CONTACT_EMAIL=you@example.com npm start     # http://localhost:3000
+    npm test                                    # 11 automated tests, no network needed
 
-Optional env vars: `PORT`, `DB_FILE` (SQLite path), `SESSION_SECRET` (otherwise generated into `.secret`),
-`NODE_ENV=production` (marks the session cookie Secure; serve over HTTPS), `CONTACT_EMAIL` (sent in the
-User-Agent to chess.com, which asks API users to identify themselves).
+## Environment variables
+| Name | Purpose |
+|---|---|
+| `DB_FILE` | SQLite file. **Use a new name for v2** (e.g. `/var/data/levelup-v2.db`); the app refuses to open a pre-v2 database. |
+| `SESSION_SECRET` | Long random string that signs login cookies. |
+| `NODE_ENV=production` | Secure cookies, and trusts one proxy hop (Render). |
+| `CONTACT_EMAIL` | Sent to chess.com in the User-Agent, as they request. |
+| `TRUST_PROXY` | Optional override for the number of proxy hops. |
+| `BACKUP_DIR` | Optional. Pre-migration backups go here (default: `backups/` next to the database). |
 
-## How it stays fair
-- The **server** reads games from chess.com's public API, so XP can't be faked from the browser.
-- Players **prove ownership** of a chess.com username by putting a code in their profile's Location field.
-  One chess.com account can be verified by one user only.
-- Only **rated standard chess** games count; each game URL is recorded once so it can't be counted twice.
-- First sync sets a baseline, so old games never give XP. Syncs are limited to one per 30 s per user.
-- Passwords use scrypt; sessions are signed HttpOnly cookies; login/signup are rate limited.
+## Layout
+- `server.js`: HTTP routes, sessions, error handling, logging.
+- `lib/core.js`: the only code that changes balances, items and XP (one transaction per action).
+- `lib/rules.js`: pure reward and stat rules.  `lib/content.js`: items, sets, recipes as data.
+- `lib/db.js`: numbered migrations (`schema_migrations`).  `lib/chesscom.js`: serial, cached chess.com client.
+- `test/`: automated tests.  `public/index.html`: the frontend.
 
-## API
-POST /api/signup, /api/login, /api/logout · GET /api/me · POST /api/cc, /api/cc/verify, /api/sync ·
-POST /api/buy, /api/equip · GET /api/leaderboard
+## How rewards stay fair
+- Chess.com games are stored once; each player can claim a game once (database primary key).
+- Rated standard chess only; at least 8 half-moves; max 6 rewarded games per opponent per 24 h;
+  XP drops to 25% after 600 XP in 24 h. The underdog bonus uses your rating *before* the game.
+- First sync sets a baseline, so earlier games never pay out. Every fresh game is eventually processed.
+- Item bonuses (with caps) change website rewards only, never chess.com games.
 
-## Deploying
-Needs a Node host with a persistent disk for the SQLite file (Render, Railway, Fly.io, a VPS). Serverless
-hosts with ephemeral storage will lose data unless you swap SQLite for Postgres.
-The rate limiter is in-memory, so run a single instance (or move it to Redis if you scale out).
+## Adding content
+Add a row to `ROWS` in `lib/content.js`. Items with price 0 become craftable automatically (cost by rarity).
+
+## Changing the database later
+Add a new entry to `MIGRATIONS` in `lib/db.js`. Before applying a migration to a database that has data,
+the app writes a backup copy to `BACKUP_DIR`.
