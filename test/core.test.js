@@ -11,13 +11,13 @@ function setup(opts) {
 }
 const M = k => ({ t: "mat", k }), W3 = [null, M("shard"), null, null, M("essence"), null, null, M("shard"), null];
 let n = 0;
-const G = (white, black, res = "win", o = {}) => { n++; return { url: "g" + n, end_time: o.t || 1000 + n, rules: "chess", rated: o.rated !== false, time_control: "600",
+const G = (white, black, res = "win", o = {}) => { n++; return { url: "g" + n, end_time: o.t || 1000 + n, rules: "chess", rated: o.rated !== false, time_control: o.tc || "600",
   pgn: Array(o.plies || 20).fill("e4").join(" "), white: { username: white, rating: o.wr || 1500, result: res }, black: { username: black, rating: o.br || 1500, result: res === "win" ? "checkmated" : "win" } }; };
 const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s FROM ledger WHERE user_id=? AND kind=?").get(uid, kind).s;
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -180,6 +180,64 @@ test("achievements: unlock once, pay their reward, and the hidden Giant Slayer n
   assert.equal(core.sync(a, [G("alice", "big", "win", { wr: 1500, br: 1750 })]).ach.includes("first_win"), false);
   assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins")); assert.equal(core.view(a).ach.giant.name, "Giant Slayer");
   const v = core.view(mk("bob", "bob")); assert.deepEqual(v.ach.giant, {}); assert.equal(v.recipes.find(x => x.id === "a3").hint, null);
+});
+
+test("quest periods: days start at midnight UTC, weeks on Monday", () => {
+  const thu = Date.UTC(2026, 9, 22, 15) / 1000; // Thursday 2026-10-22, 15:00 UTC
+  assert.deepEqual(R.periodOf("daily", thu), { key: "d2026-10-22", start: Date.UTC(2026, 9, 22) / 1000, end: Date.UTC(2026, 9, 23) / 1000 });
+  assert.deepEqual(R.periodOf("weekly", thu), { key: "w2026-10-19", start: Date.UTC(2026, 9, 19) / 1000, end: Date.UTC(2026, 9, 26) / 1000 });
+  assert.equal(R.periodOf("weekly", Date.UTC(2026, 9, 19) / 1000).key, "w2026-10-19"); // Monday midnight starts a new week
+  assert.equal(R.periodOf("weekly", Date.UTC(2026, 9, 19) / 1000 - 1).key, "w2026-10-12");
+});
+
+test("quest picks: stable per player and period, distinct, at most one time-class quest", () => {
+  const seen = new Set();
+  for (let i = 0; i < 200; i++) for (const kind of ["daily", "weekly"]) {
+    const p = R.pickQuests(C.QUESTS[kind], "u" + i, 3);
+    assert.deepEqual(p, R.pickQuests(C.QUESTS[kind], "u" + i, 3));
+    assert.equal(new Set(p.map(q => q.id)).size, 3); assert.ok(p.filter(q => q.tc).length <= 1);
+    seen.add(p.map(q => q.id).join());
+  }
+  assert.ok(seen.size > 20, "players should not all get the same quests");
+});
+
+test("quests: progress from rewarded games, claim once, rewards go through the ledger", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), games = [];
+  for (let i = 0; i < 45; i++) games.push(G("alice", "q" + i, "win", { br: 1600, tc: ["60", "300", "600"][i % 3] }));
+  games.push(G("alice", "u", "win", { rated: false })); // unrated: never counts
+  assert.throws(() => core.claimQuest(a, core.quests(a).daily.list[0].id), e => e.code === "not_done");
+  core.sync(a, games);
+  const qs = core.quests(a), all = [...qs.daily.list, ...qs.weekly.list];
+  assert.equal(all.length, 6); assert.ok(all.every(q => q.cur === q.n && !q.claimed), JSON.stringify(all));
+  const coins0 = bal(db, a, "coins");
+  for (const q of all) { assert.deepEqual(core.claimQuest(a, q.id).quest.reward, C.QUEST[q.id].reward); assert.throws(() => core.claimQuest(a, q.id), e => e.code === "claimed"); }
+  assert.equal(bal(db, a, "coins"), coins0 + all.reduce((s, q) => s + C.QUEST[q.id].reward.coins, 0));
+  for (const k of ["coins", "shard", "essence", "relic"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  assert.ok(core.quests(a).daily.list.every(q => q.claimed));
+  const notMine = C.QUESTS.daily.find(q => !qs.daily.list.some(x => x.id === q.id));
+  assert.throws(() => core.claimQuest(a, notMine.id), e => e.code === "not_found");
+  assert.throws(() => core.claimQuest(a, "nope"), e => e.code === "not_found");
+});
+
+test("quests: a new day resets daily quests, old games stop counting, the week carries on", () => {
+  let t = 5000; const { core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
+  const games = []; for (let i = 0; i < 6; i++) games.push(G("alice", "r" + i, "win", { br: 1600 }));
+  core.sync(a, games);
+  const day1 = core.quests(a), q = day1.daily.list.find(x => x.cur === x.n); core.claimQuest(a, q.id);
+  t += 86400;
+  const day2 = core.quests(a);
+  assert.notEqual(day2.daily.key, day1.daily.key); assert.equal(day2.weekly.key, day1.weekly.key);
+  assert.ok(day2.daily.list.every(x => x.cur === 0 && !x.claimed));
+  assert.deepEqual(day2.weekly.list.map(x => x.cur), day1.weekly.list.map(x => x.cur));
+});
+
+test("quests: claiming 10 unlocks Quest Giver", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), games = [];
+  for (let i = 0; i < 6; i++) games.push(G("alice", "s" + i, "win", { br: 1600 }));
+  core.sync(a, games);
+  for (let i = 0; i < 9; i++) db.prepare("INSERT INTO quest_claims(user_id,period,quest,at) VALUES(?,?,?,0)").run(a, "d1970-01-0" + (i + 2), "d_play3");
+  const q = core.quests(a).daily.list.find(x => x.cur === x.n);
+  assert.ok(core.claimQuest(a, q.id).ach.includes("quests10"));
 });
 
 test("achievement progress: counts show real counts, rarity tiers show 0 / 1 until owned", () => {

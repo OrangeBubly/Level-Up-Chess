@@ -118,6 +118,7 @@ app.post("/api/upgrade", auth, act((u, b) => core.upgrade(u, Number(b.iid))));
 app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid))));
 app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
 app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
+app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
 app.post("/api/craft/preview", auth, (req, res) => {
   if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
   res.json(core.preview(req.u.id, body(req).grid));
