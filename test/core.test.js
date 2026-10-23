@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -328,4 +328,68 @@ test("linked sign-up: the account is created already linked, and a chess.com acc
   assert.throws(() => core.createLinkedUser("bob", "s", "h", "alicecc", 79), e => e.code === "cc_taken");
   assert.throws(() => core.createLinkedUser("bob", "s", "h", "renamed", 77), e => e.code === "cc_taken"); // same chess.com account after a rename
   assert.equal(db.prepare("SELECT COUNT(*) n FROM users").get().n, 1);
+});
+
+test("friends: request, accept, crossed requests auto-accept, remove, and nobody befriends themselves", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob"), c = mk("carl", "carl");
+  assert.equal(core.addFriend(a, "Bob").friend, "sent"); // usernames are case-insensitive
+  assert.deepEqual(core.view(b).social.received.map(x => x.username), ["alice"]); assert.deepEqual(core.view(a).social.sent.map(x => x.username), ["bob"]);
+  assert.throws(() => core.answerFriend(a, "bob", true), e => e.code === "not_found"); // only the receiver can accept
+  assert.ok(core.answerFriend(b, "alice", true).ach.includes("friend1"));
+  assert.deepEqual(core.view(a).social.friends.map(x => x.username), ["bob"]); assert.equal(core.view(b).social.received.length, 0);
+  assert.throws(() => core.addFriend(a, "bob"), e => e.code === "already");
+  core.addFriend(a, "carl"); assert.equal(core.addFriend(c, "alice").friend, "accepted");
+  core.addFriend(b, "carl"); core.answerFriend(c, "bob", false); assert.equal(core.view(b).social.sent.length, 0);
+  core.removeFriend(a, "bob"); assert.deepEqual(core.view(b).social.friends, []); assert.deepEqual(core.view(a).social.friends.map(x => x.username), ["carl"]);
+  assert.throws(() => core.addFriend(a, "alice"), e => e.code === "self"); assert.throws(() => core.addFriend(a, "nobody"), e => e.code === "not_found");
+});
+
+test("public profiles: show gear and achievements, hide everything when friends-only", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core.buy(a, "w1"); core.equip(a, db.prepare("SELECT id FROM items WHERE user_id=?").get(a).id);
+  const p = core.publicProfile(b, "alice");
+  assert.equal(p.private, false); assert.equal(p.rel, "none"); assert.deepEqual(p.gear.map(g => g.def), ["w1"]); assert.ok(p.ach.some(x => x.id === "linked"));
+  assert.equal(p.coins, undefined); assert.equal(p.hash, undefined);
+  core.setPrivacy(a, "friends"); assert.deepEqual(Object.keys(core.publicProfile(b, "alice")).sort(), ["clan", "level", "private", "rel", "title", "username"]);
+  assert.equal(core.publicProfile(a, "alice").private, false); // you can always see yourself
+  core.addFriend(b, "alice"); core.answerFriend(a, "bob", true); assert.equal(core.publicProfile(b, "alice").private, false);
+  assert.throws(() => core.setPrivacy(a, "secret"), e => e.code === "bad_privacy");
+});
+
+test("clans: found for coins, unique name and tag, open join, invite-only requests, one clan each", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob"), c = mk("carl", "carl");
+  assert.throws(() => core.createClan(a, "Knights", "KN"), e => e.code === "insufficient"); // 175 coins < 500
+  core._grant(a, "coins", 1000, "t"); core._grant(b, "coins", 1000, "t");
+  assert.throws(() => core.createClan(a, "!!", "KN"), e => e.code === "bad_name"); assert.throws(() => core.createClan(a, "Knights", "K"), e => e.code === "bad_tag");
+  assert.ok(core.createClan(a, "Knights  of  Tempo", "kn").ach.includes("clan1"));
+  const k = core.view(a).clan.mine; assert.equal(k.name, "Knights of Tempo"); assert.equal(k.tag, "KN"); assert.ok(k.leader);
+  assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.throws(() => core.createClan(b, "knights of tempo", "XY"), e => e.code === "name_taken"); assert.throws(() => core.createClan(b, "Other", "kn"), e => e.code === "tag_taken");
+  assert.equal(core.joinClan(b, k.id).clanAction, "joined"); assert.throws(() => core.joinClan(b, k.id), e => e.code === "in_clan");
+  assert.throws(() => core.setClanOpen(b, false), e => e.code === "not_leader");
+  core.setClanOpen(a, false); assert.equal(core.joinClan(c, k.id).clanAction, "requested");
+  assert.deepEqual(core.view(c).clan.requested, [k.id]); assert.deepEqual(core.view(a).clan.mine.requests.map(x => x.username), ["carl"]);
+  assert.deepEqual(core.view(b).clan.mine.requests, []); // only the leader sees requests
+  assert.deepEqual(core.view(b).clan.requested, []); // always present, even inside a clan (the page reads it)
+  core.answerClan(a, "carl", true); assert.equal(core.view(c).clan.mine.members.length, 3);
+  assert.equal(core.leaderboard().find(x => x.username === "carl").tag, "KN");
+});
+
+test("clans: kicking, leadership passes to the longest member, and an empty clan closes", () => {
+  let t = 5000; const { db, core, mk } = setup({ now: () => t }), a = mk("alice", "alice"), b = mk("bob", "bob"), c = mk("carl", "carl");
+  core._grant(a, "coins", 1000, "t"); core.createClan(a, "Rooks", "RK"); const id = core.view(a).clan.mine.id;
+  t++; core.joinClan(b, id); t++; core.joinClan(c, id);
+  assert.throws(() => core.kick(b, "carl"), e => e.code === "not_leader"); assert.throws(() => core.kick(a, "alice"), e => e.code === "self");
+  core.kick(a, "carl"); assert.equal(core.view(c).clan.mine, null);
+  core.leaveClan(a); assert.ok(core.view(b).clan.mine.leader); assert.equal(core.view(b).clan.mine.members.length, 1);
+  core.leaveClan(b); assert.equal(db.prepare("SELECT COUNT(*) n FROM clans").get().n, 0);
+  assert.throws(() => core.leaveClan(b), e => e.code === "no_clan");
+});
+
+test("clan leaderboard: ranked by XP members earned this week", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core._grant(a, "coins", 1000, "t"); core._grant(b, "coins", 1000, "t");
+  core.createClan(a, "Pawns", "PW"); core.createClan(b, "Bishops", "BI");
+  core.sync(b, [G("bob", "z1"), G("bob", "z2")]); core.sync(a, [G("alice", "z3")]);
+  const board = core.clanBoard(); assert.deepEqual(board.map(x => x.tag), ["BI", "PW"]); assert.ok(board[0].week > board[1].week);
 });

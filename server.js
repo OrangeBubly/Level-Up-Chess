@@ -136,8 +136,9 @@ app.post("/api/sync", auth, async (req, res) => {
   res.json(reply(u.id, core.sync(u.id, await cc.games(u.cc))));
 });
 
-// The player view plus an action's result. Newly unlocked achievements go in `unlocked`, so they don't overwrite the view's `ach` progress.
-const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...core.view(uid), ...rest, unlocked: ach || [] }; };
+// The player view plus an action's result. The view wins any name clash, so a result can never replace part of it
+// (newly unlocked achievements go in `unlocked` instead of overwriting the view's `ach` progress).
+const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...rest, ...core.view(uid), unlocked: ach || [] }; };
 const act = fn => (req, res) => res.json(reply(req.u.id, fn(req.u.id, body(req))));
 app.post("/api/buy", auth, act((u, b) => core.buy(u, String(b.id || ""))));
 app.post("/api/equip", auth, act((u, b) => core.equip(u, Number(b.iid))));
@@ -148,6 +149,23 @@ app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
 app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
 app.post("/api/merchant", auth, act((u, b) => core.buyOffer(u, String(b.id || ""))));
 app.post("/api/theme", auth, act((u, b) => core.setTheme(u, String(b.theme || ""))));
+// ---- friends, public profiles and clans ----
+const friendLimit = req => { if (!limit("friend:" + req.u.id, 20, 864e5)) throw new AppError("rate_limited", "That’s a lot of friend requests for one day. Try again tomorrow.", 429); };
+app.post("/api/friend", auth, (req, res, next) => { friendLimit(req); next(); }, act((u, b) => core.addFriend(u, String(b.name || ""))));
+app.post("/api/friend/answer", auth, act((u, b) => core.answerFriend(u, String(b.name || ""), b.accept === true)));
+app.post("/api/friend/remove", auth, act((u, b) => core.removeFriend(u, String(b.name || ""))));
+app.post("/api/privacy", auth, act((u, b) => core.setPrivacy(u, String(b.privacy || ""))));
+app.get("/api/u/:name", auth, (req, res) => res.json(core.publicProfile(req.u.id, req.params.name)));
+app.post("/api/clan/create", auth, act((u, b) => core.createClan(u, b.name, b.tag)));
+app.post("/api/clan/join", auth, act((u, b) => core.joinClan(u, Number(b.id))));
+app.post("/api/clan/cancel", auth, act((u, b) => core.cancelClanRequest(u, Number(b.id))));
+app.post("/api/clan/answer", auth, act((u, b) => core.answerClan(u, String(b.name || ""), b.accept === true)));
+app.post("/api/clan/leave", auth, act(u => core.leaveClan(u)));
+app.post("/api/clan/kick", auth, act((u, b) => core.kick(u, String(b.name || ""))));
+app.post("/api/clan/open", auth, act((u, b) => core.setClanOpen(u, b.open === true)));
+let clanCache = { at: 0, rows: [] };
+app.get("/api/clans", auth, (req, res) => { if (Date.now() - clanCache.at > 15e3) clanCache = { at: Date.now(), rows: core.clanBoard() }; res.json(clanCache.rows); });
+
 app.post("/api/password", auth, async (req, res) => {
   authLimit(req);
   const old = String(body(req).old || ""), p = String(body(req).password || "");
