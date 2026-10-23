@@ -73,6 +73,9 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgb(var(--acr)
 .tag{display:inline-block;padding:0 6px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:1px;background:rgb(var(--acr) / .16);border:1px solid rgb(var(--acr) / .45);color:var(--red3);vertical-align:2px}
 a.pl{color:inherit;text-decoration:none;border-bottom:1px dotted var(--mu)}a.pl:hover{color:var(--red);border-color:var(--red)}
 select{width:100%;padding:10px 12px;margin:5px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:560px;margin:8px 0}.rgrid select{margin:0}
+.pxed{display:grid;grid-template-columns:repeat(16,1fr);width:min(100%,384px);aspect-ratio:1;margin:10px 0;border:1px solid var(--bd);touch-action:none;user-select:none;cursor:crosshair;
+ background:repeating-conic-gradient(rgba(128,128,128,.28) 0 25%,transparent 0 50%) 0 0/24px 24px}.pxed i{display:block;box-shadow:inset 0 0 0 .5px rgba(128,128,128,.25)}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -121,7 +124,9 @@ function mkSprite(t,id){var h=hash(t+id);
  if(t==="item"){var d=item(id);return draw(TM[id]||SLT[d.slot],PAL[d.r],(d.slot==="armor"||d.slot==="aura"||d.slot==="amulet")?EM[d.g.charAt(0)]:null,h,d.r)}
  if(t==="mat")return draw(id==="essence"?"aura":id==="relic"?"relic":"shard",MPAL[id],null,h,0);
  return draw(id==="shield"?"shield":id==="catalyst"?"shard":"potion",CPAL[id],null,h,0)}
-function ico(t,id){var k=t+":"+id,src=A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)));return'<img class="px" src="'+src+'" alt="">'}
+// a texture made in the admin editor wins, then a file from assets/, then the generated pixel art
+function icoSrc(t,id){var k=t+":"+id;return CAT&&CAT.art&&CAT.art[id]?"/art/"+id+".png?v="+CAT.art[id]:A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)))}
+function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
 /* ---------- sounds: synthesized 8-bit effects, or your own files from assets/sfx ---------- */
 var AC=null;function tone(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=t||"square";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
 function seq(a,gap,t){a.forEach(function(f,i){setTimeout(function(){tone(f,.12,t||"square")},i*gap)})}
@@ -205,11 +210,75 @@ function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleD
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
  +'<div class="card"><h2>Sound</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+"</button></div></div>"
  +'<div class="card" style="margin-bottom:16px"><h2>Theme</h2><p class="mu" style="margin:0 0 10px">Win rated games to unlock more themes.</p><div class="themes">'+th+"</div></div>"
- +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+adminHTML()}
-/* only drawn when the server says this account is an admin; the server checks again on every admin action */
-function adminHTML(){if(!S.admin)return"";var kinds=[["coins","Coins"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),Object.keys(CAT.cons).map(function(k){return[k,CAT.cons[k].name]}));
+ +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+dangerHTML()}
+function dangerHTML(){return'<div class="card" style="margin-top:16px;border-color:#b91c1c"><h2>Danger zone</h2>'
+ +'<p class="mu" style="margin-top:0"><b>Clear save data</b> starts you again from level 1: XP, coins, items, materials, achievements and quests are wiped. Your login, chess.com link, friends, clan and settings stay. Games that already earned you rewards won’t pay out again.</p>'
+ +'<p class="mu"><b>Delete account</b> permanently removes your account and everything in it. This can’t be undone.</p>'
+ +'<input id="dzp" type="password" placeholder="Your password" autocomplete="current-password"><input id="dzc" placeholder="Type RESET to clear, or DELETE to delete" autocomplete="off"><div class="err" id="dze"></div>'
+ +'<div class="row"><button class="g" id="dzReset">Clear save data</button><button id="dzDel" style="background:#b91c1c;box-shadow:none">Delete account</button></div></div>'}
+/* ---------- admin: the server checks ADMIN_USERS on every admin call; this tab only appears when it says yes ---------- */
+var AD={sub:"items",data:null,edit:null,redit:null,art:null,px:null,pxFor:null,col:"#ff2d3d",tool:"paint"};
+function fsel(id,opts,v,dis){return'<select id="'+id+'"'+(dis?" disabled":"")+">"+opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select>"}
+function flab(l,h){return'<label class="mu" style="display:block;margin-top:8px">'+l+"</label>"+h}
+function vAdmin(){if(!S.admin)return'<p class="mu">Not available.</p>';if(!AD.data){if(!AD.loading)adminLoad();return'<p class="mu">Loading…</p>'}
+ var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
+ return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,tools:toolsHTML}[AD.sub])()}
+async function adminLoad(){AD.loading=1;try{AD.data=await api("admin/content")}catch(e){toast(e.message);AD.data={recipes:[],owned:{}}}AD.loading=0;render()}
+async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
+function adItems(){if(AD.edit)return itemForm();var own=AD.data.owned||{},b=function(x){return'<span class="chip">'+x+"</span>"};
+ var list=CAT.items.slice().sort(function(a,c){return CAT.slots.map(function(s){return s[0]}).indexOf(a.slot)-CAT.slots.map(function(s){return s[0]}).indexOf(c.slot)||a.r-c.r});
+ return'<div class="row" style="margin:0 0 12px"><button id="adNew" style="flex:none">+ New item</button></div><div class="card">'+list.map(function(d){
+  return'<div class="q">'+slotHTML({attr:"",r:d.r,html:ico("item",d.id)})+'<div><b style="color:'+RC[d.r]+'">'+esc(d.name)+'</b> <span class="mu">'+RN[d.r].toLowerCase()+" "+d.slot+(d.price?" · 🪙 "+d.price:"")+"</span><div>"+(d.custom?b("Added"):"")+(d.edited?b("Edited"):"")+(d.merchant?b("Merchant"):"")+(d.retired?b("Retired"):"")+(own[d.id]?' <span class="mu">'+own[d.id]+" owned</span>":"")+'</div></div><button class="g" data-ade="'+d.id+'">Edit</button></div>'}).join("")+"</div>"}
+function itemForm(){var d=AD.edit,isNew=!d.id,mc=d.merchantCost||null,glyphs=d.g&&CAT.glyphs.indexOf(d.g)<0?[d.g].concat(CAT.glyphs):CAT.glyphs;
+ return'<div class="card"><h2>'+(isNew?"New item":"Edit "+esc(d.name))+"</h2>"+(isNew?"":'<div style="display:flex;gap:10px;align-items:center">'+slotHTML({cls:"big",r:d.r,attr:"",html:ico("item",d.id)})+'<span class="mu">Change its picture in the Textures tab.</span></div>')
+ +flab("Name",'<input id="fN" maxlength="40" value="'+esc(d.name||"")+'">')
+ +'<div class="row"><div>'+flab("Slot"+(isNew?"":" (fixed once created)"),fsel("fS",CAT.slots,d.slot||"weapon",!isNew))+"</div><div>"+flab("Rarity",fsel("fR",RN.map(function(n,i){return[i,n]}),d.r||0))+"</div><div>"+flab("Symbol on the sprite",fsel("fG",glyphs.map(function(g){return[g,g]}),d.g||glyphs[0]))+"</div></div>"
+ +'<div class="row">'+["xp","coin","upset","streak"].map(function(k){return"<div>"+flab(ST[k]+" bonus %",'<input id="fx_'+k+'" type="number" min="0" max="50" step="0.5" value="'+((d.stats||{})[k]||0)+'">')+"</div>"}).join("")+"</div>"
+ +'<div class="row"><div>'+flab("Shop price (0 = not in the shop)",'<input id="fP" type="number" min="0" max="100000" value="'+(d.price||0)+'">')+"</div><div>"+flab("Set",fsel("fT",[["","None"]].concat(Object.keys(CAT.sets).map(function(k){return[k,CAT.sets[k].name]})),d.set||""))+"</div></div>"
+ +flab("Description",'<input id="fF" maxlength="120" value="'+esc(d.f||"")+'">')
+ +flab('<input type="checkbox" id="fM"'+(mc?" checked":"")+' style="width:auto;margin:0 6px 0 0">Sold by the Wandering Merchant for:','<div class="row" style="margin-top:0">'+["coins","shard","essence","relic"].map(function(k){return'<input id="fm_'+k+'" type="number" min="0" max="100000" placeholder="'+k+'" title="'+k+'" value="'+((mc||{})[k]||"")+'">'}).join("")+"</div>")
+ +flab('<input type="checkbox" id="fX"'+(d.retired?" checked":"")+' style="width:auto;margin:0 6px 0 0">Retired: out of the shop, merchant and recipes (players keep theirs)',"")
+ +'<div class="err" id="fe"></div><div class="row"><button id="fSave">Save</button><button class="g" id="fCancel">Cancel</button>'+(isNew?"":d.custom?'<button class="g" id="fDel">Delete</button>':d.edited?'<button class="g" id="fDel">Restore original</button>':"")+'</div><p class="mu">An item with no shop price, no merchant price and no recipe can only be given with the testing tools. Bonuses from all gear together are still capped.</p></div>'}
+function itemFromForm(){var $=function(i){return document.getElementById(i)},st={},mc=null;["xp","coin","upset","streak"].forEach(function(k){var v=+$("fx_"+k).value;if(v)st[k]=v});
+ if($("fM").checked){mc={};["coins","shard","essence","relic"].forEach(function(k){var v=+$("fm_"+k).value;if(v)mc[k]=v})}
+ return{id:AD.edit.id,name:$("fN").value,slot:$("fS").value,r:+$("fR").value,g:$("fG").value,stats:st,price:+$("fP").value,set:$("fT").value||null,f:$("fF").value,merchantCost:mc,retired:$("fX").checked}}
+function gridMini(g){return'<div class="cg" style="grid-template-columns:repeat(3,30px);gap:2px;flex:none">'+g.map(function(t){return'<div class="sl" style="width:30px;height:30px;cursor:default">'+(t?(CAT.mats[t]?ico("mat",t):ico("item",t)).replace('class="px"','class="px" style="width:20px;height:20px"'):"")+"</div>"}).join("")+"</div>"}
+function outName(o){return o[0]==="item"?(item(o[1])?item(o[1]).name:o[1]):CAT.cons[o[1]].name}
+function adRecipes(){if(AD.redit)return recipeForm();
+ return'<div class="row" style="margin:0 0 12px"><button id="adNewR" style="flex:none">+ New recipe</button></div><div class="card">'+AD.data.recipes.map(function(r){
+  var btns=r.off?'<button class="g" data-adr="on" data-i="'+r.id+'">Turn on</button>':'<button class="g" data-adr="edit" data-i="'+r.id+'">Edit</button> '+(r.base&&r.custom?'<button class="g" data-adr="on" data-i="'+r.id+'">Restore original</button> ':"")+'<button class="g" data-adr="off" data-i="'+r.id+'">'+(r.base?"Turn off":"Delete")+"</button>";
+  return'<div class="q"'+(r.off?' style="opacity:.5"':"")+">"+gridMini(r.grid)+"<div><b>"+esc(outName(r.out))+(r.qty>1?" ×"+r.qty:"")+'</b><div class="mu">'+r.mult+" per material square"+(r.fee?" · 🪙 "+r.fee:"")+(r.custom&&!r.base?" · added":r.custom?" · edited":" · built-in")+(r.off?" · turned off":"")+'</div><div class="mu">'+esc(r.hint||"")+"</div></div><div>"+btns+"</div></div>"}).join("")+"</div>"}
+function recipeForm(){var d=AD.redit,ings=[["","(empty)"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),CAT.items.filter(function(i){return!i.retired}).map(function(i){return[i.id,i.name+" (item)"]}));
+ var outs=CAT.items.filter(function(i){return!i.retired}).map(function(i){return["item:"+i.id,i.name]}).concat(Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name+" (potion)"]}));
+ return'<div class="card"><h2>'+(d.id?"Edit recipe":"New recipe")+'</h2><p class="mu" style="margin-top:0">Pick what goes in each square. The shape matters, not where it sits on the table. Every material square costs the amount below; item squares use up one spare item. Each pattern can only be used by one recipe.</p>'
+ +'<div class="rgrid">'+d.grid.map(function(t,i){return fsel("rg_"+i,ings,t||"")}).join("")+"</div>"
+ +flab("Makes",fsel("rO",outs,d.out.join(":")))
+ +'<div class="row"><div>'+flab("How many (potions only)",'<input id="rQ" type="number" min="1" max="10" value="'+(d.qty||1)+'">')+"</div><div>"+flab("Material per square",'<input id="rM" type="number" min="1" max="50" value="'+(d.mult||1)+'">')+"</div><div>"+flab("Coin fee",'<input id="rF" type="number" min="0" max="100000" value="'+(d.fee||0)+'">')+"</div></div>"
+ +flab("Hint shown before it’s discovered",'<input id="rH" maxlength="150" value="'+esc(d.hint||"")+'">')
+ +flab("Hint stays locked until this achievement (optional)",fsel("rA",[["","No lock"]].concat(CAT.ach.filter(function(a){return!a.hidden}).map(function(a){return[a.id,a.name]})),d.hintAch||""))
+ +'<div class="err" id="fe"></div><div class="row"><button id="rSave">Save</button><button class="g" id="rCancel">Cancel</button></div></div>'}
+function recipeFromForm(){var $=function(i){return document.getElementById(i)},o=$("rO").value.split(":");
+ return{id:AD.redit.id,out:[o[0],o[1]],grid:[0,1,2,3,4,5,6,7,8].map(function(i){return $("rg_"+i).value||null}),qty:+$("rQ").value,mult:+$("rM").value,fee:+$("rF").value,hint:$("rH").value,hintAch:$("rA").value||null}}
+function adArt(){var things=CAT.items.map(function(i){return["item:"+i.id,i.name]}).concat(Object.keys(CAT.mats).map(function(k){return["mat:"+k,CAT.mats[k]+" (material)"]}),Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name+" (potion)"]}));
+ if(!AD.art)AD.art=things[0][0];var p=AD.art.split(":"),t=p[0],id=p[1],has=CAT.art&&CAT.art[id],cells="";
+ if(AD.pxFor!==AD.art)loadPixels(t,id);
+ if(AD.px)for(var i=0;i<256;i++)cells+='<i data-pxi="'+i+'" style="background:'+(AD.px[i]||"transparent")+'"></i>';
+ return'<div class="wrap"><div class="card" style="flex:1 1 280px"><h2>Choose</h2>'+fsel("artSel",things,AD.art)+'<div style="display:flex;gap:14px;align-items:center;margin-top:12px">'+slotHTML({cls:"big",attr:"",html:ico(t,id)})+'<span class="mu">'+(has?"Using a custom texture.":"Using the generated art.")+"</span></div>"
+ +'<h2 style="margin-top:18px">Upload a picture</h2><p class="mu" style="margin-top:0">A PNG up to 200 KB and 512 × 512 pixels. Square pixel art looks best.</p><input type="file" id="artFile" accept="image/png">'
+ +(has?'<div class="row"><button class="g" id="artClear">Go back to the generated art</button></div>':"")+"</div>"
+ +'<div class="card" style="flex:2 1 340px"><h2>Or paint it (16 × 16)</h2><div class="row" style="align-items:center;margin-top:0"><input type="color" id="pxCol" value="'+AD.col+'" style="flex:none;width:52px;height:40px;padding:2px;margin:0">'
+ +[["paint","Paint"],["erase","Erase"],["pick","Pick a colour"]].map(function(x){return'<button class="'+(AD.tool===x[0]?"":"g")+'" data-pxt="'+x[0]+'" style="flex:none">'+x[1]+"</button>"}).join("")+'<button class="g" id="pxClear" style="flex:none">Clear</button></div>'
+ +'<div class="pxed" id="pxed">'+(AD.px?cells:'<span class="mu">Loading…</span>')+'</div><div class="row"><button id="pxSave">Save painting</button><button class="g" id="pxReload">Start over from the current picture</button></div></div></div>'}
+// reads the current picture into the 16x16 painter (transparent pixels stay empty)
+function loadPixels(t,id){var key=t+":"+id;AD.pxFor=key;AD.px=null;var img=new Image();img.onload=function(){if(AD.pxFor!==key)return;var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");x.imageSmoothingEnabled=false;x.drawImage(img,0,0,16,16);
+  var d=x.getImageData(0,0,16,16).data,px=[];for(var i=0;i<256;i++){var a=d[i*4+3];px.push(a<128?null:"#"+[d[i*4],d[i*4+1],d[i*4+2]].map(function(v){return("0"+v.toString(16)).slice(-2)}).join(""))}AD.px=px;if(tab==="admin"&&AD.sub==="art")render()};img.src=icoSrc(t,id)}
+function savePixels(){var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");AD.px.forEach(function(col,i){if(col){x.fillStyle=col;x.fillRect(i%16,Math.floor(i/16),1,1)}});
+ var id=AD.art.split(":")[1];adPost("admin/art",{id:id,png:c.toDataURL("image/png").split(",")[1]},"Texture saved.").then(function(r){if(r)AD.pxFor=null})}
+function pxAt(e){var el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.dataset&&el.dataset.pxi!=null?el:null}
+function pxApply(el){var i=+el.dataset.pxi;if(AD.tool==="pick"){if(AD.px[i]){AD.col=AD.px[i];AD.tool="paint";render()}return}AD.px[i]=AD.tool==="erase"?null:AD.col;el.style.background=AD.px[i]||"transparent"}
+function toolsHTML(){var kinds=[["coins","Coins"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),Object.keys(CAT.cons).map(function(k){return[k,CAT.cons[k].name]}));
  var opt=function(l){return l.map(function(x){return'<option value="'+x[0]+'">'+esc(x[1])+"</option>"}).join("")};
- return'<div class="card" style="margin-top:16px;border-color:var(--red)"><h2>🛠 Admin testing tools</h2><p class="mu" style="margin-top:0">Only affect your own account. Every use is recorded, and admin accounts are left off the public leaderboard.</p>'
+ return'<div class="card"><h2>Testing tools</h2><p class="mu" style="margin-top:0">These only affect your own account. Every use is recorded, and admin accounts are left off the public leaderboard.</p>'
  +'<div class="row"><select id="adK">'+opt(kinds)+'</select><input id="adN" type="number" min="1" max="100000" value="1000"><button id="adGive" style="flex:none">Give</button></div>'
  +'<div class="row"><select id="adI">'+opt(CAT.items.map(function(d){return[d.id,d.name+" ("+RN[d.r].toLowerCase()+" "+d.slot+")"]}))+'</select><button id="adItem" style="flex:none">Give item</button></div>'
  +'<div class="row"><input id="adW" type="number" min="0" max="100000" value="'+S.wins+'"><button id="adWins" style="flex:none">Set wins</button></div>'
@@ -276,13 +345,36 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
  if($("mk"))$("mk").onclick=async function(){busy("mk",true);try{await api("signup",{username:AU.un,password:AU.pw,cc:AU.cc,token:AU.token});AU={mode:"login"};tab="home";await boot();toast("Welcome! Hit Sync to set your baseline.")}catch(e){busy("mk",false);fail(e)}}}
 function render(){var R=document.getElementById("root");
  if(!S){authView(R);return}
- var N=[["home","⌂ Home"],["inv","🎒 Inventory"],["craft","⚒ Crafting"],["shop","◆ Shop"],["ach","🏆 Achievements"],["ranks","☰ Ranks"],["social","👥 Social"],["profile","👤 Profile"]],V={social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ var N=[["home","⌂ Home"],["inv","🎒 Inventory"],["craft","⚒ Crafting"],["shop","◆ Shop"],["ach","🏆 Achievements"],["ranks","☰ Ranks"],["social","👥 Social"],["profile","👤 Profile"]].concat(S.admin?[["admin","🛠 Admin"]]:[]),V={admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
  setTheme(S.theme);
+ // an admin changed items or textures: fetch the new catalog, then draw again
+ if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
  R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'">'+n[1]+"</button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("snd"))$("snd").onclick=$("mute").onclick;
+ var dz=async function(p,w,ok){if(String($("dzc").value).trim().toUpperCase()!==w){$("dze").textContent="Type "+w+" in the box to confirm.";return}
+  if(!confirm(w==="DELETE"?"Delete your account for good? This can’t be undone.":"Clear all your progress and start again from level 1?"))return;
+  try{var r=await api(p,{password:$("dzp").value,confirm:w});if(w==="DELETE"){S=null;AU={mode:"login"};tab="home";render()}else{S=r;tab="home";render()}toast(ok)}catch(e){$("dze").textContent=e.message;sfx("error")}};
+ if($("dzReset"))$("dzReset").onclick=function(){dz("account/reset","RESET","Your save data was cleared. Welcome back to level 1!")};
+ if($("dzDel"))$("dzDel").onclick=function(){dz("account/delete","DELETE","Your account was deleted.")};
+ if($("adNew"))$("adNew").onclick=function(){AD.edit={};render()};
+ if($("fCancel"))$("fCancel").onclick=function(){AD.edit=null;render()};
+ if($("fSave"))$("fSave").onclick=async function(){var it=itemFromForm();if(await adPost("admin/item/save",{item:it},"Item saved.")){AD.edit=null;render()}};
+ if($("fDel"))$("fDel").onclick=async function(){if(!confirm(AD.edit.custom?"Delete this item?":"Undo your edits and restore the original item?"))return;if(await adPost("admin/item/delete",{id:AD.edit.id},"Done.")){AD.edit=null;render()}};
+ if($("adNewR"))$("adNewR").onclick=function(){AD.redit={grid:[null,null,null,null,null,null,null,null,null],out:["cons","tonic"],qty:1,mult:1,fee:0};render()};
+ if($("rCancel"))$("rCancel").onclick=function(){AD.redit=null;render()};
+ if($("rSave"))$("rSave").onclick=async function(){if(await adPost("admin/recipe/save",{recipe:recipeFromForm()},"Recipe saved.")){AD.redit=null;render()}};
+ if($("artSel"))$("artSel").onchange=function(){AD.art=$("artSel").value;render()};
+ if($("artFile"))$("artFile").onchange=function(){var f=$("artFile").files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){adPost("admin/art",{id:AD.art.split(":")[1],png:String(rd.result).split(",")[1]},"Texture uploaded.").then(function(r){if(r)AD.pxFor=null})};rd.readAsDataURL(f)};
+ if($("artClear"))$("artClear").onclick=function(){adPost("admin/art/clear",{id:AD.art.split(":")[1]},"Back to the generated art.").then(function(r){if(r){AD.pxFor=null;render()}})};
+ if($("pxCol"))$("pxCol").oninput=function(){AD.col=$("pxCol").value;if(AD.tool!=="paint"){AD.tool="paint";render()}};
+ if($("pxClear"))$("pxClear").onclick=function(){if(AD.px){AD.px=AD.px.map(function(){return null});render()}};
+ if($("pxReload"))$("pxReload").onclick=function(){AD.pxFor=null;render()};
+ if($("pxSave"))$("pxSave").onclick=function(){if(AD.px)savePixels()};
+ if($("pxed")){var pe=$("pxed"),down=false;pe.onpointerdown=function(e){var el=pxAt(e);if(!el)return;down=true;e.preventDefault();pxApply(el)};
+  pe.onpointermove=function(e){if(!down||AD.tool==="pick")return;var el=pxAt(e);if(el)pxApply(el)};document.onpointerup=function(){down=false}}
  if($("adGive"))$("adGive").onclick=function(){doPost("admin/give",{kind:$("adK").value,n:+$("adN").value},"Given.","buy")};
  if($("adItem"))$("adItem").onclick=function(){doPost("admin/item",{def:$("adI").value},"Item given.","buy")};
  if($("adWins"))$("adWins").onclick=function(){doPost("admin/wins",{wins:+$("adW").value},"Wins set.")};
@@ -315,6 +407,13 @@ function fill(id){var r=S.recipes.filter(function(x){return x.id===id})[0],used=
 document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("a.pl[href^='#/u/']")){e.preventDefault();var h=b.getAttribute("href");if(location.hash===h)route();else location.hash=h;return}
  if(b=e.target.closest("[data-rk]")){e.preventDefault();rk=b.dataset.rk;if(b.dataset.t)tab=b.dataset.t;render();sfx("click");return}
+ if(b=e.target.closest("[data-ad]")){AD.sub=b.dataset.ad;AD.edit=AD.redit=null;render();sfx("click");return}
+ if(b=e.target.closest("[data-ade]")){var di=item(b.dataset.ade);AD.edit=Object.assign({},di,{merchantCost:CAT.merchantCosts[di.id]||null});render();window.scrollTo(0,0);return}
+ if(b=e.target.closest("[data-pxt]")){AD.tool=b.dataset.pxt;render();return}
+ if(b=e.target.closest("[data-adr]")){var ra=b.dataset.adr,rid=b.dataset.i,rr=AD.data.recipes.filter(function(x){return x.id===rid})[0];
+  if(ra==="edit"){AD.redit=Object.assign({},rr);render();window.scrollTo(0,0);return}
+  if(ra==="off"&&!confirm(rr.base?"Turn this recipe off? Players won’t be able to craft it until you turn it back on.":"Delete this recipe?"))return;
+  await adPost(ra==="on"?"admin/recipe/restore":"admin/recipe/delete",{id:rid},"Done.");return}
  if(b=e.target.closest("[data-fr]")){var fa=b.dataset.fr,fn=b.dataset.n,fp={add:"friend",accept:"friend/answer",decline:"friend/answer",remove:"friend/remove"}[fa];
   var fr=await doPost(fp,{name:fn,accept:fa==="accept"},{add:"Friend request sent.",accept:"You’re now friends!",decline:"Request declined.",remove:"Done."}[fa]);if(fr&&tab==="user")openUser(fn);return}
  if(b=e.target.closest("[data-cl]")){var ca=b.dataset.cl,cn=b.dataset.n,ci=+b.dataset.i;if(ca==="leave"&&!confirm("Leave your clan?"))return;if(ca==="kick"&&!confirm("Kick "+cn+" from the clan?"))return;

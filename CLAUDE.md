@@ -27,7 +27,8 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 7. Every recipe needs a **unique pattern** and every material must stay consumable by a repeatable potion recipe (tests enforce both).
 
 ## Adding content
-- New item: add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
+- The owner adds and edits items, recipes and textures from the **Admin tab** on the live site (no code needed). Those live in the `custom_items`, `custom_recipes` and `art` tables and are layered over the built-ins by `applyCustom()` in `lib/content.js`. Don't overwrite them from code. Items players own are retired, never deleted.
+- New built-in item (in code): add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
 - New recipe, potion or achievement: add it in `lib/content.js` and extend the tests. Hidden recipes' patterns are only sent to the player after they are discovered.
 - New feature that needs data: add a migration, put logic in `lib/core.js`, add routes in `server.js`, add tests, then the UI.
 
