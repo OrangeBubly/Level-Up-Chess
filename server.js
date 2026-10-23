@@ -53,7 +53,9 @@ const DUMMY_SALT = crypto.randomBytes(16).toString("hex"), body = req => (req.bo
 const app = express();
 const hops = process.env.TRUST_PROXY ?? (PROD ? "1" : ""); // number of proxies in front of the app (Render: 1)
 if (hops !== "") app.set("trust proxy", /^\d+$/.test(hops) ? +hops : hops);
-app.use(express.json({ limit: "10kb" }));
+// small JSON bodies everywhere, except texture uploads (an admin-only route with its own bigger limit)
+const smallJson = express.json({ limit: "10kb" }), artJson = express.json({ limit: "400kb" });
+app.use((req, res, next) => req.path === "/api/admin/art" ? next() : smallJson(req, res, next));
 app.use((req, res, next) => { const t0 = Date.now(); res.on("finish", () => { if (req.path.startsWith("/api")) log("info", { m: req.method, p: req.path, s: res.statusCode, ms: Date.now() - t0 }); }); next(); });
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -166,12 +168,39 @@ app.get("/api/u/:name", auth, (req, res) => { const p = core.publicProfile(req.u
 // Anyone else gets the same "not found" as a missing page, so the tools don't advertise themselves.
 function admin(req, res, next) {
   if (!ADMINS.has(req.u.username)) throw new AppError("not_found", "Not found.", 404);
-  log("warn", { msg: "admin action", user: req.u.username, p: req.path, body: body(req) }); next();
+  const b = body(req), shown = b.png ? { ...b, png: `(${String(b.png).length} characters of image)` } : b;
+  log("warn", { msg: "admin action", user: req.u.username, p: req.path, body: shown }); next();
 }
 app.post("/api/admin/give", auth, admin, act((u, b) => core.adminGive(u, String(b.kind || ""), Number(b.n))));
 app.post("/api/admin/item", auth, admin, act((u, b) => core.adminItem(u, String(b.def || ""))));
 app.post("/api/admin/wins", auth, admin, act((u, b) => core.adminWins(u, Number(b.wins))));
 app.post("/api/admin/reset", auth, admin, act(u => core.adminResetDay(u)));
+
+// ---- content editor: items, recipes and textures (admins only; changes apply to everyone at once) ----
+app.get("/api/admin/content", auth, admin, (req, res) => res.json(core.contentAdmin()));
+const edited = fn => (req, res) => { const r = fn(body(req)); lbCache.at = 0; res.json({ ok: true, result: r || null, catalog: C.catalog(), ...core.contentAdmin() }); };
+app.post("/api/admin/item/save", auth, admin, edited(b => core.saveItem(b.item || {})));
+app.post("/api/admin/item/delete", auth, admin, edited(b => core.deleteItem(String(b.id || ""))));
+app.post("/api/admin/recipe/save", auth, admin, edited(b => core.saveRecipe(b.recipe || {})));
+app.post("/api/admin/recipe/delete", auth, admin, edited(b => core.deleteRecipe(String(b.id || ""))));
+app.post("/api/admin/recipe/restore", auth, admin, edited(b => core.restoreRecipe(String(b.id || ""))));
+// textures: a PNG (sent as base64), at most 200 KB and 512x512 pixels
+app.post("/api/admin/art", auth, artJson, admin, edited(b => {
+  const buf = Buffer.from(String(b.png || ""), "base64");
+  const isPng = buf.length > 24 && buf.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && buf.subarray(12, 16).toString() === "IHDR";
+  if (!isPng) throw new AppError("bad_image", "That isn’t a PNG image.");
+  if (buf.length > 200 * 1024) throw new AppError("bad_image", "Images must be 200 KB or smaller.");
+  const w = buf.readUInt32BE(16), h = buf.readUInt32BE(20);
+  if (!w || !h || w > 512 || h > 512) throw new AppError("bad_image", "Images must be at most 512 x 512 pixels.");
+  core.setArt(String(b.id || ""), buf);
+}));
+app.post("/api/admin/art/clear", auth, admin, edited(b => core.clearArt(String(b.id || ""))));
+// public: serves a texture; ?v= in the page's link changes whenever the texture does, so it can be cached
+app.get("/art/:file", (req, res) => {
+  const m = /^([a-z0-9_]{1,40})\.png$/.exec(req.params.file), a = m && core.getArt(m[1]);
+  if (!a) return res.status(404).end();
+  res.set({ "Content-Type": "image/png", "X-Content-Type-Options": "nosniff", "Content-Security-Policy": "default-src 'none'", "Cache-Control": "public, max-age=604800" }).send(a.png);
+});
 app.post("/api/clan/create", auth, act((u, b) => core.createClan(u, b.name, b.tag)));
 app.post("/api/clan/join", auth, act((u, b) => core.joinClan(u, Number(b.id))));
 app.post("/api/clan/cancel", auth, act((u, b) => core.cancelClanRequest(u, Number(b.id))));
@@ -182,14 +211,29 @@ app.post("/api/clan/open", auth, act((u, b) => core.setClanOpen(u, b.open === tr
 let clanCache = { at: 0, rows: [] };
 app.get("/api/clans", auth, (req, res) => { if (Date.now() - clanCache.at > 15e3) clanCache = { at: Date.now(), rows: core.clanBoard() }; res.json(clanCache.rows); });
 
+const checkPassword = async (u, pw) => {
+  if (!crypto.timingSafeEqual(Buffer.from(await hashPw(String(pw || "").slice(0, 200), u.salt)), Buffer.from(u.hash))) throw new AppError("bad_login", "Your current password is wrong.", 401);
+};
 app.post("/api/password", auth, async (req, res) => {
   authLimit(req);
-  const old = String(body(req).old || ""), p = String(body(req).password || "");
-  if (!crypto.timingSafeEqual(Buffer.from(await hashPw(old.slice(0, 200), req.u.salt)), Buffer.from(req.u.hash))) throw new AppError("bad_login", "Your current password is wrong.", 401);
+  const p = String(body(req).password || "");
+  await checkPassword(req.u, body(req).old);
   if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
   const salt = crypto.randomBytes(16).toString("hex");
   core.setPassword(req.u.id, salt, await hashPw(p, salt));
   setSession(res, core.user(req.u.id)); res.json({ ok: true }); // this device stays logged in, every other one is logged out
+});
+// Clearing save data and deleting the account both need the password plus a typed confirmation word.
+const confirmWord = (req, w) => { if (String(body(req).confirm || "").trim().toUpperCase() !== w) throw new AppError("confirm", `Type ${w} to confirm.`); };
+app.post("/api/account/reset", auth, async (req, res) => {
+  authLimit(req); confirmWord(req, "RESET"); await checkPassword(req.u, body(req).password);
+  core.resetProgress(req.u.id); log("info", { msg: "progress reset", user: req.u.username });
+  res.json(reply(req.u, {}));
+});
+app.post("/api/account/delete", auth, async (req, res) => {
+  authLimit(req); confirmWord(req, "DELETE"); await checkPassword(req.u, body(req).password);
+  core.deleteAccount(req.u.id); log("info", { msg: "account deleted", id: req.u.id });
+  res.setHeader("Set-Cookie", "sid=; Max-Age=0; Path=/"); res.json({ ok: true });
 });
 app.post("/api/craft/preview", auth, (req, res) => {
   if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);

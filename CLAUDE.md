@@ -18,7 +18,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `test/core.test.js`: the test suite.
 
 ## Rules that must not be broken
-1. **Never reset, delete or rewrite production player data.** Schema changes are a NEW entry at the end of `MIGRATIONS` in `lib/db.js` (additive first). Never edit an old migration. The app backs up the database before applying a migration to existing data.
+1. **Never reset, delete or rewrite production player data.** Schema changes are a NEW entry at the end of `MIGRATIONS` in `lib/db.js` (additive first). Never edit an old migration. The app backs up the database before applying a migration to existing data. The only exception: a player's own request, through `resetProgress`/`deleteAccount` in `lib/core.js` (password and typed confirmation required). Keep their `claims` on a reset so old games can't pay out twice.
 2. **All balance and item changes go through `grant`/`spend`/`giveItem` in `lib/core.js`**, which write the `ledger`. Never `UPDATE balances` directly elsewhere. The ledger must always add up to the balances (a test checks this).
 3. **The server decides rewards.** The browser only sends ids and intent, never amounts or game results.
 4. **A player can claim a game once** (`claims` primary key). Rated, standard chess only. Keep the anti-farming limits in `lib/rules.js`.
@@ -27,7 +27,8 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 7. Every recipe needs a **unique pattern** and every material must stay consumable by a repeatable potion recipe (tests enforce both).
 
 ## Adding content
-- New item: add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
+- The owner adds and edits items, recipes and textures from the **Admin tab** on the live site (no code needed). Those live in the `custom_items`, `custom_recipes` and `art` tables and are layered over the built-ins by `applyCustom()` in `lib/content.js`. Don't overwrite them from code. Items players own are retired, never deleted.
+- New built-in item (in code): add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
 - New recipe, potion or achievement: add it in `lib/content.js` and extend the tests. Hidden recipes' patterns are only sent to the player after they are discovered.
 - New feature that needs data: add a migration, put logic in `lib/core.js`, add routes in `server.js`, add tests, then the UI.
 

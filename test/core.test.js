@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -418,4 +418,84 @@ test("leaderboard can leave admin accounts off", () => {
   core.sync(a, [G("alice", "zz")]);
   assert.deepEqual(core.leaderboard().map(x => x.username), ["alice", "bob"]);
   assert.deepEqual(core.leaderboard(new Set(["alice"])).map(x => x.username), ["bob"]);
+});
+
+test("clear save data: progress goes, login, link, friends and claimed games stay", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core.adminGive(a, "coins", 5000); core.adminGive(a, "shard", 50); core.adminItem(a, "w2"); core.adminWins(a, 30); core.setTheme(a, "royal");
+  core.addFriend(a, "bob"); core.answerFriend(b, "alice", true); core.createClan(a, "Reset Club", "RC");
+  const g = G("alice", "q1"); core.sync(a, [g]); const claims = db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n;
+  core.resetProgress(a); const u = core.user(a), v = core.view(a);
+  assert.equal(u.xp, 0); assert.equal(u.wins, 0); assert.equal(u.cc, "alice"); assert.equal(u.theme, "dark");
+  assert.equal(v.items.length, 0); assert.equal(v.mats.shard, 0); assert.equal(v.coins, C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward + C.ACHIEVEMENT.friend1.reward + C.ACHIEVEMENT.clan1.reward);
+  assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.deepEqual(v.social.friends.map(x => x.username), ["bob"]); assert.equal(v.clan.mine.tag, "RC");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n, claims);
+  assert.equal(core.sync(a, [g]).count, 0); // the same game can't pay out twice
+});
+
+test("delete account: everything goes, others keep working, the names are free again", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core.adminGive(a, "coins", 5000); core.adminItem(a, "w2"); core.equip(a, db.prepare("SELECT id FROM items WHERE user_id=?").get(a).id);
+  core.addFriend(a, "bob"); core.answerFriend(b, "alice", true); core.createClan(a, "Gone Soon", "GS"); core.joinClan(b, core.view(a).clan.mine.id);
+  core.sync(a, [G("alice", "q2")]); core.deleteAccount(a);
+  assert.equal(core.user(a), undefined);
+  const leftovers = ["balances", "ledger", "items", "equipment", "claims", "achievements", "quest_claims", "merchant_buys", "clan_members"]
+    .filter(t => db.prepare(`SELECT COUNT(*) n FROM ${t} WHERE user_id=?`).get(a).n);
+  assert.deepEqual(leftovers, []);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM friends WHERE user_id=? OR friend_id=?").get(a, a).n, 0);
+  const vb = core.view(b); assert.deepEqual(vb.social.friends, []); assert.ok(vb.clan.mine.leader); // bob now leads the clan
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM games").get().n, 1); // shared game records stay
+  assert.ok(core.createLinkedUser("alice", "s", "h", "alice", 999));
+});
+
+test("content editor: new items work everywhere at once, input is checked, owned items can't be deleted", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  const it = core.saveItem({ name: "Tempo Blade", slot: "weapon", r: 2, price: 300, stats: { xp: 6, upset: 4 }, g: "♝", f: "Fast.", set: "cavalry", merchantCost: null });
+  assert.equal(it.id, "c1"); assert.ok(C.ITEM.c1.custom); assert.ok(C.ITEMS.some(i => i.id === "c1"));
+  core.adminGive(a, "coins", 1000); core.buy(a, "c1"); assert.equal(core.view(a).items.find(i => i.def === "c1").up.coins, 120);
+  assert.equal(R.bonusOf([{ def: "c1", level: 1 }]).stats.xp, 6);
+  for (const bad of [{ name: "<b>x</b>" }, { slot: "pants" }, { r: 9 }, { price: -1 }, { stats: { xp: 99 } }, { stats: { luck: 1 } }, { g: "X" }, { set: "nope" }, { merchantCost: {} }])
+    assert.throws(() => core.saveItem({ name: "Okay", slot: "ring", r: 1, price: 10, stats: {}, g: "◎", f: "", ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+  assert.throws(() => core.saveItem({ ...it, slot: "ring" }), e => e.code === "bad_slot");
+  assert.throws(() => core.deleteItem("c1"), e => e.code === "in_use");
+  core.saveItem({ ...it, retired: true }); assert.equal(C.ITEM.c1.price, 0); assert.throws(() => core.buy(a, "c1"), e => e.code === "not_for_sale");
+  assert.ok(core.view(a).items.some(i => i.def === "c1")); // still owned and usable
+  const fresh = core.saveItem({ name: "Spare Ring", slot: "ring", r: 0, price: 50, stats: {}, g: "◎", f: "" });
+  assert.deepEqual(core.deleteItem(fresh.id), { deleted: true }); assert.equal(C.ITEM[fresh.id], undefined);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM custom_items").get().n, 1);
+});
+
+test("content editor: edit and restore built-in items, merchant prices, and it all survives a restart", () => {
+  const { db, core } = setup();
+  core.saveItem({ ...C.ITEM.w1, name: "Better Pike", price: 120, merchantCost: { coins: 999 } });
+  assert.equal(C.ITEM.w1.name, "Better Pike"); assert.ok(C.ITEM.w1.merchant); assert.deepEqual(C.MERCHANT_ITEMS.w1, { coins: 999 });
+  createCore(db); assert.equal(C.ITEM.w1.name, "Better Pike"); // a new core on the same database loads the saved content
+  assert.deepEqual(core.deleteItem("w1"), { restored: true }); assert.equal(C.ITEM.w1.name, "Pawn Pike"); assert.equal(C.MERCHANT_ITEMS.w1, undefined);
+  const w5 = core.saveItem({ ...C.ITEM.w5, merchantCost: null }); assert.equal(w5.merchant, false); assert.equal(C.MERCHANT_ITEMS.w5, undefined);
+});
+
+test("content editor: recipes from a 3x3 grid, unique patterns, turning built-ins off and on", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice"), S_ = "shard", E = "essence";
+  const it = core.saveItem({ name: "Glass Dagger", slot: "weapon", r: 1, price: 0, stats: { coin: 2 }, g: "♝", f: "" });
+  const grid = [S_, null, S_, null, S_, null, S_, null, S_]; // an X of shards
+  const r = core.saveRecipe({ out: ["item", it.id], grid, mult: 2, fee: 100, hint: "An X marks the spot.", hintAch: null });
+  assert.equal(r.id, "cr1"); assert.deepEqual(C.matchRecipe(grid).out, ["item", it.id]);
+  core.adminGive(a, "coins", 500); core.adminGive(a, "shard", 50);
+  assert.ok(core.craft(a, grid.map(t => t && M(t))).discovered); assert.ok(core.view(a).items.some(i => i.def === it.id));
+  const w3 = C.RECIPES.find(x => x.id === "w3"), w3grid = [null, S_, null, null, E, null, null, S_, null];
+  assert.throws(() => core.saveRecipe({ out: ["cons", "tonic"], grid: w3grid, mult: 1, fee: 0, hint: "" }), e => e.code === "pattern_taken");
+  for (const bad of [{ grid: [] }, { grid: Array(9).fill(null) }, { grid: ["gold", null, null, null, null, null, null, null, null] }, { out: ["item", "nope"] }, { mult: 0 }, { hintAch: "nope" }])
+    assert.throws(() => core.saveRecipe({ out: ["cons", "tonic"], grid: [E, E, E, E, null, E, E, E, E], mult: 1, fee: 0, hint: "", ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+  core.deleteRecipe("w3"); assert.equal(C.matchRecipe(w3grid), null); assert.ok(core.contentAdmin().recipes.find(x => x.id === "w3").off);
+  core.restoreRecipe("w3"); assert.equal(C.matchRecipe(w3grid).id, "w3"); assert.ok(w3);
+  core.deleteRecipe("cr1"); assert.equal(C.matchRecipe(grid), null);
+  assert.equal(C.BY_PATTERN.size, C.RECIPES.length);
+});
+
+test("content editor: textures are stored per item and versioned", () => {
+  const { core } = setup(), png = Buffer.from("89504e470d0a1a0a", "hex");
+  core.setArt("w1", png); assert.ok(C.ART.w1); assert.ok(core.getArt("w1").png.equals(png)); assert.ok(C.catalog().art.w1);
+  assert.throws(() => core.setArt("nope", png), e => e.code === "not_found"); core.setArt("shard", png); core.setArt("tonic", png);
+  core.clearArt("w1"); assert.equal(C.ART.w1, undefined); assert.equal(core.getArt("w1"), undefined);
 });
