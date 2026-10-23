@@ -89,6 +89,8 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .bwrap{display:flex;gap:8px;max-width:460px}.board{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));flex:1;min-width:0;aspect-ratio:1;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.35)}
 .bq{position:relative;min-width:0;min-height:0}.bq.lt{background:#e9edf2}.bq.dk{background:#8ea0b6}.bq.hl::after{content:"";position:absolute;inset:0;background:rgba(250,204,21,.42)}
 .pz{position:absolute;left:5%;top:5%;width:90%;height:90%;z-index:1;stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}
+.pz.glow{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 7px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35));animation:glow 1.6s ease-in-out infinite alternate}
+@keyframes glow{from{filter:drop-shadow(0 0 2px var(--gc)) drop-shadow(0 0 4px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}to{filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}}
 .pz.w{fill:#fff;stroke:#1e293b}.pz.b{fill:#1e293b;stroke:#020617}.pz .dt{fill:none}.pz.w .dt{stroke:#1e293b}.pz.b .dt{stroke:#e2e8f0}.pz circle.dt{fill:currentColor;stroke:none}.pz.w circle.dt{color:#1e293b}.pz.b circle.dt{color:#e2e8f0}
 .arr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .ebar{width:22px;flex:none;border-radius:6px;background:#1f2937;position:relative;overflow:hidden;border:1px solid var(--bd)}.ebar i{position:absolute;left:0;right:0;bottom:0;background:#f1f5f9;transition:height .3s}
@@ -513,9 +515,11 @@ function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;c.ply=Math.max(0,Math.min(c.
 function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n=t.filter(function(p){return p>c.ply})[0];rvGo(n!=null?n:t[0]!=null?t[0]:c.fens.length-1)}
 function rvPaint(){if(tab==="review"&&RV.cur&&!RV.cur.done)render()}
 function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
+ // brilliant, best and blunder moves make the moved piece glow in the label colour
+ var gl=c.ply&&["brilliant","best","blunder"].indexOf(c.cls[c.ply-1])>-1?c.cls[c.ply-1]:null;
  for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
  var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
-  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]:"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
  if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
