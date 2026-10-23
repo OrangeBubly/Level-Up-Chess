@@ -166,6 +166,14 @@ app.get("/api/review/game", auth, async (req, res) => {
   reviewOpened.set(req.u.id + ":" + g.key, Date.now());
   res.json({ ...g, pgn: found.pgn });
 });
+// another player's best game, for replaying from their profile (same privacy as the profile, never any XP)
+app.get("/api/u/:name/game", auth, async (req, res) => {
+  if (!limit("review:" + req.u.id, 10, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
+  const g = core.bestGameTarget(req.u.id, req.params.name), month = await cc.month(g.me.name, g.year, g.month);
+  const found = ((month && month.games) || []).find(x => x.url === g.key);
+  if (!found || !found.pgn) throw new AppError("not_found", "Chess.com didn’t send the moves for that game. Try again in a minute.", 404);
+  res.json({ ...g, pgn: found.pgn, view: true });
+});
 app.post("/api/review/complete", auth, (req, res) => {
   const key = String(body(req).key || ""), opened = reviewOpened.get(req.u.id + ":" + key);
   if (!opened) throw new AppError("reopen", "Open the game again to finish reviewing it.");

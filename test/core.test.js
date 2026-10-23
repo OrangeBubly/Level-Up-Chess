@@ -659,3 +659,19 @@ test("reviews: only your own rewarded games, once each, XP for the first few eac
   core.resetProgress(a); assert.ok(core.reviewList(a).every(g => g.reviewed)); // a reset can't re-earn review XP
   core.deleteAccount(a); assert.equal(db.prepare("SELECT COUNT(*) n FROM reviews").get().n, 0);
 });
+
+test("best game: the highest-accuracy reviewed win, shown on profiles that are visible", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  const g = [G("alice", "o1", "win", { t: 4001 }), G("alice", "o2", "win", { t: 4002 }), G("alice", "o3", "loss", { t: 4003 })];
+  core.sync(a, g);
+  assert.equal(core.publicProfile(b, "alice").bestGame, null); // nothing reviewed yet
+  assert.throws(() => core.bestGameTarget(b, "alice"), e => e.code === "not_found");
+  core.completeReview(a, g[0].url, 88); core.completeReview(a, g[1].url, 94.5); core.completeReview(a, g[2].url, 99);
+  const best = core.publicProfile(b, "alice").bestGame;
+  assert.equal(best.key, g[1].url); assert.equal(best.accuracy, 94.5); assert.equal(best.res, "win"); // the 99% loss doesn't beat a win
+  assert.equal(best.opp.name, "o2"); assert.equal(core.bestGameTarget(b, "alice").owner, "alice");
+  core.setPrivacy(a, "friends");
+  assert.equal(core.publicProfile(b, "alice").bestGame, undefined); assert.throws(() => core.bestGameTarget(b, "alice"), e => e.code === "private");
+  core.addFriend(b, "alice"); core.answerFriend(a, "bob", true); assert.equal(core.bestGameTarget(b, "alice").key, g[1].url);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM reviews WHERE user_id=?").get(b).n, 0); // looking never creates a review
+});
