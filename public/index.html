@@ -100,6 +100,8 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .mvs{max-height:420px;overflow:auto}.mv{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;padding:2px 0}.mvb{cursor:pointer;padding:2px 6px;border-radius:6px;display:flex;align-items:center;gap:6px}.mvb:hover{background:var(--p2)}.mvb.on{background:rgb(var(--acr) / .22);font-weight:800}
 .bdg{position:absolute;top:2%;right:2%;z-index:3;width:44%;height:44%;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:clamp(9px,2.2vw,13px);line-height:1;letter-spacing:-.5px;border:2px solid rgba(255,255,255,.9);box-shadow:0 1px 4px rgba(0,0,0,.45);font-family:system-ui,sans-serif}
 .mbdg{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:900;font-size:10px;line-height:1;letter-spacing:-.5px;flex:none;font-style:normal}
+a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
+.rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -202,7 +204,7 @@ function tipFor(k){var p=k.split(":"),t=p[0],id=p[1];
  if(t==="cons")return"<b>"+CAT.cons[id].name+"</b><br>"+CAT.cons[id].desc;
  if(t==="eq")return"<b>"+id.toUpperCase()+"</b> slot";return""}
 /* ---------- data loading ---------- */
-async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}await refresh();render();route();
+async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}await refresh();render();route();setTimeout(autoSync,800);
  fetch("assets/manifest.json").then(function(r){return r.ok?r.json():null}).then(function(j){if(j){A={items:j.items||[],sfx:j.sfx||[]};IMG={};if(S)render()}}).catch(function(){})}
 async function refresh(){try{LB=await api("leaderboard")}catch(e){}if(S)try{CL=await api("clans")}catch(e){}}
 async function doPost(p,b,msg,snd){try{var r=await api(p,b);S=r;await refresh();if(r.leveled)sfx("levelup");else sfx(snd||"click");if(msg)toast(typeof msg==="function"?msg(r):msg);
@@ -210,7 +212,7 @@ async function doPost(p,b,msg,snd){try{var r=await api(p,b);S=r;await refresh();
 /* ---------- views ---------- */
 function ccHTML(){
  if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
- if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment. Wins can also drop a resource chest.</p>';
+ if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button class="g" id="sy">Sync now</button><button class="g" id="cx">Change</button></div><p class="mu" style="margin:6px 0 0">Your games sync by themselves while the site is open · last synced '+ago(SY.last)+'</p><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment. Wins can also drop a resource chest.</p>';
  return'<h2>Link chess.com</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
 function chestNudge(){var n=0;for(var k in S.chests)n+=S.chests[k];return n?'<div class="card" style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'+slotHTML({attr:"",r:3,html:ico("chest",(CAT.chests.filter(function(c){return S.chests[c.id]>0})[0]||{}).id)})+'<div style="flex:1"><b>You have '+n+" chest"+(n>1?"s":"")+' to open</b><div class="mu">They hold crafting materials.</div></div><button id="goChests" style="flex:none">Open them</button></div>':""}
 function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc="",bf="";for(var k in b)bc+='<div><b>+'+b[k]+'%</b><span class="mu">'+ST[k]+"</span></div>";
@@ -287,8 +289,8 @@ var AD={sub:"items",data:null,edit:null,redit:null,art:null,px:null,pxFor:null,c
 function fsel(id,opts,v,dis){return'<select id="'+id+'"'+(dis?" disabled":"")+">"+opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select>"}
 function flab(l,h){return'<label class="mu" style="display:block;margin-top:8px">'+l+"</label>"+h}
 function vAdmin(){if(!S.admin)return'<p class="mu">Not available.</p>';if(!AD.data){if(!AD.loading)adminLoad();return'<p class="mu">Loading…</p>'}
- var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["ach","Achievements"],["quests","Quests"],["offers","Merchant"],["sets","Sets"],["mats","Materials"],["chests","Chests"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
- return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,ach:adAch,quests:adQuests,offers:adOffers,sets:adSets,mats:adMats,chests:adChests,tools:toolsHTML}[AD.sub])()}
+ var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["ach","Achievements"],["quests","Quests"],["offers","Merchant"],["sets","Sets"],["mats","Materials"],["chests","Chests"],["backups","Backups"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
+ return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,ach:adAch,quests:adQuests,offers:adOffers,sets:adSets,mats:adMats,chests:adChests,backups:adBackups,tools:toolsHTML}[AD.sub])()}
 async function adminLoad(){AD.loading=1;try{AD.data=await api("admin/content")}catch(e){toast(e.message);AD.data={recipes:[],owned:{}}}AD.loading=0;render()}
 async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned,sets:r.sets,ach:r.ach,quests:r.quests,offers:r.offers,mats:r.mats,chests:r.chests};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
 function adItems(){if(AD.edit)return itemForm();var own=AD.data.owned||{},b=function(x){return'<span class="chip">'+x+"</span>"};
@@ -389,6 +391,13 @@ function adChests(){var all=AD.data.chests.reduce(function(s,c){return s+(AD.ced
      loot.map(function(l,i){return'<div class="row" style="margin-top:4px">'+fsel("cl"+i,mats,l.id||"")+numIn("cl"+i+"a",l.min||"","min",1,1000)+numIn("cl"+i+"b",l.max||"","max",1,1000)+numIn("cl"+i+"c",l.chance||"","chance %",0,100)+"</div>"}).join("")))}
  return'<p class="mu" style="margin:0 0 10px">Each rated win: '+AD.data.chests.slice().sort(function(a,b){return a.chance-b.chance}).map(function(c){return esc(c.name)+" "+c.chance+"%"}).join(", ")+", nothing "+Math.round((100-all)*10)/10+"%.</p>"
   +cList("chest",AD.data.chests,function(c){return ico("chest",c.id).replace('class="px"','class="px" style="width:22px;height:22px;display:inline-block;vertical-align:middle"')+" "+esc(c.name)},function(c){return c.chance+"% per win · "+c.loot.map(function(l){return(l.min===l.max?l.min:l.min+"–"+l.max)+" "+(CAT.mats[l.id]||l.id)+(l.chance<100?" ("+l.chance+"%)":"")}).join(", ")+" · "+c.held+" unopened"})}
+function mb(n){return(n/1048576).toFixed(n>10485760?0:1)+" MB"}
+async function bkLoad(){try{AD.bk=await api("admin/backups")}catch(e){AD.bk={err:e.message}}if(tab==="admin"&&AD.sub==="backups")render()}
+function adBackups(){var b=AD.bk;if(!b){bkLoad();return'<p class="mu">Loading…</p>'}if(b.err)return'<p class="bad">'+esc(b.err)+"</p>";
+ return'<div class="card" style="margin-bottom:16px"><h2>Download a backup</h2><p class="mu" style="margin-top:0">Saves a complete copy of the live database ('+mb(b.live)+') to your computer: every account, item, coin and setting. Keep it somewhere private, because it includes everyone’s accounts. Once a week is a good habit, and before big changes.</p><a class="btn" href="/api/admin/backup" download>Download backup</a></div>'
+  +'<div class="card"><h2>Automatic backups on the server</h2><p class="mu" style="margin-top:0">The site saves a full copy before each database update. They stay on the same disk as the live database, so they protect against a bad update, not against losing the disk (that’s what downloads are for).</p>'
+  +'<p><b>'+b.count+"</b> automatic backup"+(b.count===1?"":"s")+", using <b>"+mb(b.bytes)+"</b>"+(b.newest?" · newest from "+new Date(b.newest).toLocaleString():"")+"</p>"
+  +'<div class="row"><button class="g" id="bkPrune"'+(b.count>3?"":" disabled")+">Delete all but the newest 3</button></div></div>"}
 function cRead(){var $=function(i){return document.getElementById(i)},k=AD.cedit.kind,d={id:AD.cedit.data.id};
  if(k==="ach"){d.name=$("cN").value;d.desc=$("cD").value;d.rule=$("cR")?$("cR").value:AD.cedit.data.rule;d.n=+$("cT").value;d.reward=+$("cW").value;d.hidden=$("cH").checked}
  if(k==="quest"){d.kind=$("cK").value;d.type=$("cY").value;d.n=+$("cT").value;d.tc=$("cC").value||null;d.desc=$("cD").value;d.reward=costRead("cr_")}
@@ -455,7 +464,7 @@ async function openUser(n){tab="user";PU=null;render();try{PU=await api("u/"+enc
 function route(){var m=/^#\/u\/(.+)$/.exec(location.hash);if(m&&S)openUser(decodeURIComponent(m[1]))}
 /* ---------- game review: Stockfish runs in this browser; the server only lists games, sends moves and decides the XP ---------- */
 var RV={list:null,left:0,cur:null};
-var LBL={brilliant:["Brilliant","#0891b2","!!"],best:["Best","#16a34a","★"],good:["Good","#64748b",""],inaccuracy:["Inaccuracy","#ca8a04","?!"],mistake:["Mistake","#ea580c","?"],blunder:["Blunder","#dc2626","??"]};
+var LBL={book:["Book","#a16207",'<svg viewBox="0 0 24 24" style="width:64%;height:64%;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h7z"/></svg>'],brilliant:["Brilliant","#0891b2","!!"],best:["Best","#16a34a","★"],good:["Good","#64748b",""],inaccuracy:["Inaccuracy","#ca8a04","?!"],mistake:["Mistake","#ea580c","?"],blunder:["Blunder","#dc2626","??"]};
 var VAL={p:1,n:3,b:3,r:5,q:9,k:0};
 // a sacrifice: after the move, the moved piece (not a pawn) can be taken by something cheaper, or taken with no way to take back
 function rvSac(c,i){var m=c.moves[i],v=VAL[m.piece];if(!RV.lib||v<3)return false;try{var b=new RV.lib.Chess(c.fens[i+1]),caps=b.moves({verbose:true}).filter(function(x){return x.to===m.to});
@@ -474,19 +483,26 @@ var PIECES={
 document.body.insertAdjacentHTML("beforeend",'<svg width="0" height="0" style="position:absolute" aria-hidden="true">'+Object.keys(PIECES).map(function(k){return'<symbol id="pz-'+k+'" viewBox="0 0 100 100">'+PIECES[k]+"</symbol>"}).join("")+"</svg>");
 function winPct(cp){cp=Math.max(-1000,Math.min(1000,cp));return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1)}
 function evalTxt(e){if(!e)return"";if(e.mate!=null)return(e.mate>0?"+":"−")+"M"+Math.abs(e.mate);var v=e.cp/100;return(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(1)}
-async function rvList(){try{var r=await api("review/games");RV.list=r.games;RV.left=r.left;RV.xp=r.xp}catch(e){RV.list=[];toast(e.message)}if(tab==="review")render()}
+async function rvList(){try{var r=await api("review/games");RV.list=r.games;RV.left=r.left;RV.xp=r.xp;RV.rep=r.repertoire}catch(e){RV.list=[];toast(e.message)}if(tab==="review")render()}
+// what you open with: games, wins/draws/losses and score for each main opening, as White and as Black
+function repHTML(){var R2=RV.rep;if(!R2||(!R2.white.length&&!R2.black.length))return"";var t=function(l,side){return'<div class="card" style="flex:1 1 280px"><h2>As '+side+'</h2>'+(l.length?'<table class="rep"><tr><th>Opening</th><th>Games</th><th>W / D / L</th><th>Score</th></tr>'+l.map(function(o){return"<tr><td>"+esc(o.name)+"</td><td>"+o.games+"</td><td>"+o.win+" / "+o.draw+" / "+o.loss+'</td><td><b style="color:'+(o.score>=55?"#16a34a":o.score<45?"#dc2626":"var(--mu)")+'">'+o.score+"%</b></td></tr>"}).join("")+"</table>":'<p class="mu">No games yet.</p>')+"</div>"};
+ return'<h2 style="margin:0 0 8px">Your openings</h2><div class="wrap" style="margin-bottom:16px">'+t(R2.white,"White")+t(R2.black,"Black")+"</div>"}
 function vReview(){if(RV.cur)return rvScreen();if(!RV.list){rvList();return'<h1>Review</h1><p class="mu">Loading your games…</p>'}
  var head='<h1>Review</h1><p class="mu" style="margin:4px 0 14px">Go through your games with an engine to see where they were won and lost. Reviewing helps you improve, so each fully reviewed game earns <b>+'+RV.xp+' XP</b> ('+RV.left+" of "+CAT.reviewsPerDay+" left today). The analysis runs on your device.</p>";
- if(!RV.list.length)return head+'<div class="card"><p class="mu" style="margin:0">No rated games to review yet. Play some, then press Sync on Home.</p></div>';
- return head+'<div class="card">'+RV.list.map(function(g){var c={win:["W","#16a34a"],draw:["D","#64748b"],loss:["L","#dc2626"]}[g.res];
+ if(!RV.list.length)return head+repHTML()+'<div class="card"><p class="mu" style="margin:0">No rated games to review yet. Play some, then press Sync on Home.</p></div>';
+ return head+repHTML()+'<h2 style="margin:0 0 8px">Recent games</h2><div class="card">'+RV.list.map(function(g){var c={win:["W","#16a34a"],draw:["D","#64748b"],loss:["L","#dc2626"]}[g.res];
   return'<div class="q"><span class="res" style="background:'+c[1]+'">'+c[0]+'</span><div><b>vs '+esc(g.opp.name)+'</b> <span class="mu">('+g.opp.rating+")</span><div class=\"mu\">"+esc(g.tclass)+" · you played "+g.color+" · "+new Date(g.at*1000).toLocaleDateString()+"</div></div>"
    +(g.reviewed?'<span class="mu" style="margin-right:8px">Reviewed ✓'+(g.accuracy!=null?" · "+g.accuracy+"%":"")+"</span>":"")+'<button class="'+(g.reviewed?"g":"")+'" data-rv="'+esc(g.key)+'">'+(g.reviewed?"Look again":"Review")+"</button></div>"}).join("")+"</div>"}
 // opens a game: fetch its moves, replay them with chess.js, then analyse every position with Stockfish
+function bookKey(fen){var s=fen.split(" ").slice(0,4).join(" "),h=2166136261;for(var i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619)>>>0;return("0000000"+h.toString(16)).slice(-8)}
+function rvBook(){return RV.bookP||(RV.bookP=fetch("/vendor/openings/openings.json").then(function(r){return r.json()}).catch(function(){return null}))}
+// book moves: every move from the start while the position stays in the book; the opening is the deepest named one
+function rvOpening(c,book){c.book=[];c.opening=null;if(!book)return;for(var i=0;i<c.moves.length;i++){var v=book.pos[bookKey(c.fens[i+1])];if(v===undefined)break;c.book[i]=true;if(v>=0)c.opening=book.names[v]}}
 async function rvOpen(key,owner){tab="review";RV.cur={loading:true};render();window.scrollTo(0,0);
  try{var g=await api(owner?"u/"+encodeURIComponent(owner)+"/game":"review/game?key="+encodeURIComponent(key)),lib=await import("/vendor/chess/chess.js"),ch=new lib.Chess();RV.lib=lib;ch.loadPgn(g.pgn);
   var hist=ch.history({verbose:true}),b=new lib.Chess(),fens=[b.fen()],ends=[null];
   hist.forEach(function(m){b.move(m.san);fens.push(b.fen());ends.push(b.isCheckmate()?"mate":b.isDraw()||b.isStalemate()?"draw":null)});
-  RV.cur={g:g,moves:hist,fens:fens,ends:ends,ply:0,ev:[],cls:[],acc:null,seen:{0:1},done:false,depth:RV.depth||13,flip:g.color==="black",view:!!owner};render();rvAnalyse()}
+  RV.cur={g:g,moves:hist,fens:fens,ends:ends,ply:0,ev:[],cls:[],acc:null,seen:{0:1},done:false,depth:RV.depth||13,flip:g.color==="black",view:!!owner};rvOpening(RV.cur,await rvBook());render();rvAnalyse()}
  catch(e){RV.cur=null;toast(e.message||"Couldn’t open that game.");render()}}
 function rvClose(){if(RV.worker){RV.worker.terminate();RV.worker=null}var c=RV.cur;RV.cur=null;if(c&&c.view){openUser(c.g.owner);return}rvList()}
 // one engine for the page; positions are analysed one after another, sending "go depth" for each
@@ -509,6 +525,7 @@ function rvGrade(c){var acc={w:[],b:[]};
  c.moves.forEach(function(m,i){var white=i%2===0,b=winPct(c.ev[i].cp),a=winPct(c.ev[i+1].cp);if(!white){b=100-b;a=100-a}
   var drop=Math.max(0,b-a),uci=m.from+m.to+(m.promotion||""),k=uci===c.ev[i].best?"best":drop>=30?"blunder":drop>=20?"mistake":drop>=10?"inaccuracy":"good";
   if((k==="best"||drop<2)&&a>=50&&rvSac(c,i))k="brilliant";
+  if(c.book&&c.book[i]&&drop<10&&k!=="brilliant")k="book";
   c.cls[i]=k;acc[white?"w":"b"].push(Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*drop)-3.1669)))});
  var avg=function(l){return l.length?Math.round(l.reduce(function(s,x){return s+x},0)/l.length*10)/10:null};c.acc={w:avg(acc.w),b:avg(acc.b)}}
 function rvMine(c,i){return(i%2===0)===(c.g.color==="white")}
@@ -524,7 +541,7 @@ function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.
  var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
   return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]:"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
- if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
+ if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant","book"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
  return'<div class="board">'+cells+arrow+"</div>"}
 function rvGraph(c){if(!c.ev.length)return"";var n=c.fens.length-1||1,pts=c.ev.map(function(e,i){return(i/n*100).toFixed(2)+","+(100-winPct(e.cp)).toFixed(2)}).join(" ");
@@ -533,15 +550,15 @@ function rvGraph(c){if(!c.ev.length)return"";var n=c.fens.length-1||1,pts=c.ev.m
  return'<div class="gwrap"><svg class="graph" viewBox="0 0 100 100" preserveAspectRatio="none" id="rvGraph"><rect width="100" height="100" fill="#1f2937"/><polygon points="0,100 '+pts+" "+(c.ev.length-1)/n*100+',100" fill="#e5e7eb"/><line x1="0" y1="50" x2="100" y2="50" stroke="#94a3b8" stroke-width=".4" stroke-dasharray="1.5 1.5"/><line x1="'+(c.ply/n*100)+'" y1="0" x2="'+(c.ply/n*100)+'" y2="100" stroke="var(--red)" stroke-width=".8"/>'+marks+"</svg>"+dots+"</div>"}
 function rvScreen(){var c=RV.cur;if(c.loading)return'<h1>Review</h1><p class="mu">Getting the moves from chess.com…</p>';
  var g=c.g,e=c.ev[c.ply],pct=e?winPct(e.cp):50,flipPct=c.flip?100-pct:pct,ana=c.ev.length,tot=c.fens.length,m=c.ply?c.moves[c.ply-1]:null,k=c.ply?c.cls[c.ply-1]:null,prev=c.ply?c.ev[c.ply-1]:null;
- var note=!c.ply?"Starting position. Step through the game, or jump to your mistakes.":!k?"Analysing…":(Math.ceil(c.ply/2)+(c.ply%2?". ":"… ")+m.san+' is <b style="color:'+LBL[k][1]+'">'+LBL[k][0].toLowerCase()+(k==="brilliant"?"!! A sacrifice that works":"")+"</b>"+(["best","brilliant"].indexOf(k)<0&&prev&&prev.best?". The engine preferred "+rvSan(c,c.ply-1,prev.best)+" (green arrow).":"."));
+ var note=!c.ply?"Starting position. Step through the game, or jump to your mistakes.":!k?"Analysing…":(Math.ceil(c.ply/2)+(c.ply%2?". ":"… ")+m.san+' is <b style="color:'+LBL[k][1]+'">'+LBL[k][0].toLowerCase()+(k==="brilliant"?"!! A sacrifice that works":"")+"</b>"+(k==="book"?": standard opening theory":"")+(["best","brilliant","book"].indexOf(k)<0&&prev&&prev.best?". The engine preferred "+rvSan(c,c.ply-1,prev.best)+" (green arrow).":"."));
  var list="";for(var i=0;i<c.moves.length;i+=2){list+='<div class="mv"><span class="mu">'+(i/2+1)+".</span>"+[i,i+1].map(function(j){if(j>=c.moves.length)return"<span></span>";var kk=c.cls[j];return'<span class="mvb'+(c.ply===j+1?" on":"")+'" data-rp="'+(j+1)+'">'+esc(c.moves[j].san)+(kk?badge(kk,"mbdg"):"")+"</span>"}).join("")+"</div>"}
  var todo=rvTodo(c),seenTodo=todo.filter(function(i){return c.seen[i+1]}).length,ready=rvReady(c),side=function(w){var n={brilliant:0,best:0,good:0,inaccuracy:0,mistake:0,blunder:0};c.cls.forEach(function(x,i){if((i%2===0)===w&&x)n[x]++});return["brilliant","inaccuracy","mistake","blunder"].filter(function(x){return x!=="brilliant"||n[x]}).map(function(x){return'<span style="color:'+LBL[x][1]+'">'+n[x]+" "+LBL[x][0].toLowerCase()+(n[x]===1?"":"s")+"</span>"}).join(" · ")};
  var sum=c.done?'<div class="card" style="margin-top:14px"><h2>Summary</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+(c.acc.w==null?"–":c.acc.w+"%")+'</b><span class="mu">White accuracy</span><div class="mu" style="font-size:12px">'+side(true)+'</div></div><div><b>'+(c.acc.b==null?"–":c.acc.b+"%")+'</b><span class="mu">Black accuracy</span><div class="mu" style="font-size:12px">'+side(false)+"</div></div></div></div>":"";
  var fin=c.view?'<p class="mu">You’re replaying '+esc(g.owner)+'’s best game ('+g.accuracy+'% accuracy when they reviewed it). Looking at other players’ games doesn’t earn XP.</p>':g.reviewed?'<p class="mu">You’ve already reviewed this game.</p>':!c.done?'<p class="mu">Analysing position '+Math.min(ana,tot)+" of "+tot+"…</p>"
   :'<p class="mu">To finish: '+(todo.length===1?"look at your one inaccuracy, mistake or blunder ("+seenTodo+"/1 seen), and ":todo.length?"look at each of your "+todo.length+" inaccuracies, mistakes and blunders ("+seenTodo+"/"+todo.length+" seen), and ":"")+"step to the end of the game"+(c.seen[tot-1]?" ✓":"")+'.</p><button id="rvFinish"'+(ready?"":" disabled")+">Finish review"+(RV.left?" · +"+RV.xp+" XP":"")+"</button>"+(RV.left?"":'<p class="mu">You’ve used today’s '+CAT.reviewsPerDay+" XP reviews; this one is still saved.</p>");
- return'<div class="qh"><h1>vs '+esc(g.opp.name)+'</h1><button class="g" id="rvBack" style="flex:none">'+(c.view?"← Back to profile":"← All games")+'</button></div><p class="mu" style="margin:4px 0 14px">'+esc(g.me.name)+" ("+g.me.rating+") vs "+esc(g.opp.name)+" ("+g.opp.rating+") · "+esc(g.tclass)+" · "+g.res+'</p>'
+ return'<div class="qh"><h1>vs '+esc(g.opp.name)+'</h1><button class="g" id="rvBack" style="flex:none">'+(c.view?"← Back to profile":"← All games")+'</button></div><p class="mu" style="margin:4px 0 14px">'+esc(g.me.name)+" ("+g.me.rating+") vs "+esc(g.opp.name)+" ("+g.opp.rating+") · "+esc(g.tclass)+" · "+g.res+(c.opening?' · <b>'+esc(c.opening[0]+" "+c.opening[1])+"</b>":"")+'</p>'
   +'<div class="wrap"><div style="flex:0 1 460px"><div class="bwrap"><div class="ebar" title="'+evalTxt(e)+'"><i style="height:'+flipPct.toFixed(1)+'%"></i><span>'+evalTxt(e)+"</span></div>"+rvBoard(c)+"</div>"
-  +'<div class="row" style="max-width:460px"><button class="g" data-rp="0">⏮</button><button class="g" data-rp="'+(c.ply-1)+'">◀</button><button class="g" data-rp="'+(c.ply+1)+'">▶</button><button class="g" data-rp="'+(tot-1)+'">⏭</button><button class="g" id="rvMist"'+(c.done&&todo.length?"":" disabled")+">Next mistake</button></div>"
+  +'<div class="row" style="max-width:460px"><button class="g" data-rp="0">⏮</button><button class="g" data-rp="'+(c.ply-1)+'">◀</button><button class="g" data-rp="'+(c.ply+1)+'">▶</button><button class="g" data-rp="'+(tot-1)+'">⏭</button><button class="g" id="rvMist"'+(c.done&&todo.length?"":" disabled")+'>Next mistake</button><button class="g" id="rvFlip" title="Flip the board" style="flex:none">⇅ Flip</button></div>'
   +'<p style="max-width:460px">'+note+"</p>"+rvGraph(c)+'<div class="row" style="max-width:460px"><span class="mu" style="flex:none">Engine depth</span>'+fsel("rvDepth",[[10,"Quick (10)"],[13,"Normal (13)"],[16,"Deep (16)"]],c.depth)+"</div></div>"
   +'<div style="flex:1 1 280px"><div class="card"><h2>Moves</h2><div class="mvs">'+list+"</div></div>"+sum+'<div class="card" style="margin-top:14px">'+fin+'</div><p class="mu" style="font-size:12px">Engine: Stockfish 19 (GPL-3.0), running in your browser. <a class="pl" href="/vendor/README.txt" target="_blank">Licences and source</a>.</p></div></div>'}
 function rvSan(c,i,uci){try{var b=new RV.lib.Chess(c.fens[i]);var m=b.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"});return m?m.san:uci}catch(e){return uci}}
@@ -593,6 +610,8 @@ function render(){var R=document.getElementById("root");
   await doPost("dismantle/dupes",{},function(r){return"Dismantled "+r.dupes.count+" duplicates for "+costTxt(r.dupes.yield)+"."});sel=null;render()}catch(e){toast(e.message)}};
  if($("cCancel"))$("cCancel").onclick=function(){AD.cedit=null;render()};
  if($("cSave"))$("cSave").onclick=async function(){if(await adPost("admin/content/save",{kind:AD.cedit.kind,data:cRead()},"Saved.")){AD.cedit=null;render()}};
+ if($("bkPrune"))$("bkPrune").onclick=async function(){if(!confirm("Delete the older automatic backups and keep the newest 3? Download a backup first if you want a copy."))return;try{var r=await api("admin/backups/prune",{keep:3});toast("Deleted "+r.deleted+" old backup"+(r.deleted===1?"":"s")+".");AD.bk=null;render()}catch(e){toast(e.message)}};
+ if($("rvFlip"))$("rvFlip").onclick=function(){RV.cur.flip=!RV.cur.flip;render()};
  if($("adNew"))$("adNew").onclick=function(){AD.edit={};render()};
  if($("fCancel"))$("fCancel").onclick=function(){AD.edit=null;render()};
  if($("fSave"))$("fSave").onclick=async function(){var it=itemFromForm();if(await adPost("admin/item/save",{item:it},"Item saved.")){AD.edit=null;render()}};
@@ -620,14 +639,23 @@ function render(){var R=document.getElementById("root");
  if($("lk"))$("lk").onclick=act(function(){return api("cc",{cc:$("cc").value})});
  if($("vf"))$("vf").onclick=act(function(){return api("cc/verify",{})},"Linked! Hit Sync to set your baseline.");
  if($("cx"))$("cx").onclick=function(){S.changing=true;render()};
- if($("sy"))$("sy").onclick=sync;if($("craftBtn"))$("craftBtn").onclick=craftNow;if($("clearBtn"))$("clearBtn").onclick=function(){grid=grid.map(function(){return null});pvSoon();render()}}
+ if($("sy"))$("sy").onclick=function(){sync(false)};if($("craftBtn"))$("craftBtn").onclick=craftNow;if($("clearBtn"))$("clearBtn").onclick=function(){grid=grid.map(function(){return null});pvSoon();render()}}
 function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();sfx("click");if(ok)toast(ok);if(S.unlocked&&S.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+S.unlocked.map(achName).join(", "))},ok?1800:0)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message;sfx("error")}}}
-async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";var fx=S.items.some(function(i){return i.slot==="aura"});
- try{var r=await api("sync",{});S=r;await refresh();render();
+/* syncing happens by itself: on opening the site, on coming back to the tab, and every few minutes while it's visible.
+   quiet syncs say nothing unless there are new games, and don't redraw while you're typing or editing */
+var SY={last:0,busy:false,every:5*60e3};
+function busyTyping(){var a=document.activeElement;return(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))||AD.edit||AD.redit||AD.cedit}
+function autoSync(){if(S&&S.cc&&!S.changing&&!SY.busy&&document.visibilityState==="visible")sync(true)}
+function ago(t){var s=Math.round((Date.now()-t)/1000);return!t?"not yet":s<45?"just now":s<3600?Math.round(s/60)+" min ago":Math.round(s/3600)+" h ago"}
+async function sync(quiet){var se=document.getElementById("se");if(SY.busy)return;SY.busy=true;if(se&&!quiet)se.textContent="Syncing…";var fx=S.items.some(function(i){return i.slot==="aura"});
+ try{var r=await api("sync",{});SY.last=Date.now();S=r;await refresh();if(!quiet||r.count||r.msg||!busyTyping())render();
+  if(se&&!quiet)se.textContent="";
   if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+kindName(k)}).join(", "),got=Object.keys(r.drops||{}).filter(function(k){return k.indexOf("chest:")===0});
-  if(got.length)setTimeout(function(){sfx("discover");burst(["🎁","✨"]);toast("🎁 You found "+got.map(function(k){return(r.drops[k]>1?r.drops[k]+"× ":"a ")+kindName(k)}).join(" and ")+"! Open it in your Inventory.")},1400);toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else toast("No new rated games since last sync.");
+  if(got.length)setTimeout(function(){sfx("discover");burst(["🎁","✨"]);toast("🎁 You found "+got.map(function(k){return(r.drops[k]>1?r.drops[k]+"× ":"a ")+kindName(k)}).join(" and ")+"! Open it in your Inventory.")},1400);toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else if(!quiet)toast("No new rated games since last sync.");
   if(r.unlocked&&r.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.unlocked.map(achName).join(", "))},2200)
- }catch(e){se.textContent=e.message;sfx("error")}}
+ }catch(e){if(!quiet){var s2=document.getElementById("se");if(s2)s2.textContent=e.message;sfx("error")}}finally{SY.busy=false}}
+setInterval(function(){if(Date.now()-SY.last>=SY.every)autoSync()},30e3);
+document.addEventListener("visibilitychange",function(){if(Date.now()-SY.last>60e3)autoSync()});
 /* ---------- crafting table interaction ---------- */
 function pvSoon(){clearTimeout(pvT);pvT=setTimeout(async function(){var el=document.getElementById("res");if(gridEmpty()){PV=null}else{try{PV=await api("craft/preview",{grid:grid})}catch(e){PV=null}}if(el&&tab==="craft")el.innerHTML=resHTML();var b=document.getElementById("craftBtn");if(b)b.onclick=craftNow},120)}
 function place(i){var c=grid[i];if(!pick){if(c){grid[i]=null;pvSoon();render();sfx("click")}return}
