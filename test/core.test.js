@@ -592,3 +592,37 @@ test("item locks: a locked item can't be dismantled or crafted away; duplicates 
   core.toggleLock(a, ids[0]); core.dismantle(a, ids[0]); // unlocked again: fine
   assert.equal(bal(db, a, "shard"), ledgerSum(db, a, "shard"));
 });
+
+test("editor: new materials work in recipes, prices, quests and chest loot, and can't vanish while used or held", () => {
+  const { core, mk } = setup({ rand: () => 0 }), a = mk("alice", "alice");
+  const m = core.saveContent("mat", { name: "Moonstone", r: 3, color: "#88CCFF" });
+  assert.equal(m.id, "cm1"); assert.equal(C.MATS.cm1, "Moonstone"); assert.equal(C.MAT_INFO.cm1.color, "#88ccff"); assert.equal(C.NAMES.cm1, "Moonstone");
+  assert.equal(core.view(a).mats.cm1, 0);
+  const ch = core.saveContent("chest", { name: "Moon Chest", color: "#334466", chance: 1, loot: [{ id: "cm1", min: 2, max: 3, chance: 100 }] });
+  assert.ok(C.CHESTS.some(c => c.id === ch.id)); assert.equal(core.view(a).chests[ch.id], 0);
+  core.sync(a, [G("alice", "mm1")]); assert.equal(core.view(a).chests[ch.id], 1); // rand 0: the rarest chest (1%) drops
+  assert.deepEqual(core.openChest(a, ch.id).opened.loot, { cm1: 2 }); assert.equal(core.view(a).mats.cm1, 2);
+  const it = core.saveItem({ name: "Moon Ring", slot: "ring", r: 3, price: 0, stats: { xp: 3 }, g: "◎", f: "" });
+  core.saveRecipe({ out: ["item", it.id], grid: ["cm1", null, "cm1", null, null, null, null, null, null], mult: 1, fee: 0, hint: "" });
+  core.craft(a, [{ t: "mat", k: "cm1" }, null, { t: "mat", k: "cm1" }, null, null, null, null, null, null]); assert.equal(core.view(a).mats.cm1, 0);
+  assert.throws(() => core.deleteContent("mat", "cm1"), e => e.code === "in_use" && /recipe|Moon Chest/.test(e.message)); assert.ok(C.MATS.cm1);
+  assert.throws(() => core.deleteContent("mat", "shard"), e => e.code === "in_use"); // built-ins stay
+  core.saveContent("mat", { id: "shard", name: "Iron Bits", r: 0, color: "#7f8fa6" }); assert.equal(C.MATS.shard, "Iron Bits");
+  core.restoreContent("mat", "shard"); assert.equal(C.MATS.shard, "Iron Shards");
+  for (const bad of [{ name: "<b>" }, { r: 7 }, { color: "red" }]) assert.throws(() => core.saveContent("mat", { name: "Ok", r: 1, color: "#123456", ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+});
+
+test("editor: chest odds and loot are checked, and held chests can't be deleted", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice");
+  core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 40, loot: [{ id: "shard", min: 5, max: 9, chance: 100 }] });
+  assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40);
+  assert.throws(() => core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 90, loot: [{ id: "shard", min: 1, max: 1, chance: 100 }] }), e => e.code === "too_many");
+  assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40); // refused change rolled back
+  assert.throws(() => core.deleteContent("chest", "wood"), e => e.code === "in_use");
+  for (const bad of [{ loot: [] }, { loot: [{ id: "gold_ore", min: 1, max: 1, chance: 50 }] }, { loot: [{ id: "shard", min: 5, max: 2, chance: 50 }] }, { loot: [{ id: "shard", min: 1, max: 1, chance: 0 }] }, { chance: 101 }])
+    assert.throws(() => core.saveContent("chest", { name: "Box", color: "#123456", chance: 1, loot: [{ id: "shard", min: 1, max: 1, chance: 50 }], ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+  const c = core.saveContent("chest", { name: "Box", color: "#123456", chance: 0, loot: [{ id: "shard", min: 1, max: 1, chance: 50 }] });
+  core.adminGive(a, "chest:" + c.id, 1); assert.throws(() => core.deleteContent("chest", c.id), e => e.code === "in_use");
+  core.openChest(a, c.id); core.deleteContent("chest", c.id); assert.ok(!C.CHESTS.some(x => x.id === c.id));
+  core.restoreContent("chest", "wood"); assert.equal(C.CHESTS.find(x => x.id === "wood").chance, 25);
+});
