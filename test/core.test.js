@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -674,4 +674,22 @@ test("best game: the highest-accuracy reviewed win, shown on profiles that are v
   assert.equal(core.publicProfile(b, "alice").bestGame, undefined); assert.throws(() => core.bestGameTarget(b, "alice"), e => e.code === "private");
   core.addFriend(b, "alice"); core.answerFriend(a, "bob", true); assert.equal(core.bestGameTarget(b, "alice").key, g[1].url);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM reviews WHERE user_id=?").get(b).n, 0); // looking never creates a review
+});
+
+test("openings: read from chess.com's PGN headers, grouped into a repertoire for White and Black", () => {
+  assert.deepEqual(R.openingOf('[ECO "C41"]\n[ECOUrl "https://www.chess.com/openings/Philidor-Defense-3.d4-Bg4"]\n\n1. e4 e5'), { eco: "C41", name: "Philidor Defense" });
+  assert.equal(R.openingOf('[ECOUrl "https://www.chess.com/openings/Queens-Gambit-Declined-Exchange-Variation...5.Bg5"]').name, "Queen's Gambit Declined Exchange Variation");
+  assert.equal(R.openingFamily("Sicilian Defense Najdorf Variation"), "Sicilian Defense"); assert.equal(R.openingFamily("Ruy Lopez Opening Morphy Defense"), "Ruy Lopez Opening");
+  assert.equal(R.openingOf("1. e4 e5"), null);
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  const tag = (g, url) => { g.pgn = `[ECO "B90"]\n[ECOUrl "https://www.chess.com/openings/${url}"]\n\n` + g.pgn; return g; };
+  const games = [tag(G("alice", "x1", "win"), "Italian-Game-Two-Knights-Defense"), tag(G("alice", "x2", "loss"), "Italian-Game-Giuoco-Piano"),
+    tag(G("alice", "x3", "agreed"), "Italian-Game"), tag(G("x4", "alice", "win"), "Sicilian-Defense-Najdorf-Variation-6.Be3")];
+  games[3].white.result = "resigned"; games[3].black.result = "win"; // alice won with Black
+  core.sync(a, games);
+  const r = core.repertoire(a);
+  assert.deepEqual(r.white, [{ name: "Italian Game", games: 3, win: 1, draw: 1, loss: 1, score: 50 }]);
+  assert.deepEqual(r.black, [{ name: "Sicilian Defense", games: 1, win: 1, draw: 0, loss: 0, score: 100 }]);
+  const plain = G("alice", "x5"); core.sync(a, [plain]); tag(plain, "French-Defense"); core.sync(a, [plain]); // seen again later with its opening
+  assert.equal(db.prepare("SELECT opening FROM games WHERE key=?").get(plain.url).opening, "French Defense");
 });
