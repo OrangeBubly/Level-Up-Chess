@@ -120,6 +120,17 @@ app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid)))
 app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
 app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
 app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
+app.post("/api/merchant", auth, act((u, b) => core.buyOffer(u, String(b.id || ""))));
+app.post("/api/theme", auth, act((u, b) => core.setTheme(u, String(b.theme || ""))));
+app.post("/api/password", auth, async (req, res) => {
+  authLimit(req);
+  const old = String(body(req).old || ""), p = String(body(req).password || "");
+  if (!crypto.timingSafeEqual(Buffer.from(await hashPw(old.slice(0, 200), req.u.salt)), Buffer.from(req.u.hash))) throw new AppError("bad_login", "Your current password is wrong.", 401);
+  if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
+  const salt = crypto.randomBytes(16).toString("hex");
+  core.setPassword(req.u.id, salt, await hashPw(p, salt));
+  setSession(res, core.user(req.u.id)); res.json({ ok: true }); // this device stays logged in, every other one is logged out
+});
 app.post("/api/craft/preview", auth, (req, res) => {
   if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
   res.json(core.preview(req.u.id, body(req).grid));
