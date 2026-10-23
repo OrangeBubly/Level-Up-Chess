@@ -15,7 +15,8 @@ const ADMINS = new Set(String(process.env.ADMIN_USERS || "").split(",").map(s =>
 if (ADMINS.size) log("info", { msg: "admin accounts configured", count: ADMINS.size });
 const DB_FILE =process.env.DB_FILE || path.join(__dirname, "levelup.db");
 const db = open(DB_FILE);
-migrate(db, { file: DB_FILE, backupDir: process.env.BACKUP_DIR || path.join(path.dirname(DB_FILE), "backups") });
+const BACKUP_DIR = process.env.BACKUP_DIR || path.join(path.dirname(DB_FILE), "backups");
+migrate(db, { file: DB_FILE, backupDir: BACKUP_DIR });
 const core = createCore(db, { log });
 const cc = createChesscom({ base: process.env.CHESSCOM_API, contact: process.env.CONTACT_EMAIL });
 
@@ -157,7 +158,7 @@ app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || "")
 // ---- game reviews: the browser analyses the moves; the server checks the game is theirs, fetches the moves and decides the XP ----
 const reviewOpened = new Map(); // user:game -> when its moves were sent, so a "review" finished seconds later pays nothing
 setInterval(() => { const old = Date.now() - 6 * 3600e3; for (const [k, t] of reviewOpened) if (t < old) reviewOpened.delete(k); }, 30 * 60e3).unref();
-app.get("/api/review/games", auth, (req, res) => res.json({ games: core.reviewList(req.u.id), left: core.reviewsLeft(req.u.id), xp: C.REVIEW_XP }));
+app.get("/api/review/games", auth, (req, res) => res.json({ games: core.reviewList(req.u.id), left: core.reviewsLeft(req.u.id), xp: C.REVIEW_XP, repertoire: core.repertoire(req.u.id) }));
 app.get("/api/review/game", auth, async (req, res) => {
   if (!limit("review:" + req.u.id, 10, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
   const g = core.reviewTarget(req.u.id, req.query.key), month = await cc.month(g.me.name, g.year, g.month);
@@ -207,6 +208,25 @@ app.post("/api/admin/give", auth, admin, act((u, b) => core.adminGive(u, String(
 app.post("/api/admin/item", auth, admin, act((u, b) => core.adminItem(u, String(b.def || ""))));
 app.post("/api/admin/wins", auth, admin, act((u, b) => core.adminWins(u, Number(b.wins))));
 app.post("/api/admin/reset", auth, admin, act(u => core.adminResetDay(u)));
+
+// ---- backups (admins only): download a copy of the live database, and tidy the automatic pre-migration copies ----
+// The download holds every account (including password hashes), so keep the file somewhere private.
+const autoBackups = () => { try { return fs.readdirSync(BACKUP_DIR).filter(f => /^pre-migration-\d+\.db$/.test(f)).map(f => ({ name: f, size: fs.statSync(path.join(BACKUP_DIR, f)).size, at: +f.match(/\d+/)[0] })).sort((a, b) => b.at - a.at); } catch { return []; } };
+app.get("/api/admin/backup", auth, admin, (req, res) => {
+  if (!limit("backup:" + req.u.id, 3, 60e3)) throw new AppError("rate_limited", "Wait a minute between backups.", 429);
+  const tmp = path.join(require("os").tmpdir(), `levelup-backup-${Date.now()}.db`);
+  db.exec(`VACUUM INTO '${tmp.replace(/'/g, "''")}'`); // a complete, consistent copy, even while players are using the site
+  res.download(tmp, `levelup-backup-${new Date().toISOString().slice(0, 10)}.db`, () => fs.unlink(tmp, () => {}));
+});
+app.get("/api/admin/backups", auth, admin, (req, res) => {
+  const list = autoBackups(); res.json({ count: list.length, bytes: list.reduce((s, b) => s + b.size, 0), newest: list[0] ? list[0].at : null, live: db.pragma("page_count", { simple: true }) * db.pragma("page_size", { simple: true }) });
+});
+// keeps the newest few automatic backups and deletes the rest
+app.post("/api/admin/backups/prune", auth, admin, (req, res) => {
+  const keep = Math.max(1, Math.min(10, Number(body(req).keep) || 3)), old = autoBackups().slice(keep);
+  for (const b of old) fs.unlinkSync(path.join(BACKUP_DIR, b.name));
+  res.json({ deleted: old.length, kept: autoBackups().length });
+});
 
 // ---- content editor: items, recipes and textures (admins only; changes apply to everyone at once) ----
 app.get("/api/admin/content", auth, admin, (req, res) => res.json(core.contentAdmin()));
