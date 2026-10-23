@@ -738,3 +738,14 @@ test("security: a chess.com request that never answers times out, and the next o
   await assert.rejects(cc.profile("a"), e => e.code === "chesscom_unavailable");
   assert.deepEqual(await cc.profile("b"), { username: "x" }); // the queue keeps moving
 });
+
+test("names: offensive usernames and clan names are refused, including disguised spellings, without blocking normal words", () => {
+  for (const n of ["fuckface", "Sh1tHead", "biiiitch", "the_ass", "a55", "big_d1ck", "xXn1ggaXx", "FvcK", "f_u_c_k", "fuuuuck", "ass99", "my_cock", "n4zi", "whore_42", "p0rnstar"])
+    assert.ok(R.isOffensive(n), "should block " + n);
+  for (const n of ["assassin", "classic_chess", "cocktail", "titan", "therapist", "grape", "passant", "bass_player", "dickens", "sussex", "grandmaster", "japan_fan", "spicy_pawn", "Pawn Storm", "KNT"])
+    assert.ok(!R.isOffensive(n), "should allow " + n);
+  const { core } = setup(), a = core.createLinkedUser("alice", "s", "h", "alicecc", 1); core.adminGive(a, "coins", 5000);
+  assert.throws(() => core.createClan(a, "Sh1t Squad", "OK"), e => e.code === "bad_name");
+  assert.throws(() => core.createClan(a, "Nice Clan", "A55"), e => e.code === "bad_tag");
+  assert.equal(core.createClan(a, "Classic Assassins", "CLS").clanAction, "created");
+});

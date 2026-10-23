@@ -2,7 +2,7 @@
 // Level Up Chess: HTTP layer. Game logic lives in lib/core.js; this file does auth, routing and errors.
 const express = require("express"), crypto = require("crypto"), fs = require("fs"), path = require("path"), { promisify } = require("util");
 const { open, migrate } = require("./lib/db"), { createCore } = require("./lib/core"), { createChesscom } = require("./lib/chesscom");
-const C = require("./lib/content"), { AppError } = require("./lib/errors");
+const C = require("./lib/content"), R = require("./lib/rules"), { AppError } = require("./lib/errors");
 const scrypt = promisify(crypto.scrypt);
 
 const PROD = process.env.NODE_ENV === "production", PORT = process.env.PORT || 3000;
@@ -87,6 +87,7 @@ function signupFields(req) {
   if (!/^[a-z0-9_]{3,20}$/.test(n)) throw new AppError("bad_username", "Username: 3-20 letters, numbers or underscores.");
   // admin usernames can never be signed up for, or anyone could claim one that has no account yet (or was deleted)
   if (ADMINS.has(n)) throw new AppError("username_taken", "That username is taken.", 409);
+  if (R.isOffensive(n)) throw new AppError("bad_username", "Please choose a different username.");
   if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
   if (!/^[a-z0-9_-]{3,25}$/.test(name)) throw new AppError("bad_cc", "That doesn’t look like a chess.com username.");
   if (db.prepare("SELECT 1 FROM users WHERE username=?").get(n)) throw new AppError("username_taken", "That username is taken.", 409);
