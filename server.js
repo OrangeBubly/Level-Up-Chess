@@ -98,7 +98,7 @@ app.post("/api/cc/verify", auth, async (req, res) => {
   const p = await cc.profile(u.cc_pending);
   if (!p || !String(p.location || "").toLowerCase().includes(u.cc_code)) throw new AppError("code_missing", "Code not found in your chess.com Location yet. Save it there and try again.");
   if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed.");
-  core.finishLink(u.id, p.player_id); res.json(core.view(u.id));
+  const r = core.finishLink(u.id, p.player_id); res.json({ ...core.view(u.id), ...r });
 });
 app.post("/api/sync", auth, async (req, res) => {
   const u = req.u; if (!u.cc) throw new AppError("not_linked", "Verify your chess.com username first.");
@@ -111,12 +111,17 @@ app.post("/api/sync", auth, async (req, res) => {
   res.json({ ...core.view(u.id), ...result });
 });
 
-const act = (fn, field) => (req, res) => { fn(req.u.id, field === "id" ? String(body(req).id || "") : Number(body(req).iid)); res.json(core.view(req.u.id)); };
-app.post("/api/buy", auth, act(core.buy, "id"));
-app.post("/api/craft", auth, act(core.craft, "id"));
-app.post("/api/equip", auth, act(core.equip, "iid"));
-app.post("/api/upgrade", auth, act(core.upgrade, "iid"));
-app.post("/api/dismantle", auth, act(core.dismantle, "iid"));
+const act = fn => (req, res) => { const r = fn(req.u.id, body(req)) || {}; res.json({ ...core.view(req.u.id), ...r }); };
+app.post("/api/buy", auth, act((u, b) => core.buy(u, String(b.id || ""))));
+app.post("/api/equip", auth, act((u, b) => core.equip(u, Number(b.iid))));
+app.post("/api/upgrade", auth, act((u, b) => core.upgrade(u, Number(b.iid))));
+app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid))));
+app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
+app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
+app.post("/api/craft/preview", auth, (req, res) => {
+  if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
+  res.json(core.preview(req.u.id, body(req).grid));
+});
 
 let lbCache = { at: 0, rows: [] };
 app.get("/api/leaderboard", (req, res) => { if (Date.now() - lbCache.at > 15e3) lbCache = { at: Date.now(), rows: core.leaderboard() }; res.json(lbCache.rows); });

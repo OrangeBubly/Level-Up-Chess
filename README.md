@@ -1,12 +1,13 @@
 # Level Up Chess (v2)
 
 Turn chess.com games into XP, loot and glory. Accounts, verified chess.com linking, server-side rewards,
-item collection with eight equipment slots, upgrades, dismantling, crafting and a leaderboard.
+a Minecraft-style inventory and 3x3 crafting table with hidden pattern recipes, achievements that unlock
+recipe hints, potions that give every material a use, generated pixel art, synthesized sounds, and a leaderboard.
 
 ## Run it
     npm install
     CONTACT_EMAIL=you@example.com npm start     # http://localhost:3000
-    npm test                                    # 11 automated tests, no network needed
+    npm test                                    # 18 automated tests, no network needed
 
 ## Environment variables
 | Name | Purpose |
@@ -32,8 +33,22 @@ item collection with eight equipment slots, upgrades, dismantling, crafting and 
 - First sync sets a baseline, so earlier games never pay out. Every fresh game is eventually processed.
 - Item bonuses (with caps) change website rewards only, never chess.com games.
 
+## Materials, recipes and achievements
+- Every rewarded game drops Iron Shards (win 3, draw 2, loss 1). Every 3rd win also drops Ember Essence and every 10th win a
+  Relic Fragment. Drops pause once the daily soft cap is reached. Dismantling gear also returns materials.
+- Recipes are patterns on a 3x3 table (the shape matters, the position does not). They are hidden until crafted once.
+  Achievements unlock hints for the harder recipes. Gear recipes also use up spare gear; fees are paid in coins.
+- Potions (Streak Shield, XP Tonic, Fortune Draught, Underdog Brew, Relic Catalyst) can be crafted again and again, so extra
+  materials always have a use. A test checks that every material is consumed by at least one potion recipe.
+
 ## Adding content
-Add a row to `ROWS` in `lib/content.js`. Items with price 0 become craftable automatically (cost by rarity).
+Items, recipes, potions and achievements are rows in `lib/content.js`. A new recipe needs a unique pattern (a test enforces this)
+and a new item needs a row in `ROWS`. The sprite is generated automatically from the item's slot, rarity and glyph.
+
+## Your own art and sounds
+Drop PNGs into `public/assets/items/` and MP3s into `public/assets/sfx/`, then list them in `public/assets/manifest.json`
+(see `public/assets/README.txt`). Anything listed replaces the generated art or synthesized sound. Check licenses first, and never use
+Minecraft's or Chess.com's own assets.
 
 ## Changing the database later
 Add a new entry to `MIGRATIONS` in `lib/db.js`. Before applying a migration to a database that has data,

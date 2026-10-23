@@ -3,121 +3,228 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Level Up Chess</title>
 <style>
-:root{--bg:#09090c;--p:#121217;--p2:#1a1a22;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--c0:#8e8e9e;--c1:#3ddc84;--c2:#3da9ff;--c3:#b44dff;--c4:#ffb020;--c5:#ff2d3d}
+:root{--bg:#09090c;--p:#14141a;--p2:#1c1c24;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--c0:#8e8e9e;--c1:#3ddc84;--c2:#3da9ff;--c3:#b44dff;--c4:#ffb020;--c5:#ff2d3d}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(900px 500px at 90% -10%,rgba(255,45,61,.14),transparent),var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
-.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh;max-width:1400px;margin:0 auto}
-aside{padding:24px 16px;border-right:1px solid var(--bd);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
-.logo{font-size:20px;font-weight:800;letter-spacing:.5px;margin:0 8px 18px;text-shadow:0 0 18px rgba(255,45,61,.7)}.logo b{color:var(--red)}
-.nav{background:none;border:1px solid transparent;color:var(--mu);text-align:left;padding:11px 14px;border-radius:12px;font:inherit;font-weight:600;cursor:pointer;transition:.2s;box-shadow:none}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh;max-width:1400px;margin:0 auto}
+aside{padding:24px 14px;border-right:1px solid var(--bd);position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.logo{font-size:19px;font-weight:800;margin:0 8px 16px;text-shadow:0 0 18px rgba(255,45,61,.7)}.logo b{color:var(--red)}
+.nav{background:none;border:1px solid transparent;color:var(--mu);text-align:left;padding:10px 14px;border-radius:12px;font:inherit;font-weight:600;cursor:pointer;box-shadow:none}
 .nav:hover{color:var(--tx);background:var(--p);filter:none}
 .nav.on{color:#fff;background:linear-gradient(90deg,rgba(255,45,61,.22),transparent);border-color:rgba(255,45,61,.5);box-shadow:0 0 18px rgba(255,45,61,.22)}
 .me{margin-top:auto;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--p);font-size:13px}
-main{padding:28px 32px 48px;min-width:0}
-h1{margin:0;font-size:28px}h2{margin:0 0 12px;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu)}
-.mu{color:var(--mu);font-size:13px}
-.card{background:var(--p);border:1px solid var(--bd);border-radius:16px;padding:20px}
-.g2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.stat{background:var(--p);border:1px solid var(--bd);border-radius:14px;padding:14px;text-align:center}.stat b{display:block;font-size:24px}
-.hero{display:flex;gap:22px;align-items:center}
-.ring{--p:0;flex:none;width:112px;height:112px;border-radius:50%;background:conic-gradient(var(--red) calc(var(--p)*1%),#26262f 0);display:grid;place-items:center;position:relative;filter:drop-shadow(0 0 12px rgba(255,45,61,.55))}
+main{padding:26px 30px 48px;min-width:0}
+h1{margin:0;font-size:27px}h2{margin:0 0 10px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu)}
+.mu{color:var(--mu);font-size:13px}.bad{color:#ff6b78}
+.card{background:var(--p);border:1px solid var(--bd);border-radius:16px;padding:18px}
+.mc{background:#16161d;border:3px solid;border-color:#3b3b48 #0b0b0f #0b0b0f #3b3b48;border-radius:4px;padding:14px;box-shadow:0 0 22px rgba(255,45,61,.10)}
+.g2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+.wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}.wrap>*{flex:1 1 320px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--p);border:1px solid var(--bd);border-radius:14px;padding:14px;text-align:center}.stat b{display:block;font-size:23px}
+.hero{display:flex;gap:20px;align-items:center}
+.ring{--p:0;flex:none;width:108px;height:108px;border-radius:50%;background:conic-gradient(var(--red) calc(var(--p)*1%),#26262f 0);display:grid;place-items:center;position:relative;filter:drop-shadow(0 0 12px rgba(255,45,61,.55))}
 .ring::before{content:"";position:absolute;inset:9px;background:var(--p);border-radius:50%}
-.ring div{position:relative;text-align:center;line-height:1.1}.ring b{font-size:32px;display:block}.ring span{font-size:10px;letter-spacing:2px;color:var(--mu)}
-button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:10px;padding:10px 16px;background:var(--red);color:#fff;box-shadow:0 0 16px rgba(255,45,61,.45);transition:.2s}
+.ring div{position:relative;text-align:center;line-height:1.1}.ring b{font-size:30px;display:block}.ring span{font-size:10px;letter-spacing:2px;color:var(--mu)}
+button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:10px;padding:9px 15px;background:var(--red);color:#fff;box-shadow:0 0 16px rgba(255,45,61,.45);transition:.15s}
 button:hover{filter:brightness(1.15)}button:disabled{opacity:.35;box-shadow:none;cursor:default}
 button.g{background:transparent;border:1px solid var(--bd);box-shadow:none;color:var(--tx)}button.g:hover{border-color:var(--red)}
 input{width:100%;padding:11px 12px;margin:5px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
 input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgba(255,45,61,.3)}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.row>*{flex:1}
 .err{color:#ff6b78;font-size:13px;min-height:18px;margin-top:6px}
-.chip{display:inline-block;padding:3px 9px;margin:3px 4px 0 0;border-radius:99px;font-size:12px;font-weight:700;background:rgba(255,45,61,.13);border:1px solid rgba(255,45,61,.4);color:#ff8a94}
-.it{--rc:var(--c0);position:relative;background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 14%,var(--p)),var(--p) 70%);border:1px solid color-mix(in srgb,var(--rc) 55%,#000);border-radius:16px;padding:16px;text-align:center;transition:.25s;display:flex;flex-direction:column;gap:6px}
-.it:hover{transform:translateY(-4px);box-shadow:0 8px 30px color-mix(in srgb,var(--rc) 35%,transparent)}
-.glyph{font-size:62px;line-height:1.1;color:var(--rc);text-shadow:0 0 24px var(--rc),0 0 6px var(--rc);font-family:"Segoe UI Symbol","Noto Sans Symbols 2","Apple Symbols",serif}
-.rar{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--rc)}
-.fl{font-size:12px;color:var(--mu);font-style:italic;min-height:36px}
-.it .row{margin-top:auto}
-.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:22px}
-.slot{min-height:230px}.slot.empty{border:1px dashed var(--bd);background:var(--p);justify-content:center;color:var(--mu)}
-.sn{font-size:11px;letter-spacing:2px;color:var(--mu);font-weight:700}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.tabs button{background:var(--p);border:1px solid var(--bd);box-shadow:none;color:var(--mu);padding:7px 14px}.tabs button.on{color:#fff;border-color:var(--red);box-shadow:0 0 14px rgba(255,45,61,.35)}
-.bar{height:10px;background:#26262f;border-radius:9px;overflow:hidden;margin:10px 0 4px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#b3001b,var(--red));box-shadow:0 0 12px var(--red)}
-.lb{display:flex;align-items:center;gap:14px;padding:12px 8px;border-top:1px solid var(--bd)}.lb:first-child{border-top:0}
-.lb .n{width:34px;font-size:20px;text-align:center}.lb .gl{font-size:28px;color:var(--red);text-shadow:0 0 14px var(--red)}.lb .x{margin-left:auto;font-weight:800;color:var(--red);text-shadow:0 0 10px rgba(255,45,61,.6)}
+.chip{display:inline-block;padding:2px 9px;margin:3px 4px 0 0;border-radius:99px;font-size:12px;font-weight:700;background:rgba(255,45,61,.13);border:1px solid rgba(255,45,61,.4);color:#ff8a94}
+.px{width:36px;height:36px;image-rendering:pixelated;display:block;filter:drop-shadow(0 0 3px var(--rc,transparent))}
+.sl{--rc:var(--c0);width:56px;height:56px;background:#2a2a33;border:3px solid;border-color:#0b0b0f #55555f #55555f #0b0b0f;display:grid;place-items:center;position:relative;cursor:pointer;flex:none}
+.sl:hover{background:#34343f}.sl.on{outline:2px solid var(--red);box-shadow:0 0 14px var(--red);z-index:1}
+.sl.rar{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 55%,transparent)}.sl.on.rar{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 55%,transparent),0 0 14px var(--red)}
+.sl .n{position:absolute;right:3px;bottom:0;font:700 12px monospace;color:#fff;text-shadow:1px 1px #000}
+.sl .lv{position:absolute;left:3px;top:0;font:700 10px monospace;color:#ffe29a;text-shadow:1px 1px #000}
+.sl.sil .px{filter:brightness(0) opacity(.55)}.sl.big{width:72px;height:72px}.sl.big .px{width:48px;height:48px}
+.bag{display:grid;grid-template-columns:repeat(6,56px);gap:4px;justify-content:start}
+.eqs{display:grid;grid-template-columns:repeat(2,56px);gap:4px 10px}.eqs div{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--mu);letter-spacing:1px}
+.cg{display:grid;grid-template-columns:repeat(3,70px);gap:4px}.cg .sl{width:70px;height:70px}.cg .px{width:46px;height:46px}
+.craftrow{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.arrow{font-size:30px;color:var(--red);text-shadow:0 0 12px var(--red)}
+.resbox{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:150px}
+.rb{display:flex;gap:10px;align-items:center;padding:7px;border:1px solid var(--bd);border-radius:10px;cursor:pointer;margin-bottom:6px}.rb:hover,.rb.on{border-color:var(--red)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{background:var(--p);border:1px solid var(--bd);box-shadow:none;color:var(--mu);padding:6px 13px}.tabs button.on{color:#fff;border-color:var(--red);box-shadow:0 0 14px rgba(255,45,61,.35)}
+.bar{height:10px;background:#26262f;border-radius:9px;overflow:hidden;margin:8px 0 4px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#b3001b,var(--red));box-shadow:0 0 12px var(--red)}
+.it{--rc:var(--c0);background:linear-gradient(180deg,color-mix(in srgb,var(--rc) 14%,var(--p)),var(--p) 70%);border:1px solid color-mix(in srgb,var(--rc) 55%,#000);border-radius:14px;padding:14px;text-align:center;display:flex;flex-direction:column;gap:5px;align-items:center}
+.it .px{width:56px;height:56px}.rar2{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--rc)}.fl{font-size:12px;color:var(--mu);font-style:italic}
+.it .row{width:100%;margin-top:auto}
+.ach{display:flex;gap:12px;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--p)}.ach.done{border-color:rgba(255,45,61,.6);box-shadow:0 0 14px rgba(255,45,61,.18)}.ach .ic{font-size:26px;flex:none;width:34px;text-align:center}
+.lb{display:flex;align-items:center;gap:14px;padding:11px 8px;border-top:1px solid var(--bd)}.lb:first-child{border-top:0}
+.lb .n{width:34px;font-size:20px;text-align:center}.lb .x{margin-left:auto;font-weight:800;color:var(--red);text-shadow:0 0 10px rgba(255,45,61,.6)}.lb .px{width:32px;height:32px}
 .top1{background:linear-gradient(90deg,rgba(255,45,61,.12),transparent);border-radius:12px}
-.bn{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.bn div{background:var(--p2);border-radius:12px;padding:12px;text-align:center}.bn b{display:block;font-size:22px;color:var(--red);text-shadow:0 0 12px rgba(255,45,61,.6)}
-#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);background:#1f1f28;border:1px solid var(--red);box-shadow:0 0 24px rgba(255,45,61,.5);padding:12px 20px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none;font-weight:700;z-index:9}#toast.on{opacity:1;transform:translate(-50%,0)}
-.pop{position:fixed;font-size:30px;pointer-events:none;animation:up 1.3s ease-out forwards;z-index:9}@keyframes up{to{transform:translate(var(--dx),-240px) rotate(240deg);opacity:0}}
+.bn{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.bn div{background:var(--p2);border-radius:12px;padding:10px;text-align:center}.bn b{display:block;font-size:21px;color:var(--red);text-shadow:0 0 12px rgba(255,45,61,.6)}
+#tip{position:fixed;z-index:30;pointer-events:none;background:rgba(14,6,14,.96);border:2px solid #5a1020;box-shadow:0 0 14px rgba(255,45,61,.35);padding:7px 11px;font:13px/1.45 monospace;display:none;max-width:260px}
+#toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);background:#1f1f28;border:1px solid var(--red);box-shadow:0 0 24px rgba(255,45,61,.5);padding:11px 20px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none;font-weight:700;z-index:40;max-width:90%;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
+.pop{position:fixed;font-size:30px;pointer-events:none;animation:up 1.3s ease-out forwards;z-index:40}@keyframes up{to{transform:translate(var(--dx),-240px) rotate(240deg);opacity:0}}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
-@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}.nav{flex:1;text-align:center;padding:9px 4px;font-size:12px}main{padding:18px 14px 96px}.g2{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}}
-</style></head><body><div id="root"></div><div id="toast"></div>
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}.nav{flex:1;text-align:center;padding:8px 2px;font-size:11px}main{padding:16px 12px 96px}.g2{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}.bag{grid-template-columns:repeat(5,56px)}}
+</style></head><body><div id="root"></div><div id="toast"></div><div id="tip"></div>
 <script>
-var S=null,CAT=null,LB=[],tab="home",flt="all",RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],ST={xp:"XP",coin:"Coins",upset:"Underdog",streak:"Streak"};
+var S=null,CAT=null,LB=[],tab="home",flt="all",sel=null,pick=null,rsel=null,PV=null,pvT=0,IMG={},A={items:[],sfx:[]},muted=false,grid=[null,null,null,null,null,null,null,null,null];
+var RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],RC=["#8e8e9e","#3ddc84","#3da9ff","#b44dff","#ffb020","#ff2d3d"],ST={xp:"XP",coin:"Coins",upset:"Underdog",streak:"Streak"};
+try{muted=localStorage.getItem("luc-mute")==="1"}catch(e){}
+/* ---------- generated pixel art (16x16). o outline, a base, b light, c dark, g gold, w white ---------- */
+var TPL={
+sword:["..............oo",".............oba","............obba","...........obbao","..........obbao.",".........obbao..","..o.....obbao...","..oo...obbao....","...oo.obbao.....","....oobbao......",".....obao.......","....ogoo........","...ogoo.o.......","..ogo...........",".oo............."],
+spear:["..........oo....",".........obbo...","........obbao...",".......ooboo....","......obo.......",".....obo........","....obo.........","...obo..........","..ogo...........",".ogo............",".oo............."],
+armor:["................","...oo......oo...","..obbo....obbo..","..obaao..oaabo..","..obaaoooooaabo.","..obaaaaaaaaabo.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...ocaaaaaaaaco.","...occaaaaaacco.","....occaaaacco..","....ooccaaccoo..",".....ooooooooo.."],
+helmet:["................",".....oooooo.....","...ooabbbbaoo...","..oabbbbbbbbao..","..oabbaaaabbao..",".oabbaaaaaabbao.",".oabaaaaaaaabao.",".oaaaaaaaaaaaao.",".oaaoooooooaaao.",".oaao......oaao.",".ocao......oaco.",".occo......occo.",".oooo......oooo."],
+boots:["................","....ooooo.......","...oabbao.......","...oabbao.......","...oabbao.......","...oabbao.......","...oabbaooooo...","...oabbaaaaaaoo.","...oabbaaaaaaaao","...oaabbaaaaaaao","...occccccccccco","...ooooooooooooo"],
+ring:["......ogwo......",".....ogggo......","....oobbboo.....","...obbo.obbo....","...obo...obo....","...obo...obo....","...obbo.obbo....","....obbbbbo.....",".....oooo......."],
+amulet:["...o........o...","...ob......bo...","....ob....bo....",".....ob..bo.....","......obbo......",".....ooggoo.....","....ogwggggo....","....ogggggco....","....oggggcco....",".....oggcco.....","......oooo......"],
+aura:[".......o........","......oao.......",".....oabao......","....oabbbao.....","...oabbwbbao....","...oabwwwbao....","..oabbwwwbbao...","..oabbbwbbbao...","..oaabbbbbaao...","...oaaabbaaao...","....ocaaaaco....",".....oocccoo...."],
+scroll:["..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".oboooooooooabo.",".obaaaaaaaaaabo.",".oboooooooooabo.",".obaaaaaaaaaabo.",".obbbbbbbbbbbbo.","..oooooooooooo.."],
+shard:[".......oo.......","......obbo......",".....obbwbo.....","....obbbabo.....","....obbabco.....","...obbbaabco....","...obbaabbco....","..obbaabbbcco...","..obaabbbbcco...","...oaabbbcco....","....ooaaccoo....","......oooo......"],
+relic:["....oooooooo....","...obbbbbbbbo...","..obbaaaaaabbo..","..obaaagggaabo..","..obaaggaggaabo.","..obaaagggaaabo.","..obaaaggaaaabo.","..obaagaggaaabo.","..obaaaaaaaaabo.","..ocaaaaaaaaaco.","..occcccccccccc.","...oooooooooooo."],
+potion:["......oooo......","......obbo.......",".......oo.......","......obbo......",".....ocbbco.....","....oaaaaaao....","...oaabwaaaao...","...oaabaaaaaao..","...oaaaaaaaaco..","...oaaaaaaaacco.","....occaaaacco..",".....ooooooo...."],
+shield:["..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".obaabbbbbbaabo.",".obaabaaaabaabo.",".obaabaaaabaabo.","..obaabaabaabo..","..obaaabbaaaabo.","...obaaaaaaabo..","....obaaaaabo...",".....obaaabo....","......oooo......"]};
+var EMB={p:["...##...","..####..","...##...","..####..","...##...","..####..",".######.",".######."],n:["..##....",".#####..","###.###.","..#.###.","...####.","..#####.",".#######",".#######"],b:["...##...","..####..",".##.###.","..####..","...##...","..####..",".######.",".######."],r:["#.#.#.#.","#######.",".#####..",".#####..",".#####..",".#####..","#######.","#######."],q:["#.#.#.#.","#######.",".#####..","..###...","..###...",".#####..","#######.","#######."],k:["...#....",".#####..","...#....",".#####..","..###...","..###...",".#####..","#######."]};
+var EM={"♞":"n","♝":"b","♜":"r","♛":"q","♚":"k","♟":"p"},SLT={weapon:"sword",armor:"armor",helmet:"helmet",boots:"boots",ring:"ring",amulet:"amulet",aura:"aura",title:"scroll"},TM={w1:"spear",w2:"spear"};
+var PAL=[["#1b1d24","#8d93a3","#c7ccd8","#565b6b"],["#0b2014","#3ddc84","#b6f5cf","#1f8a52"],["#0a1a2e","#3da9ff","#b7dfff","#1f65a8"],["#1a0c2e","#b44dff","#ddb4ff","#6a2aa3"],["#2a1c05","#ffb020","#ffe29a","#b3720b"],["#2a0509","#ff2d3d","#ffa3aa","#a01120"]];
+var MPAL={shard:["#10151f","#7f8fa6","#cfd9e8","#3f4a5e"],essence:["#2a0a00","#ff7a1a","#ffd08a","#b3380a"],relic:["#1a0b2a","#8e5bd6","#e0c8ff","#4b2a8a"]};
+var CPAL={shield:["#0a1a2e","#5a6b85","#aab8d0","#2c3750"],tonic:PAL[1],draught:PAL[4],brew:PAL[5],catalyst:["#2a1c05","#ffd24a","#fff3b0","#b3720b"]};
+function hash(s){var h=7;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
+function draw(tpl,pal,emb,seed,rar){var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d"),rows=TPL[tpl],cols={o:pal[0],a:pal[1],b:pal[2],c:pal[3],g:"#ffd24a",w:"#ffffff"},body=[];
+ for(var y=0;y<16;y++){var row=((rows[y]||"")+"................").slice(0,16);for(var i=0;i<16;i++){var ch=row[i];if(ch!=="."){x.fillStyle=cols[ch];x.fillRect(i,y,1,1);if(ch==="a")body.push([i,y])}}}
+ if(emb){var m=EMB[emb];x.fillStyle=pal[0];for(var r=0;r<8;r++)for(var q=0;q<8;q++)if(m[r][q]==="#")x.fillRect(4+q,4+r,1,1)}
+ if(rar>=2&&body.length)for(var k=0;k<(rar>=4?3:1);k++){var p=body[(seed>>(k*4))%body.length];x.fillStyle=k%2?"#ffffff":"#ffd24a";x.fillRect(p[0],p[1],1,1)}
+ return c.toDataURL()}
+function mkSprite(t,id){var h=hash(t+id);
+ if(t==="item"){var d=item(id);return draw(TM[id]||SLT[d.slot],PAL[d.r],(d.slot==="armor"||d.slot==="aura"||d.slot==="amulet")?EM[d.g.charAt(0)]:null,h,d.r)}
+ if(t==="mat")return draw(id==="essence"?"aura":id==="relic"?"relic":"shard",MPAL[id],null,h,0);
+ return draw(id==="shield"?"shield":id==="catalyst"?"shard":"potion",CPAL[id],null,h,0)}
+function ico(t,id){var k=t+":"+id,src=A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)));return'<img class="px" src="'+src+'" alt="">'}
+/* ---------- sounds: synthesized 8-bit effects, or your own files from assets/sfx ---------- */
+var AC=null;function tone(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=t||"square";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
+function seq(a,gap,t){a.forEach(function(f,i){setTimeout(function(){tone(f,.12,t||"square")},i*gap)})}
+var SFX={click:function(){tone(520,.04)},equip:function(){seq([300,450],70)},buy:function(){seq([660,880],70)},craft:function(){seq([200,260,320,400],90,"sawtooth");setTimeout(function(){tone(784,.2,"triangle")},400)},discover:function(){seq([523,659,784,1047],110,"triangle")},levelup:function(){seq([392,523,659,784,1047],100,"triangle")},error:function(){tone(150,.18,"sawtooth",.06,90)},ach:function(){seq([659,784,988,1319],90,"triangle")}};
+function sfx(n){if(muted)return;if(A.sfx.indexOf(n)>-1){try{new Audio("assets/sfx/"+n+".mp3").play()}catch(e){}return}if(SFX[n])SFX[n]()}
+/* ---------- helpers ---------- */
 function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
 async function api(p,b){var o=b===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)};var r=await fetch("/api/"+p,o),j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||"Request failed");return j}
-function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=""},3000)}
-function burst(){var a=auraId(),e=a==="x2"?["🌑","🩸","✨","♛"]:["🔥","✨","♟️","⭐"];for(var i=0;i<20;i++){var p=document.createElement("span");p.className="pop";p.textContent=e[i%e.length];p.style.left=(15+Math.random()*70)+"vw";p.style.top="65vh";p.style.setProperty("--dx",(Math.random()*180-90)+"px");document.body.appendChild(p);setTimeout(function(x){x.remove()}.bind(null,p),1400)}}
+function toast(m){var t=document.getElementById("toast");t.textContent=m;t.className="on";clearTimeout(toast.h);toast.h=setTimeout(function(){t.className=""},3200)}
+function burst(e){for(var i=0;i<18;i++){var p=document.createElement("span");p.className="pop";p.textContent=e[i%e.length];p.style.left=(15+Math.random()*70)+"vw";p.style.top="65vh";p.style.setProperty("--dx",(Math.random()*180-90)+"px");document.body.appendChild(p);setTimeout(function(x){x.remove()}.bind(null,p),1400)}}
 function item(id){return CAT.items.filter(function(s){return s.id===id})[0]}
-function auraId(){var r=S&&S.items.filter(function(i){return i.slot==="aura"})[0];return r&&r.def}
-function chips(s){var o="";for(var k in s)o+='<span class="chip">+'+s[k]+"% "+ST[k]+"</span>";return o||'<span class="mu">Cosmetic</span>'}
-async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}try{LB=await api("leaderboard")}catch(e){LB=[]}render()}
-async function refresh(){try{LB=await api("leaderboard")}catch(e){}}
-function chipsLv(d,lv){var m=1+0.2*((lv||1)-1),o="";for(var k in d.stats)o+='<span class="chip">+'+(Math.round(d.stats[k]*m*10)/10)+"% "+ST[k]+"</span>";return o||'<span class="mu">Cosmetic</span>'}
-function card(d,opt){opt=opt||{};var inst=opt.inst,b="";
- if(opt.buy)b='<button data-a="buy" data-i="'+d.id+'"'+(S.coins<d.price?" disabled":"")+'>🪙 '+d.price+(opt.n?" · own "+opt.n:"")+"</button>";
- else if(inst)b='<button class="'+(inst.slot?"":"g")+'" data-a="equip" data-i="'+inst.id+'">'+(inst.slot?"Unequip":"Equip")+"</button>";
- return'<div class="it" style="--rc:var(--c'+d.r+')"><span class="rar">'+RN[d.r]+" · "+d.slot.toUpperCase()+(inst?" · LV "+inst.level:"")+'</span><div class="glyph">'+d.g+"</div><b>"+d.name+"</b><div>"+chipsLv(d,inst?inst.level:1)+"</div>"+(d.set?'<div class="mu">Set: '+CAT.sets[d.set].name+"</div>":"")+'<div class="fl">'+d.f+'</div><div class="row">'+b+"</div></div>"}
-function ccHTML(){
- if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
- if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3. Upsets and streaks add bonus XP.</p>';
- return'<h2>Link chess.com</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
-function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc="";for(var k in b)bc+='<div><b>+'+b[k]+'%</b><span class="mu">'+ST[k]+"</span></div>";
- return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
- +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
- +'<div class="card"><h2>Active bonuses from your loadout</h2><div class="bn">'+bc+"</div></div>"}
-function vShop(){var f=[["all","All"]].concat(CAT.slots);
- var t='<div class="tabs">'+f.map(function(x){return'<button class="'+(flt===x[0]?"on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
- var l=CAT.items.filter(function(s){return s.price>0&&(flt==="all"||s.slot===flt)}).sort(function(a,b){return a.r-b.r||a.price-b.price});
- var own=function(id){return S.items.filter(function(i){return i.def===id}).length};
- var sh=flt==="all"?'<div class="it" style="--rc:var(--c0)"><span class="rar">CONSUMABLE</span><div class="glyph">🛡</div><b>Streak Shield</b><div class="fl">Your next loss won’t break your streak. You hold '+S.shield+'.</div><div class="row"><button data-a="buy" data-i="shield"'+(S.coins<CAT.shield.price?" disabled":"")+'>🪙 '+CAT.shield.price+"</button></div></div>":"";
- return'<h1>Shop</h1><p class="mu" style="margin:4px 0 16px">Buy starter gear here. Rare and better gear is crafted in the Workshop. You have <b>🪙 '+S.coins+'</b>.</p>'+t+'<div class="grid">'+sh+l.map(function(d){return card(d,{buy:1,n:own(d.id)})}).join("")+"</div>"}
-function vVault(){var s=CAT.slots.map(function(x){var inst=S.items.filter(function(i){return i.slot===x[0]})[0];
-  return inst?card(item(inst.def),{inst:inst}).replace('<span class="rar">','<span class="sn">'+x[1].toUpperCase()+'</span><span class="rar">'):'<div class="it slot empty"><span class="sn">'+x[1].toUpperCase()+'</span><div class="glyph" style="color:#333;text-shadow:none">＋</div><div>Empty slot</div><button class="g" data-t="shop">Browse shop</button></div>'}).join("");
- var inv=S.items.filter(function(i){return !i.slot});
- var sets=S.sets.length?'<div class="card" style="margin-bottom:18px"><h2>Active set bonuses</h2>'+S.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join("")+"</div>":"";
- return'<h1>Vault</h1><p class="mu" style="margin:4px 0 16px">Eight slots, one item each. Every equipped item boosts what you earn, and matching sets add bonuses.</p>'+sets+'<div class="slots">'+s+'</div><h2>Inventory</h2>'+(inv.length?'<div class="grid">'+inv.map(function(i){return card(item(i.def),{inst:i})}).join("")+"</div>":'<p class="mu">Nothing in storage.</p>')}
+function inst(id){return S.items.filter(function(i){return i.id===+id})[0]}
+function achName(id){var a=CAT.ach.filter(function(x){return x.id===id})[0];return a&&a.name?a.name:(S.ach[id]&&S.ach[id].name)||id}
+function statTxt(d,lv){var m=1+0.2*((lv||1)-1),o=[];for(var k in d.stats)o.push("+"+(Math.round(d.stats[k]*m*10)/10)+"% "+ST[k]);return o.length?o:["Cosmetic"]}
+function chips(d,lv){return statTxt(d,lv).map(function(t){return'<span class="chip">'+t+"</span>"}).join("")}
 function costTxt(c){var n={coins:"🪙",shard:"Shards",essence:"Essence",relic:"Relics"},o=[];for(var k in c)o.push(c[k]+" "+n[k]);return o.join(" · ")}
 function canPay(c){for(var k in c){var have=k==="coins"?S.coins:S.mats[k];if((have||0)<c[k])return false}return true}
-function vWork(){var m=CAT.mats,mh='<div class="stats" style="grid-template-columns:repeat(3,1fr)">'+Object.keys(m).map(function(k){return'<div class="stat"><b>'+S.mats[k]+'</b><span class="mu">'+m[k]+"</span></div>"}).join("")+"</div>";
- var inv=S.items.map(function(i){var d=item(i.def);return'<div class="lb"><span class="gl" style="color:var(--c'+d.r+')">'+d.g+'</span><div><b>'+d.name+' <span class="mu">LV '+i.level+"/"+CAT.maxLevel+'</span></b><div class="mu">'+(i.up?"Upgrade: "+costTxt(i.up):"Max level")+" · Dismantle: "+costTxt(i.dis)+'</div></div><div class="row" style="margin-left:auto;flex:none"><button data-a="upgrade" data-i="'+i.id+'"'+(i.up&&canPay(i.up)?"":" disabled")+'>Upgrade</button><button class="g" data-a="dismantle" data-i="'+i.id+'"'+(i.slot?" disabled":"")+'>Dismantle</button></div></div>'}).join("")||'<p class="mu">No items yet. Visit the shop!</p>';
- var rc=CAT.recipes.map(function(r){var d=item(r.out);return'<div class="lb"><span class="gl" style="color:var(--c'+d.r+')">'+d.g+'</span><div><b>'+d.name+' <span class="mu">'+RN[d.r]+'</span></b><div class="mu">'+costTxt(r.cost)+'</div></div><button data-a="craft" data-i="'+r.out+'" style="margin-left:auto"'+(canPay(r.cost)?"":" disabled")+'>Craft</button></div>'}).join("");
- return'<h1>Workshop</h1><p class="mu" style="margin:4px 0 16px">Dismantle spare gear into materials, upgrade your best items, and craft Rare and better gear.</p>'+mh+'<div class="card" style="margin-bottom:18px"><h2>Your items</h2>'+inv+'</div><div class="card"><h2>Crafting recipes</h2>'+rc+"</div>"}
-function vRanks(){var m=["🥇","🥈","🥉"];return'<h1>Leaderboard</h1><p class="mu" style="margin:4px 0 16px">Top verified players by total XP.</p><div class="card">'+(LB.length?LB.map(function(x,i){return'<div class="lb'+(i===0?" top1":"")+'"><span class="n">'+(m[i]||i+1)+'</span><span class="gl">'+x.g+"</span><div><b>"+esc(x.username)+(S&&S.username===x.username?" (you)":"")+'</b><div class="mu">'+(x.title?esc(x.title)+" · ":"")+"Level "+x.level+" · "+x.wins+" wins · best streak "+x.best+'</div></div><span class="x">'+x.xp+" XP</span></div>"}).join(""):'<p class="mu">No verified players yet. Be the first!</p>')+"</div>"}
+function outInfo(o){return o[0]==="item"?{name:item(o[1]).name,r:item(o[1]).r}:{name:CAT.cons[o[1]].name,r:1}}
+function slotHTML(o){return'<div class="sl'+(o.on?" on":"")+(o.r!=null?" rar":"")+(o.cls?" "+o.cls:"")+'" style="--rc:var(--c'+(o.r||0)+')" '+o.attr+(o.tip?' data-tip="'+o.tip+'"':"")+">"+(o.html||"")+(o.n>1?'<span class="n">'+o.n+"</span>":"")+(o.lv>1?'<span class="lv">'+o.lv+"</span>":"")+"</div>"}
+function tipFor(k){var p=k.split(":"),t=p[0],id=p[1];
+ if(t==="item"){var i=inst(id);if(!i)return"";var d=item(i.def);return'<b style="color:'+RC[d.r]+'">'+d.name+"</b><br>"+RN[d.r]+" "+d.slot+" · LV "+i.level+"<br>"+statTxt(d,i.level).join("<br>")+(d.set?"<br>Set: "+CAT.sets[d.set].name:"")+"<br><i>"+d.f+"</i>"}
+ if(t==="mat")return"<b>"+CAT.mats[id]+"</b><br>Crafting material.<br>Earned by playing rated games and dismantling gear.";
+ if(t==="cons")return"<b>"+CAT.cons[id].name+"</b><br>"+CAT.cons[id].desc;
+ if(t==="eq")return"<b>"+id.toUpperCase()+"</b> slot";return""}
+/* ---------- data loading ---------- */
+async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}await refresh();render();
+ fetch("assets/manifest.json").then(function(r){return r.ok?r.json():null}).then(function(j){if(j){A={items:j.items||[],sfx:j.sfx||[]};IMG={};if(S)render()}}).catch(function(){})}
+async function refresh(){try{LB=await api("leaderboard")}catch(e){}}
+async function doPost(p,b,msg,snd){try{var r=await api(p,b);S=r;await refresh();if(r.leveled)sfx("levelup");else sfx(snd||"click");if(msg)toast(typeof msg==="function"?msg(r):msg);
+  if(r.ach&&r.ach.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.ach.map(achName).join(", "))},msg?1800:0);render();return r}catch(e){sfx("error");toast(e.message);return null}}
+/* ---------- views ---------- */
+function ccHTML(){
+ if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
+ if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment.</p>';
+ return'<h2>Link chess.com</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
+function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc="",bf="";for(var k in b)bc+='<div><b>+'+b[k]+'%</b><span class="mu">'+ST[k]+"</span></div>";
+ Object.keys(S.buffs).forEach(function(k){bf+='<span class="chip">'+CAT.cons[k].name+" · "+S.buffs[k]+" games left</span>"});
+ return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
+ +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
+ +'<div class="card"><h2>Active bonuses from your gear</h2><div class="bn">'+bc+"</div>"+(bf?'<h2 style="margin-top:14px">Active potions</h2>'+bf:"")+"</div>"}
+function bagList(){var o=[];Object.keys(CAT.mats).forEach(function(k){if(S.mats[k]>0)o.push({key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:k==="shard"?0:k==="essence"?2:4})});
+ Object.keys(CAT.cons).forEach(function(k){if(S.cons[k]>0)o.push({key:"cons:"+k,t:"cons",id:k,n:S.cons[k],r:1})});
+ S.items.filter(function(i){return!i.slot}).forEach(function(i){var d=item(i.def);o.push({key:"item:"+i.id,t:"item",id:i.def,lv:i.level,r:d.r})});return o}
+function bagHTML(list,attr,onKey){var total=Math.max(24,Math.ceil(list.length/6)*6),h="";
+ for(var i=0;i<total;i++){var e=list[i];h+=e?slotHTML({attr:attr+'="'+e.key+'"',tip:e.key,html:ico(e.t,e.id),n:e.n,lv:e.lv,r:e.r,on:onKey===e.key}):slotHTML({attr:""})}return'<div class="bag">'+h+"</div>"}
+function detail(){if(!sel)return'<p class="mu">Click an item to see its details and actions.</p>';var p=sel.split(":"),t=p[0],id=p[1];
+ if(t==="item"){var i=inst(id);if(!i){sel=null;return detail()}var d=item(i.def),dis=!!i.slot;
+  var set=d.set?'<p class="mu">Set: '+CAT.sets[d.set].name+" — "+Object.keys(CAT.sets[d.set].bonus).map(function(n){var s=CAT.sets[d.set].bonus[n],o=[];for(var k in s)o.push("+"+s[k]+"% "+ST[k]);return n+" pieces: "+o.join(", ")}).join(" · ")+"</p>":"";
+  return'<div style="display:flex;gap:12px;align-items:center">'+slotHTML({cls:"big",r:d.r,attr:"",html:ico("item",d.id),lv:i.level})+'<div><b style="color:'+RC[d.r]+'">'+d.name+'</b><div class="mu">'+RN[d.r]+" · "+d.slot+" · LV "+i.level+"/"+CAT.maxLevel+"</div><div>"+chips(d,i.level)+"</div></div></div>"+set+'<p class="fl">'+d.f+'</p><div class="row"><button data-a="equip" data-i="'+i.id+'">'+(i.slot?"Unequip":"Equip")+'</button><button class="g" data-a="upgrade" data-i="'+i.id+'"'+(i.up&&canPay(i.up)?"":" disabled")+">"+(i.up?"Upgrade · "+costTxt(i.up):"Max level")+'</button><button class="g" data-a="dismantle" data-i="'+i.id+'"'+(dis?" disabled":"")+">Dismantle → "+costTxt(i.dis)+"</button></div>"}
+ if(t==="mat")return'<b>'+CAT.mats[id]+'</b><p class="mu">You have '+S.mats[id]+". Used on the crafting table for gear and potions, and for upgrades. Earned from rated games and by dismantling gear.</p>";
+ if(t==="cons"){var c=CAT.cons[id];return'<b>'+c.name+"</b> × "+S.cons[id]+'<p class="mu">'+c.desc+'</p>'+(c.games?'<button data-a="use" data-i="'+id+'">Use</button>':"")}
+ return'<p class="mu">Empty slot.</p>'}
+function vInv(){var eq=CAT.slots.map(function(x){var i=S.items.filter(function(y){return y.slot===x[0]})[0];
+  return"<div>"+slotHTML(i?{attr:'data-s="item:'+i.id+'"',tip:"item:"+i.id,html:ico("item",i.def),lv:i.level,r:item(i.def).r,on:sel==="item:"+i.id}:{attr:'data-s="eq:'+x[0]+'"',tip:"eq:"+x[0]})+x[1].toUpperCase()+"</div>"}).join("");
+ var sets=S.sets.length?S.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join(""):'<span class="mu">No set bonus yet</span>';
+ return'<h1>Inventory</h1><p class="mu" style="margin:4px 0 14px">One item per slot. Equipped gear boosts what you earn; matching sets add bonuses.</p><div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+eq+'</div><div style="margin-top:10px">'+sets+'</div></div><div class="mc" style="flex:2 1 380px"><h2>Backpack</h2>'+bagHTML(bagList(),"data-s",sel)+'</div></div><div class="mc" style="margin-top:16px"><h2>Details</h2>'+detail()+"</div>"}
+function gridEmpty(){return grid.every(function(c){return!c})}
+function cellHTML(i){var c=grid[i],h="",r=0;if(c){if(c.t==="mat")h=ico("mat",c.k);else{var x=inst(c.id);if(x){h=ico("item",x.def);r=item(x.def).r}}}return slotHTML({attr:'data-c="'+i+'"',html:h,r:c?r:null})}
+function resHTML(){if(!PV||!PV.match)return slotHTML({cls:"big",attr:'id="rslot"',html:'<span class="mu">?</span>'})+'<span class="mu">'+(gridEmpty()?"Pick an ingredient below, then click a table square.":"Nothing happens with this arrangement.")+"</span>";
+ var o=PV.out,inf=outInfo([o.type,o.id]);return slotHTML({cls:"big",r:inf.r,attr:'id="rslot"',html:ico(o.type,o.id),n:o.qty})+"<b>"+inf.name+"</b>"+(PV.known?"":'<span class="chip">New recipe!</span>')+'<span class="mu '+(PV.can?"":"bad")+'">Uses '+costTxt(PV.cost)+'</span><button id="craftBtn"'+(PV.can?"":" disabled")+">Craft</button>"}
+function miniPattern(r){var t="";for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x],tok=ch==="."?null:r.key[ch];t+=slotHTML({attr:"",html:tok?(CAT.mats[tok]?ico("mat",tok):ico("item",tok)):""})}return'<div class="cg" style="grid-template-columns:repeat(3,56px)">'+t+"</div>"}
+function vCraft(){var pk=bagList().filter(function(e){return e.t==="item"});var mats=Object.keys(CAT.mats).map(function(k){return{key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:k==="shard"?0:k==="essence"?2:4}});
+ var known=S.recipes.filter(function(r){return r.known}),unk=S.recipes.filter(function(r){return!r.known});
+ var kb=known.map(function(r){var o=outInfo(r.out);return'<div class="rb'+(rsel===r.id?" on":"")+'" data-rb="'+r.id+'">'+slotHTML({attr:"",r:o.r,html:ico(r.out[0],r.out[1])})+"<div><b>"+o.name+'</b><div class="mu">Crafted '+r.times+"×</div></div></div>"}).join("")||'<p class="mu">Nothing discovered yet. Experiment on the table!</p>';
+ var ub=unk.map(function(r){var h=r.hint?'<div class="mu">💡 '+r.hint+"</div>":'<div class="mu">🔒 Hint locked — earn “'+achName(r.lock)+'”</div>';return'<div class="rb" style="cursor:default">'+slotHTML({attr:"",cls:"sil",html:ico(r.out[0],r.out[1])})+"<div><b>???</b>"+h+"</div></div>"}).join("");
+ var rs=known.filter(function(r){return r.id===rsel})[0],rd=rs?'<div class="mc" style="margin-top:10px"><b>'+outInfo(rs.out).name+'</b><div class="mu">Each filled material square costs '+rs.mult+" · fee 🪙 "+rs.fee+"</div>"+miniPattern(rs)+'<div class="row"><button class="g" data-fill="'+rs.id+'">Fill the table</button></div></div>':"";
+ return'<h1>Crafting</h1><p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+" found</h2>"+kb+rd+'</div><div class="mc" style="margin-top:14px"><h2>Undiscovered</h2>'+ub+"</div></div></div>"}
+function vShop(){var f=[["all","All"]].concat(CAT.slots);var t='<div class="tabs">'+f.map(function(x){return'<button class="'+(flt===x[0]?"on":"")+'" data-f="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
+ var l=CAT.items.filter(function(s){return s.price>0&&(flt==="all"||s.slot===flt)}).sort(function(a,b){return a.r-b.r||a.price-b.price});
+ var own=function(id){return S.items.filter(function(i){return i.def===id}).length};
+ var sh=flt==="all"?'<div class="it"><span class="rar2" style="--rc:var(--c0)">CONSUMABLE</span>'+ico("cons","shield")+"<b>Streak Shield</b><div class=\"fl\">Your next loss won’t break your streak. You hold "+S.cons.shield+'.</div><div class="row"><button data-a="buy" data-i="shield"'+(S.coins<CAT.shield.price?" disabled":"")+">🪙 "+CAT.shield.price+"</button></div></div>":"";
+ return'<h1>Shop</h1><p class="mu" style="margin:4px 0 14px">Starter gear for coins. Rare and better gear is crafted at the table. You have <b>🪙 '+S.coins+"</b>.</p>"+t+'<div class="grid">'+sh+l.map(function(d){return'<div class="it" style="--rc:var(--c'+d.r+')" data-tip="">'+'<span class="rar2">'+RN[d.r]+" · "+d.slot.toUpperCase()+"</span>"+ico("item",d.id)+"<b>"+d.name+"</b><div>"+chips(d,1)+"</div>"+(d.set?'<div class="mu">Set: '+CAT.sets[d.set].name+"</div>":"")+'<div class="fl">'+d.f+'</div><div class="row"><button data-a="buy" data-i="'+d.id+'"'+(S.coins<d.price?" disabled":"")+">🪙 "+d.price+(own(d.id)?" · own "+own(d.id):"")+"</button></div></div>"}).join("")+"</div>"}
+function vAch(){var done=CAT.ach.filter(function(a){return S.ach[a.id]&&S.ach[a.id].done}).length;
+ var hints={};S.recipes.forEach(function(r){});
+ return'<h1>Achievements</h1><p class="mu" style="margin:4px 0 14px">'+done+" / "+CAT.ach.length+' unlocked. Each pays coins, and 🔎 marks the ones that reveal a crafting hint.</p><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">'+CAT.ach.map(function(a){var s=S.ach[a.id]||{},ok=!!s.done,nm=a.name||s.name,desc=a.desc||s.desc;
+  if(a.hidden&&!ok)return'<div class="ach"><div class="ic">❔</div><div><b>Hidden achievement</b><div class="mu">Keep playing to discover it.</div></div></div>';
+  var pr=!ok&&s.max?'<div class="bar"><i style="width:'+Math.round(s.cur/s.max*100)+'%"></i></div><div class="mu">'+s.cur+" / "+s.max+"</div>":"";
+  return'<div class="ach'+(ok?" done":"")+'"><div class="ic">'+(ok?"🏆":"🔒")+'</div><div style="flex:1"><b>'+nm+(a.hint?" 🔎":"")+'</b><div class="mu">'+desc+"</div>"+pr+'<div class="mu">'+(ok?"Unlocked":"Reward: 🪙 "+a.reward)+"</div></div></div>"}).join("")+"</div>"}
+function vRanks(){var m=["🥇","🥈","🥉"];return'<h1>Leaderboard</h1><p class="mu" style="margin:4px 0 14px">Top verified players by total XP.</p><div class="card">'+(LB.length?LB.map(function(x,i){return'<div class="lb'+(i===0?" top1":"")+'"><span class="n">'+(m[i]||i+1)+"</span>"+(x.ic?ico("item",x.ic):'<span style="font-size:26px">♟︎</span>')+"<div><b>"+esc(x.username)+(S&&S.username===x.username?" (you)":"")+'</b><div class="mu">'+(x.title?esc(x.title)+" · ":"")+"Level "+x.level+" · "+x.wins+" wins · best streak "+x.best+'</div></div><span class="x">'+x.xp+" XP</span></div>"}).join(""):'<p class="mu">No verified players yet. Be the first!</p>')+"</div>"}
 function render(){var R=document.getElementById("root");
  if(!S){R.innerHTML='<div class="auth"><div class="logo" style="margin:0 0 6px;font-size:30px">LEVEL UP <b>CHESS</b></div><p class="mu">Turn every chess.com game into XP, loot and glory.</p><div class="card"><input id="un" placeholder="Username" autocomplete="username"><input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="current-password"><div class="err" id="er"></div><div class="row"><button id="li">Log in</button><button class="g" id="su">Sign up</button></div></div></div>';
   var go=function(p){return async function(){try{await api(p,{username:document.getElementById("un").value,password:document.getElementById("pw").value});tab="home";await boot()}catch(e){document.getElementById("er").textContent=e.message}}};
   document.getElementById("li").onclick=go("login");document.getElementById("su").onclick=go("signup");return}
- var N=[["home","⌂ Home"],["shop","◆ Shop"],["vault","♛ Vault"],["work","⚒ Workshop"],["ranks","☰ Ranks"]],V={home:vHome,shop:vShop,vault:vVault,work:vWork,ranks:vRanks};
- R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'">'+n[1]+"</button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><button class="g" id="lo" style="margin-top:8px;width:100%;padding:6px">Log out</button></div></aside><main>'+V[tab]()+"</main></div>";
+ var N=[["home","⌂ Home"],["inv","🎒 Inventory"],["craft","⚒ Crafting"],["shop","◆ Shop"],["ach","🏆 Achievements"],["ranks","☰ Ranks"]],V={home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks};
+ document.documentElement.style.setProperty("--ac","#ff2d3d");
+ R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'">'+n[1]+"</button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
+ $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("lk"))$("lk").onclick=act(function(){return api("cc",{cc:$("cc").value})});
  if($("vf"))$("vf").onclick=act(function(){return api("cc/verify",{})},"Linked! Hit Sync to set your baseline.");
  if($("cx"))$("cx").onclick=function(){S.changing=true;render()};
- if($("sy"))$("sy").onclick=sync}
-function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();if(ok)toast(ok)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message}}}
-async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";
- try{var r=await api("sync",{}),fx=!!auraId();S=r;await refresh();render();
-  if(r.msg)toast(r.msg);else if(r.count){toast(r.count+" new games: +"+r.gained+" XP!"+(r.leveled?" 🎉 Level up!":""));if(r.won&&fx)burst()}else toast("No new rated games since last sync.")
- }catch(e){se.textContent=e.message}}
-document.addEventListener("click",async function(e){var b=e.target.closest("[data-a],[data-t],[data-f]");if(!b||!S)return;
- if(b.dataset.t){tab=b.dataset.t;render();window.scrollTo(0,0);return}
- if(b.dataset.f){flt=b.dataset.f;render();return}
- var a=b.dataset.a,bd=a==="buy"||a==="craft"?{id:b.dataset.i}:{iid:+b.dataset.i};
- if(a==="dismantle"&&!confirm("Dismantle this item for materials? This can’t be undone."))return;
- try{S=await api(a,bd);await refresh();render();toast({buy:"Purchased!",craft:"Crafted!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!"}[a])}catch(er){toast(er.message)}});
+ if($("sy"))$("sy").onclick=sync;if($("craftBtn"))$("craftBtn").onclick=craftNow;if($("clearBtn"))$("clearBtn").onclick=function(){grid=grid.map(function(){return null});pvSoon();render()}}
+function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();sfx("click");if(ok)toast(ok);if(S.ach&&S.ach.length){sfx("ach");toast("🏆 Achievement unlocked: "+S.ach.map(achName).join(", "))}}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message;sfx("error")}}}
+async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";var fx=S.items.some(function(i){return i.slot==="aura"});
+ try{var r=await api("sync",{});S=r;await refresh();render();
+  if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+CAT.mats[k]}).join(", ");toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else toast("No new rated games since last sync.");
+  if(r.ach&&r.ach.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.ach.map(achName).join(", "))},2200)
+ }catch(e){se.textContent=e.message;sfx("error")}}
+/* ---------- crafting table interaction ---------- */
+function pvSoon(){clearTimeout(pvT);pvT=setTimeout(async function(){var el=document.getElementById("res");if(gridEmpty()){PV=null}else{try{PV=await api("craft/preview",{grid:grid})}catch(e){PV=null}}if(el&&tab==="craft")el.innerHTML=resHTML();var b=document.getElementById("craftBtn");if(b)b.onclick=craftNow},120)}
+function place(i){var c=grid[i];if(!pick){if(c){grid[i]=null;pvSoon();render();sfx("click")}return}
+ if(pick.t==="item")grid=grid.map(function(x){return x&&x.t==="item"&&x.id===pick.id?null:x});grid[i]=pick.t==="mat"?{t:"mat",k:pick.k}:{t:"item",id:pick.id};sfx("click");pvSoon();render()}
+async function craftNow(){var r=await doPost("craft",{grid:grid},function(r){var o=outInfo([r.crafted.type,r.crafted.id]);return(r.discovered?"✨ Recipe discovered: ":"Crafted ")+o.name+(r.crafted.qty>1?" ×"+r.crafted.qty:"")+"!"},"craft");
+ if(r){if(r.discovered)setTimeout(function(){sfx("discover")},500);grid=grid.map(function(c){return c&&c.t==="item"&&!inst(c.id)?null:c});pvSoon();render()}}
+function fill(id){var r=S.recipes.filter(function(x){return x.id===id})[0],used={},g=[null,null,null,null,null,null,null,null,null];
+ for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x];if(ch==="."||!r.key[ch])continue;var tok=r.key[ch];
+  if(CAT.mats[tok])g[y*3+x]={t:"mat",k:tok};else{var f=S.items.filter(function(i){return i.def===tok&&!i.slot&&!used[i.id]})[0];if(!f){toast("You need a spare "+item(tok).name+" for this recipe.");sfx("error");return}used[f.id]=1;g[y*3+x]={t:"item",id:f.id}}}
+ grid=g;pick=null;pvSoon();render();sfx("click")}
+/* ---------- events ---------- */
+document.addEventListener("click",async function(e){if(!S)return;var b;
+ if(b=e.target.closest("[data-t]")){tab=b.dataset.t;render();window.scrollTo(0,0);sfx("click");return}
+ if(b=e.target.closest("[data-f]")){flt=b.dataset.f;render();sfx("click");return}
+ if(b=e.target.closest("[data-fill]")){fill(b.dataset.fill);return}
+ if(b=e.target.closest("[data-rb]")){rsel=b.dataset.rb;render();sfx("click");return}
+ if(b=e.target.closest("[data-p]")){var p=b.dataset.p.split(":");pick=p[0]==="mat"?{t:"mat",k:p[1]}:{t:"item",id:+p[1]};sfx("click");render();return}
+ if(b=e.target.closest("[data-c]")){place(+b.dataset.c);return}
+ if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
+ if(b=e.target.closest("[data-a]")){var a=b.dataset.a,i=b.dataset.i;
+  if(a==="dismantle"&&!confirm("Dismantle this item for materials? This can’t be undone."))return;
+  var body=a==="buy"?{id:i}:a==="use"?{kind:i}:{iid:+i},msg={buy:"Purchased!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!",use:"Potion activated!"}[a];
+  var r=await doPost(a,body,msg,a==="equip"?"equip":a==="buy"?"buy":"click");if(r&&a==="dismantle")sel=null;if(r)render()}});
+document.addEventListener("contextmenu",function(e){var c=e.target.closest("[data-c]");if(c&&S){e.preventDefault();grid[+c.dataset.c]=null;pvSoon();render()}});
+document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
+document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});
 boot();
 </script></body></html>
