@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -638,4 +638,24 @@ test("editor: chest odds and loot are checked, and held chests can't be deleted"
   core.adminGive(a, "chest:" + c.id, 1); assert.throws(() => core.deleteContent("chest", c.id), e => e.code === "in_use");
   core.openChest(a, c.id); core.deleteContent("chest", c.id); assert.ok(!C.CHESTS.some(x => x.id === c.id));
   core.restoreContent("chest", "wood"); assert.equal(C.CHESTS.find(x => x.id === "wood").chance, 25);
+});
+
+test("reviews: only your own rewarded games, once each, XP for the first few each day, kept on a reset", () => {
+  let t = 5000; const { db, core, mk } = setup({ now: () => t }), a = mk("alice", "alice"), b = mk("bob", "bob");
+  const games = []; for (let i = 0; i < 5; i++) games.push(G("alice", "r" + i, "win", { t: 4000 + i }));
+  core.sync(a, games); core.sync(b, [G("bob", "zz", "win", { t: 4100 })]);
+  const list = core.reviewList(a); assert.equal(list.length, 5); assert.equal(list[0].key, games[4].url); // newest first
+  assert.deepEqual([list[0].color, list[0].res, list[0].opp.name], ["white", "win", "r4"]);
+  assert.throws(() => core.reviewTarget(a, core.reviewList(b)[0].key), e => e.code === "not_found"); // someone else's game
+  assert.equal(core.reviewTarget(a, list[0].key).month, 1); // 1970-01, from the game's end time
+  const xp0 = core.user(a).xp, r = core.completeReview(a, list[0].key, 87.25);
+  assert.equal(r.review.xp, C.REVIEW_XP); assert.ok(r.ach.includes("review1")); assert.equal(core.user(a).xp, xp0 + C.REVIEW_XP);
+  assert.throws(() => core.completeReview(a, list[0].key, 90), e => e.code === "already");
+  assert.equal(core.reviewList(a)[0].accuracy, 87.3); assert.equal(core.reviewsLeft(a), C.REVIEWS_PER_DAY - 1);
+  core.completeReview(a, list[1].key, 200); assert.equal(core.reviewList(a)[1].accuracy, null); // nonsense accuracy isn't stored
+  core.completeReview(a, list[2].key); assert.equal(core.reviewsLeft(a), 0);
+  assert.equal(core.completeReview(a, list[3].key).review.xp, 0); // over the daily limit: recorded, no XP
+  t += 86401; assert.equal(core.completeReview(a, list[4].key).review.xp, C.REVIEW_XP); // a day later: paid again
+  core.resetProgress(a); assert.ok(core.reviewList(a).every(g => g.reviewed)); // a reset can't re-earn review XP
+  core.deleteAccount(a); assert.equal(db.prepare("SELECT COUNT(*) n FROM reviews").get().n, 0);
 });
