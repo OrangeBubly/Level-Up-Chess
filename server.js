@@ -154,6 +154,25 @@ app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid)))
 app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
 app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
 app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
+// ---- game reviews: the browser analyses the moves; the server checks the game is theirs, fetches the moves and decides the XP ----
+const reviewOpened = new Map(); // user:game -> when its moves were sent, so a "review" finished seconds later pays nothing
+setInterval(() => { const old = Date.now() - 6 * 3600e3; for (const [k, t] of reviewOpened) if (t < old) reviewOpened.delete(k); }, 30 * 60e3).unref();
+app.get("/api/review/games", auth, (req, res) => res.json({ games: core.reviewList(req.u.id), left: core.reviewsLeft(req.u.id), xp: C.REVIEW_XP }));
+app.get("/api/review/game", auth, async (req, res) => {
+  if (!limit("review:" + req.u.id, 10, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
+  const g = core.reviewTarget(req.u.id, req.query.key), month = await cc.month(g.me.name, g.year, g.month);
+  const found = ((month && month.games) || []).find(x => x.url === g.key);
+  if (!found || !found.pgn) throw new AppError("not_found", "Chess.com didn’t send the moves for that game. Try again in a minute.", 404);
+  reviewOpened.set(req.u.id + ":" + g.key, Date.now());
+  res.json({ ...g, pgn: found.pgn });
+});
+app.post("/api/review/complete", auth, (req, res) => {
+  const key = String(body(req).key || ""), opened = reviewOpened.get(req.u.id + ":" + key);
+  if (!opened) throw new AppError("reopen", "Open the game again to finish reviewing it.");
+  if (Date.now() - opened < C.REVIEW_MIN_SECONDS * 1000) throw new AppError("too_fast", "Take a little longer: look through your mistakes before finishing.");
+  reviewOpened.delete(req.u.id + ":" + key);
+  res.json(reply(req.u, core.completeReview(req.u.id, key, body(req).accuracy)));
+});
 app.post("/api/chest/open", auth, act((u, b) => core.openChest(u, String(b.id || ""), Number(b.n) || 1)));
 app.post("/api/lock", auth, act((u, b) => core.toggleLock(u, Number(b.iid))));
 app.get("/api/dismantle/dupes", auth, (req, res) => res.json(core.dupesPreview(req.u.id)));
