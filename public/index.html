@@ -117,7 +117,7 @@ html.fx button{transition:transform .12s,filter .15s,box-shadow .2s}html.fx butt
 html.fx .it,html.fx .stat,html.fx .card{transition:transform .2s,box-shadow .2s}html.fx .it:hover,html.fx .stat:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.25)}
 html.fx .sl{transition:transform .14s,background .14s}html.fx .sl:hover{transform:scale(1.07)}
 html.fx #toast.on{animation:toastIn .5s cubic-bezier(.2,1.6,.4,1)}
-html.fx .bdg{animation:bdgPop .4s cubic-bezier(.2,1.8,.4,1)}
+html.fx .bdg.pop{animation:bdgPop .4s cubic-bezier(.2,1.8,.4,1)}
 html.fx .pz.slide{animation:slide .24s ease-out}html.fx .pz.slide.glow{animation:slide .24s ease-out,glow 1.6s ease-in-out .24s infinite alternate}
 html.fx .gdot{transition:transform .2s}html.fx .nav{transition:background .2s,color .2s,transform .15s}html.fx .nav:active{transform:scale(.96)}
 @keyframes pgIn{from{opacity:0;transform:translateY(10px)}}
@@ -574,17 +574,20 @@ function rvGrade(c){var acc={w:[],b:[]};
 function rvMine(c,i){return(i%2===0)===(c.g.color==="white")}
 function rvTodo(c){return c.moves.map(function(m,i){return i}).filter(function(i){return rvMine(c,i)&&["inaccuracy","mistake","blunder"].indexOf(c.cls[i])>-1})}
 function rvReady(c){return c.done&&c.seen[c.fens.length-1]&&rvTodo(c).every(function(i){return c.seen[i+1]})}
-function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;c.prev=c.ply;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.seen[c.ply]=1;render()}
+// a move animates once, when you step to it: slideFor (stepping forward one move) and popFor (any change) are used up by the
+// next board drawing, so later redraws (analysis progress, auto-sync) show the position still
+function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;var was=c.ply;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.slideFor=c.ply===was+1?c.ply:null;c.popFor=c.ply!==was?c.ply:null;c.seen[c.ply]=1;render()}
 function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n=t.filter(function(p){return p>c.ply})[0];rvGo(n!=null?n:t[0]!=null?t[0]:c.fens.length-1)}
-function rvPaint(){if(tab==="review"&&RV.cur&&!RV.cur.done)render()}
+// progress redraws while the engine works, at most about once a second
+function rvPaint(){var t=Date.now();if(tab==="review"&&RV.cur&&!RV.cur.done&&t-(RV.painted||0)>900){RV.painted=t;render()}}
 // how far the moved piece travels, in its own widths (a piece is 90% of a square, so one square is 111%)
 function slideBy(c,m){var f="abcdefgh",dx=f.indexOf(m.from[0])-f.indexOf(m.to[0]),dy=(+m.to[1])-(+m.from[1]);if(c.flip){dx=-dx;dy=-dy}return"--fx:"+(dx*111.1).toFixed(1)+"%;--fy:"+(dy*111.1).toFixed(1)+"%"}
-function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
+function rvBoard(c){c.slideNow=c.slideFor===c.ply;c.popNow=c.popFor===c.ply;c.slideFor=c.popFor=null;var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
  // brilliant, best and blunder moves make the moved piece glow in the label colour
  var gl=c.ply&&["brilliant","best","blunder"].indexOf(c.cls[c.ply-1])>-1?c.cls[c.ply-1]:null;
  for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
  var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
-  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(last&&last.to===n&&c.prev===c.ply-1?" slide":"")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]+";"+slideBy(c,last):last&&last.to===n&&c.prev===c.ply-1?'" style="'+slideBy(c,last):"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1],c.popNow?"bdg pop":"bdg"):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(last&&last.to===n&&c.slideNow?" slide":"")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]+";"+slideBy(c,last):last&&last.to===n&&c.slideNow?'" style="'+slideBy(c,last):"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
  if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant","book"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
