@@ -126,6 +126,12 @@ html.fx .gdot{transition:transform .2s}html.fx .nav{transition:background .2s,co
 @keyframes toastIn{from{transform:translate(-50%,40px) scale(.85);opacity:0}}
 @keyframes bdgPop{from{transform:scale(0)}60%{transform:scale(1.25)}}
 @keyframes slide{from{transform:translate(var(--fx),var(--fy))}}
+#tut{display:none}#tut.on{display:block}#tut .tblock{position:fixed;inset:0;z-index:60}
+#tut .tspot{position:fixed;z-index:61;border-radius:12px;pointer-events:none;box-shadow:0 0 0 200vmax rgba(5,5,12,.74);outline:2px solid var(--red);transition:left .3s,top .3s,width .3s,height .3s}
+#tut .tspot.none{left:50%;top:50%;width:0;height:0;outline:0}#tut .tspot.pulse{animation:tpulse 1.2s ease-in-out infinite}
+#tut .tbox{position:fixed;z-index:62;width:min(340px,calc(100vw - 24px));background:var(--p);color:var(--tx);border:1px solid var(--red);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#tut .tbox h3{margin:4px 0 6px;font-size:17px}#toast{z-index:70!important}
+@keyframes tpulse{50%{outline-offset:4px;outline-color:var(--red3)}}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -242,22 +248,11 @@ function ccHTML(){
  if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
  if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button class="g" id="sy">Sync now</button><button class="g" id="cx">Change</button></div><p class="mu" style="margin:6px 0 0">Your games sync by themselves while the site is open · last synced '+ago(SY.last)+'</p><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment. Wins can also drop a resource chest.</p>';
  return'<h2>Link chess.com</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
-// a short checklist for new players; it hides itself once everything is done, or when dismissed
-function guideHTML(){try{if(localStorage.getItem("luc-guide")==="hide")return""}catch(e){}
- var q=S.quests||{daily:{list:[]},weekly:{list:[]}},steps=[[!!S.cc,"Link your chess.com account","Use the box on the right.",null],
-  [S.games>0,"Play a rated game on chess.com","It shows up here by itself within a few minutes and pays XP, coins and materials.",null],
-  [S.items.some(function(i){return i.slot}),"Buy and equip your first gear","Gear boosts everything you earn.","shop"],
-  [q.daily.list.concat(q.weekly.list).some(function(x){return x.claimed}),"Claim a quest","Daily and weekly quests are just below.",null],
-  [S.recipes.some(function(r){return r.known}),"Craft something","Materials from games and chests go on the crafting table.","inv:craft"],
-  [!!(S.ach.review1&&S.ach.review1.done),"Review one of your games","Find your mistakes with the engine and earn XP.","review"]],done=steps.filter(function(x){return x[0]}).length;
- if(done===steps.length)return"";
- return'<div class="card guide" style="margin-bottom:16px"><div class="qh"><h2>Getting started · '+done+" / "+steps.length+'</h2><button class="g" id="guideHide" style="flex:none;padding:5px 10px">Hide</button></div><div class="bar"><i style="width:'+Math.round(done/steps.length*100)+'%"></i></div>'
-  +steps.map(function(x){return'<div class="q'+(x[0]?" ok":"")+'"><span class="gck">'+(x[0]?"✓":"")+"</span><div><b>"+x[1]+'</b><div class="mu">'+x[2]+"</div></div>"+(!x[0]&&x[3]?'<button class="g" data-go="'+x[3]+'">Go</button>':"")+"</div>"}).join("")+"</div>"}
 function chestNudge(){var n=0;for(var k in S.chests)n+=S.chests[k];return n?'<div class="card" style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'+slotHTML({attr:"",r:3,html:ico("chest",(CAT.chests.filter(function(c){return S.chests[c.id]>0})[0]||{}).id)})+'<div style="flex:1"><b>You have '+n+" chest"+(n>1?"s":"")+' to open</b><div class="mu">They hold crafting materials.</div></div><button id="goChests" style="flex:none">Open them</button></div>':""}
 function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc="",bf="";for(var k in b)bc+='<div><b>+'+b[k]+'%</b><span class="mu">'+ST[k]+"</span></div>";
  Object.keys(S.buffs).forEach(function(k){bf+='<span class="chip">'+CAT.cons[k].name+" · "+S.buffs[k]+" games left</span>"});
  return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
- +guideHTML()+'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
+ +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
  +chestNudge()+questsHTML()
  +'<div class="card"><h2>Active bonuses from your gear</h2><div class="bn">'+bc+"</div>"+(bf?'<h2 style="margin-top:14px">Active potions</h2>'+bf:"")+"</div>"}
 function left(t){var s=Math.max(0,t-Math.floor(Date.now()/1000)),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+"d "+h+"h":h?h+"h "+m+"m":m+"m"}
@@ -311,17 +306,20 @@ function vCraft(){var pk=bagList(true).filter(function(e){return e.t==="item"&&!
  return'<h1>Inventory</h1>'+invTabs()+'<p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped and locked gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+' found</h2><p class="mu" style="margin-top:0">Hover a recipe for its name, click it for the pattern.</p>'+kb+'<h2 style="margin-top:14px">Undiscovered</h2>'+ub+rd+"</div></div></div>"}
 function rcpHint(r){return r.hint?"💡 "+esc(r.hint):"🔒 Hint locked: earn “"+esc(achName(r.lock))+"”"}
 var TV={dark:["#09090c","#14141a","#ff2d3d"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
+// theme preview colours: background, panel and accent, matching light or dark mode
+function swatch(id){var c=TV[id]||TV.dark;return S&&S.mode==="light"?["#f4f1ec","#ffffff",c[2]]:c}
 function giveInfo(g){return g.t==="item"?{name:item(g.id).name,r:item(g.id).r}:g.t==="mat"?{name:CAT.mats[g.id],r:matR(g.id)}:{name:CAT.cons[g.id].name,r:1}}
 function merHTML(){var M=S.merchant;if(!M)return"";
  return'<div class="mc mer"><div class="qh"><h2>🧳 The Wandering Merchant</h2><span class="mu">new wares in '+left(M.ends)+'</span></div><p class="mu" style="margin:0 0 12px">Different offers every day, the same for everyone. Each has a daily limit.</p><div class="grid">'+M.offers.map(function(o){var g=o.give,inf=giveInfo(g),tag=o.kind==="deal"?"DEAL OF THE DAY":o.kind==="exclusive"?"MERCHANT ONLY":g.t==="mat"?"MATERIALS":"POTIONS";
   var sub=g.t==="item"?"<div>"+chips(item(g.id),1)+"</div>"+(item(g.id).set?'<div class="mu">Set: '+CAT.sets[item(g.id).set].name+"</div>":"")+'<div class="fl">'+item(g.id).f+"</div>":"";
   return'<div class="it" style="--rc:var(--c'+inf.r+')"><span class="rar2">'+tag+"</span>"+ico(g.t,g.id)+"<b>"+inf.name+(g.qty>1?" ×"+g.qty:"")+"</b>"+sub+'<div class="mu">'+(o.left?o.left+" of "+o.limit+" left today":"Sold out for today")+'</div><div class="row"><button data-m="'+o.id+'"'+(o.left&&canPay(o.cost)?"":" disabled")+">"+(o.was?'<span class="was">🪙 '+o.was+"</span> ":"")+costTxt(o.cost)+"</button></div></div>"}).join("")+"</div></div>"}
 function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleDateString();
- var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+(TV[t.id]||[]).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
+ var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+swatch(t.id).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
  +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button><label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
  +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
- +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+dangerHTML()}
+ +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+tourCard()+dangerHTML()}
+function tourCard(){return'<div class="card" style="margin-top:16px"><h2>Site tour</h2><p class="mu" style="margin-top:0">A quick guided walk through everything on the site'+(S.tutorial===1?".":', with a one-time reward of <b>+'+CAT.tourXp+" XP and "+CAT.tourCoins+" coins</b>.")+'</p><button id="tourBtn">'+(S.tutorial===1?"Take the tour again":"Take the tour")+"</button></div>"}
 function dangerHTML(){return'<div class="card" style="margin-top:16px;border-color:#b91c1c"><h2>Danger zone</h2>'
  +'<p class="mu" style="margin-top:0"><b>Clear save data</b> starts you again from level 1: XP, coins, items, materials, achievements and quests are wiped. Your login, chess.com link, friends, clan and settings stay. Games that already earned you rewards won’t pay out again.</p>'
  +'<p class="mu"><b>Delete account</b> permanently removes your account and everything in it. This can’t be undone.</p>'
@@ -629,7 +627,68 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
  if($("nx"))$("nx").onclick=async function(){var b={username:v("un"),password:v("pw"),cc:v("ccn")};busy("nx",true);try{var r=await api("signup/start",b);AU={mode:"code",un:b.username,pw:b.password,cc:b.cc,code:r.code,token:r.token};render()}catch(e){busy("nx",false);fail(e)}};
  if($("bk"))$("bk").onclick=function(){AU={mode:"signup",un:AU.un,cc:AU.cc};render()};
  if($("mk"))$("mk").onclick=async function(){busy("mk",true);try{await api("signup",{username:AU.un,password:AU.pw,cc:AU.cc,token:AU.token});AU={mode:"login"};tab="home";await boot();toast("Welcome! Hit Sync to set your baseline.")}catch(e){busy("mk",false);fail(e)}}}
-function render(){var R=document.getElementById("root");
+/* ---------- the guided tour: the page goes dark except a spotlight on one thing, with a text box beside it ----------
+   Steps with click only move on when the spotlighted thing is clicked; the others have a Next button.
+   sel: what to spotlight; up: spotlight its nearest parent matching this instead; tab/sub: the page it's on. */
+var TUT={on:false,i:0,asked:false};
+var TSTEPS=[
+ {tab:"home",sel:".hero",t:"Welcome to Level Up Chess!",x:"This is you. Every rated game you play on chess.com earns XP here, and XP levels you up."},
+ {tab:"home",sel:"#sy",up:".card",t:"Your chess.com games",x:"Your account is linked here. New games sync by themselves while the site is open, paying XP, coins and crafting materials."},
+ {tab:"home",sel:".qs",t:"Quests",x:"Daily and weekly quests pay extra coins and materials. Finish one, then press Claim."},
+ {tab:"home",click:'.nav[data-t="inv"]',t:"Your gear",x:"Click Inventory to see what you're carrying."},
+ {tab:"inv",sub:"bag",sel:".eqs",up:".mc",t:"Equipment",x:"Equip gear to boost the XP and coins you earn. Wearing pieces from the same set adds a bonus."},
+ {tab:"inv",sub:"bag",sel:".bag",up:".mc",t:"Your backpack",x:"Gear, crafting materials, potions and chests live here. Click anything to equip it, open it or use it."},
+ {tab:"inv",sub:"bag",click:'[data-isub="craft"]',t:"Crafting",x:"Click Crafting."},
+ {tab:"inv",sub:"craft",sel:".cg",up:".mc",t:"The crafting table",x:"Put materials into a shape to craft gear and potions. The shape decides what you make, so experiment!"},
+ {tab:"inv",sub:"craft",sel:".rbook",up:".mc",t:"Recipe book",x:"Every pattern you discover is saved here. Hover a recipe for its name and click it to see the pattern again."},
+ {tab:"inv",sub:"craft",click:'.nav[data-t="review"]',t:"Game review",x:"Click Review."},
+ {tab:"review",sel:"main .card",t:"Learn from your games",x:"Go through your games with a chess engine to find your best moves and your mistakes. Each full review earns XP."},
+ {tab:"review",click:'.nav[data-t="shop"]',t:"The shop",x:"Click Shop."},
+ {tab:"shop",sel:".mer",t:"The Wandering Merchant",x:"New offers every day, including gear you can't get anywhere else. Starter gear for coins is further down."},
+ {tab:"shop",click:'.nav[data-t="ach"]',t:"Achievements",x:"Click Achievements."},
+ {tab:"ach",sel:"main .grid",t:"Achievements",x:"Each one pays coins, and some unlock hints for secret recipes."},
+ {tab:"ach",click:'.nav[data-t="ranks"]',t:"Leaderboards",x:"Click Ranks."},
+ {tab:"ranks",sel:"main .tabs",t:"Leaderboards",x:"Compete with every player, just your friends, or as a clan."},
+ {tab:"ranks",click:'.nav[data-t="social"]',t:"Friends and clans",x:"Click Social."},
+ {tab:"social",sel:".prof",t:"Friends and clans",x:"Add friends by username, and found or join a clan to climb the clan leaderboard together."},
+ {tab:"social",click:'.nav[data-t="profile"]',t:"Make it yours",x:"Click Profile."},
+ {tab:"profile",sel:".themes",up:".card",t:"Themes",x:"Pick a colour theme and light or dark mode. More colours unlock as you win games."},
+ {t:"You're all set!",x:"That's everything. Go and play some rated games, and your rewards will be waiting here.",last:true}];
+function tutLayer(){var l=document.getElementById("tut");if(l)return l;document.body.insertAdjacentHTML("beforeend",'<div id="tut"><div class="tblock"></div><div class="tspot"></div><div class="tbox"></div></div>');l=document.getElementById("tut");
+ l.querySelector(".tblock").onclick=function(e){var s=TSTEPS[TUT.i],el=s&&s.click&&document.querySelector(s.click);if(!el)return;var r=el.getBoundingClientRect();
+  if(e.clientX>=r.left-6&&e.clientX<=r.right+6&&e.clientY>=r.top-6&&e.clientY<=r.bottom+6){el.click();TUT.i++;tutGo()}};
+ l.querySelector(".tbox").onclick=function(e){var b=e.target.closest("[data-tut]");if(!b)return;var a=b.dataset.tut;
+  if(a==="next"){TUT.i++;sfx("click");tutGo()}if(a==="skip")tutEnd(false);if(a==="finish")tutEnd(true);if(a==="start")tutStart();if(a==="later")tutLater()};return l}
+function tutStart(){TUT.on=true;TUT.i=0;api("tour/start",{}).catch(function(){});sfx("click");tutGo()}
+function tutGo(){var s=TSTEPS[TUT.i];if(!s)return tutEnd(true);var want=s.tab;if(want&&(tab!==want||(s.sub&&invSub!==s.sub))){tab=want;if(s.sub)invSub=s.sub;render()}else tutPlace()}
+function tutTarget(s){var el=document.querySelector(s.click||s.sel);return el&&s.up?el.closest(s.up)||el:el}
+function tutPlace(){var l=tutLayer(),s=TSTEPS[TUT.i];if(!TUT.on||!s)return;l.className="on";var spot=l.querySelector(".tspot"),box=l.querySelector(".tbox"),el=s.last?null:tutTarget(s);
+ box.innerHTML='<div class="mu" style="font-size:12px;font-weight:800;letter-spacing:1px">STEP '+(TUT.i+1)+" OF "+TSTEPS.length+"</div><h3>"+s.t+'</h3><p style="margin:0 0 12px">'+s.x+'</p><div class="row" style="margin:0;align-items:center">'
+  +(s.last?'<button data-tut="finish">'+(S.tutorial===1?"Finish":"Claim +"+CAT.tourXp+" XP and "+CAT.tourCoins+" coins")+"</button>":s.click?'<span class="mu" style="flex:1">👆 Click the highlighted button</span>':'<button data-tut="next">Next</button>')
+  +(s.last?"":'<button class="g" data-tut="skip" style="flex:none">Skip tour</button>')+"</div>";
+ if(!el){spot.className="tspot none";box.style.left=Math.max(12,(innerWidth-box.offsetWidth)/2)+"px";box.style.top=Math.max(12,(innerHeight-box.offsetHeight)/2)+"px";return}
+ // where the box goes: below the spotlight, else above, else beside it; if none fits, the box sits at the bottom (or top)
+ // of the screen and the spotlight is trimmed so it never runs under the box
+ el.scrollIntoView({block:"center",inline:"center"});var r0=el.getBoundingClientRect(),p=8,g=12,bw=box.offsetWidth,bh=box.offsetHeight,H=innerHeight,W=innerWidth;
+ var r={left:r0.left,right:r0.right,top:Math.max(r0.top,p+4),bottom:Math.min(r0.bottom,H-p-4)},top,left=Math.max(g,Math.min(W-bw-g,(r.left+r.right)/2-bw/2));
+ var below=H-(r.bottom+p)-g,above=r.top-p-g,right=W-(r.right+p)-g,leftSide=r.left-p-g;
+ if(r.right-r.left<240&&right>=bw){left=r.right+p+16;top=Math.max(g,Math.min(H-bh-g,(r.top+r.bottom)/2-bh/2))} // small things like menu buttons: beside them
+ else if(below>=bh)top=r.bottom+p+g;else if(above>=bh)top=r.top-p-g-bh;
+ else if(right>=bw){left=r.right+p+g;top=Math.max(g,Math.min(H-bh-g,r.top))}else if(leftSide>=bw){left=r.left-p-g-bw;top=Math.max(g,Math.min(H-bh-g,r.top))}
+ else if(r.top<H/2){top=H-bh-g;r.bottom=Math.min(r.bottom,top-p-g)}else{top=g;r.top=Math.max(r.top,top+bh+p+g)}
+ spot.className="tspot"+(s.click?" pulse":"");spot.style.left=r.left-p+"px";spot.style.top=r.top-p+"px";spot.style.width=r.right-r.left+p*2+"px";spot.style.height=Math.max(0,r.bottom-r.top)+p*2+"px";
+ box.style.top=top+"px";box.style.left=left+"px"}
+async function tutEnd(finished){var l=tutLayer();TUT.on=false;l.className="";tab="home";
+ if(finished&&S.tutorial!==1){try{S=await api("tour/complete",{});sfx("levelup");burst(["⭐","✨","🎉","♟️"]);toast("🎉 Tour complete! +"+S.tour.xp+" XP and "+S.tour.coins+" coins"+(S.tour.leveled?" · Level up!":""))}catch(e){toast(e.message)}}
+ else if(!finished&&S.tutorial===0){try{S=await api("tour/skip",{})}catch(e){}toast("You can take the tour any time from your Profile.")}
+ render();window.scrollTo(0,0)}
+// the welcome pop-up for brand-new accounts
+function tutWelcome(){var l=tutLayer(),box=l.querySelector(".tbox");TUT.asked=true;l.className="on";l.querySelector(".tspot").className="tspot none";
+ box.innerHTML='<h3 style="font-size:20px">Welcome, '+esc(S.username)+'! ♟️</h3><p>Want a quick tour of everything Level Up Chess has to offer? It takes about two minutes, and you’ll start with a head start:</p><p style="font-size:18px;font-weight:800;color:var(--red);margin:4px 0 14px">+'+CAT.tourXp+" XP and "+CAT.tourCoins+' coins</p><div class="row" style="margin:0"><button data-tut="start">Start the tour</button><button class="g" data-tut="later" style="flex:none">Maybe later</button></div>';
+ box.style.left=Math.max(12,(innerWidth-box.offsetWidth)/2)+"px";box.style.top=Math.max(12,(innerHeight-box.offsetHeight)/2)+"px"}
+async function tutLater(){var l=tutLayer();l.className="";try{S=await api("tour/skip",{})}catch(e){}toast("No problem. You can take the tour any time from your Profile.");render()}
+function render(){render0();if(TUT.on)tutPlace();else if(S&&S.tutorial===0&&!TUT.asked)tutWelcome()}
+function render0(){var R=document.getElementById("root");
  if(!S){authView(R);return}
  // [tab, label, short label for the phone bar, icon]
  var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["review","Review","Review","review"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInvPage,craft:vInvPage,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
@@ -642,6 +701,7 @@ function render(){var R=document.getElementById("root");
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("snd"))$("snd").onclick=$("mute").onclick;
+ if($("tourBtn"))$("tourBtn").onclick=tutStart;
  if($("fxSw"))$("fxSw").onchange=function(){setFx($("fxSw").checked);toast(FX?"✨ Extra animations on":"Extra animations off");sfx("click")};
  var flip=function(m){setMode(m);doPost("mode",{mode:m},null,"click")};
  if($("modeSw"))$("modeSw").onchange=function(){flip($("modeSw").checked?"light":"dark")};
@@ -656,7 +716,6 @@ function render(){var R=document.getElementById("root");
  if($("rvFinish"))$("rvFinish").onclick=rvFinish;
  if($("rvDepth"))$("rvDepth").onchange=function(){var c=RV.cur;RV.depth=c.depth=+$("rvDepth").value;c.ev=[];c.cls=[];c.done=false;render();rvAnalyse()};
  if($("rvGraph"))$("rvGraph").onclick=function(e){var r=this.getBoundingClientRect();rvGo(Math.round((e.clientX-r.left)/r.width*(RV.cur.fens.length-1)))};
- if($("guideHide"))$("guideHide").onclick=function(){try{localStorage.setItem("luc-guide","hide")}catch(e){}render()};
  if($("invSort"))$("invSort").onchange=function(){invS=$("invSort").value;render()};
  if($("goChests"))$("goChests").onclick=function(){tab="inv";invF="chests";var c=CAT.chests.filter(function(x){return S.chests[x.id]>0})[0];if(c)sel="chest:"+c.id;render();window.scrollTo(0,0)};
  if($("dupBtn"))$("dupBtn").onclick=async function(){try{var p=await api("dismantle/dupes");if(!p.count){toast("No duplicates: you only have one of each spare item (locked and equipped ones are kept).");return}
@@ -765,6 +824,7 @@ document.addEventListener("contextmenu",function(e){var c=e.target.closest("[dat
 document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
 document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});
 window.addEventListener("hashchange",route);
+window.addEventListener("resize",function(){if(TUT.on)tutPlace()});
 // arrow keys step through a game under review
 document.addEventListener("keydown",function(e){if(tab!=="review"||!RV.cur||!RV.cur.fens||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==="ArrowLeft"){rvGo(RV.cur.ply-1);e.preventDefault()}if(e.key==="ArrowRight"){rvGo(RV.cur.ply+1);e.preventDefault()}});
 boot();
