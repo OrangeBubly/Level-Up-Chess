@@ -5,7 +5,8 @@
 <style>
 :root{--bg:#09090c;--p:#14141a;--p2:#1c1c24;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--red2:#b3001b;--red3:#ff8a94;--acr:255 45 61;--on:#fff;--mc:#16161d;--hi:#3b3b48;--lo:#0b0b0f;--sl:#2a2a33;--slh:#34343f;--hi2:#55555f;--tr:#26262f;--c0:#8e8e9e;--c1:#3ddc84;--c2:#3da9ff;--c3:#b44dff;--c4:#ffb020;--c5:#ff2d3d}
 /* themes: set on <html data-theme>, chosen on the Profile page */
-[data-theme=light]{--bg:#f4f1ec;--p:#fff;--p2:#f0ece6;--bd:#ddd6cc;--tx:#1d1b20;--mu:#6b6670;--red:#e0202f;--red2:#a3101d;--red3:#c4142a;--acr:224 32 47;--mc:#fbf9f6;--hi:#fff;--lo:#c9c1b5;--sl:#e9e4dc;--slh:#ded8ce;--hi2:#b9b0a3;--tr:#e2ddd5;color-scheme:light}
+/* light mode works with every colour theme: it swaps the surfaces and keeps the theme's accent */
+html[data-mode=light]{--bg:#f4f1ec;--p:#fff;--p2:#f0ece6;--bd:#ddd6cc;--tx:#1d1b20;--mu:#6b6670;--red3:var(--red2);--mc:#fbf9f6;--hi:#fff;--lo:#c9c1b5;--sl:#e9e4dc;--slh:#ded8ce;--hi2:#b9b0a3;--tr:#e2ddd5;color-scheme:light}
 [data-theme=emerald]{--red:#22c55e;--red2:#11743a;--red3:#86efac;--acr:34 197 94}
 [data-theme=royal]{--red:#a855f7;--red2:#6b21a8;--red3:#d8b4fe;--acr:168 85 247;--p:#16121c;--p2:#1e1828;--bd:#2e2640;--mc:#18131f}
 [data-theme=ocean]{--red:#38bdf8;--red2:#0369a1;--red3:#bae6fd;--acr:56 189 248;--bg:#070b12;--p:#0f1520;--p2:#16202e;--bd:#22304a;--mc:#101826;--on:#06121c}
@@ -76,6 +77,14 @@ select{width:100%;padding:10px 12px;margin:5px 0;border:1px solid var(--bd);bord
 .rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:560px;margin:8px 0}.rgrid select{margin:0}
 .pxed{display:grid;grid-template-columns:repeat(16,1fr);width:min(100%,384px);aspect-ratio:1;margin:10px 0;border:1px solid var(--bd);touch-action:none;user-select:none;cursor:crosshair;
  background:repeating-conic-gradient(rgba(128,128,128,.28) 0 25%,transparent 0 50%) 0 0/24px 24px}.pxed i{display:block;box-shadow:inset 0 0 0 .5px rgba(128,128,128,.25)}
+.ic{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-4px}
+.nav{display:flex;align-items:center;gap:11px}.nav .ns{display:none}.nav.on .ic{color:var(--red);filter:drop-shadow(0 0 6px rgb(var(--acr) / .6))}
+.sl .lk{position:absolute;right:2px;top:1px;color:#ffe29a;line-height:0}.sl .lk .ic{width:12px;height:12px;stroke-width:2.4;filter:drop-shadow(1px 1px 0 #000)}
+button .ic{width:15px;height:15px;vertical-align:-2px}
+.sw{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--tx)}.sw input{display:none}
+.sw i{width:38px;height:22px;border-radius:99px;background:var(--tr);border:1px solid var(--bd);position:relative;transition:.2s;flex:none}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--mu);transition:.2s}
+.sw input:checked+i{background:var(--red)}.sw input:checked+i::after{left:18px;background:#fff}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -85,7 +94,7 @@ select{width:100%;padding:10px 12px;margin:5px 0;border:1px solid var(--bd);bord
 .qs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.qh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .q{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--bd)}.q>div{flex:1;min-width:0}.q .bar{margin:6px 0 2px}.q button{flex:none;padding:7px 13px}
 .q.ok{opacity:.55}.q.ready b{color:var(--tx);text-shadow:0 0 10px rgb(var(--acr) / .6)}
-@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}aside{overflow-x:auto}.nav{flex:1 0 auto;min-width:64px;text-align:center;padding:8px 6px;font-size:11px}main{padding:16px 12px 96px}.g2,.qs,.prof{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}.bag{grid-template-columns:repeat(5,56px)}}
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}aside{overflow-x:auto;scrollbar-width:none}aside::-webkit-scrollbar{display:none}.nav{flex:1 0 auto;min-width:60px;flex-direction:column;justify-content:center;gap:3px;padding:7px 4px;font-size:10.5px;letter-spacing:.2px}.nav .nl{display:none}.nav .ns{display:block}.nav .ic{width:21px;height:21px}main{padding:16px 12px 96px}.g2,.qs,.prof{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}.bag{grid-template-columns:repeat(5,56px)}}
 </style></head><body><div id="root"></div><div id="toast"></div><div id="tip"></div>
 <script>
 var S=null,CAT=null,LB=[],tab="home",flt="all",sel=null,pick=null,rsel=null,PV=null,pvT=0,IMG={},A={items:[],sfx:[]},muted=false,rk="players",CL=[],PU=null,grid=[null,null,null,null,null,null,null,null,null];
@@ -93,7 +102,8 @@ var RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],RC=["#8e8e9e","#
 try{muted=localStorage.getItem("luc-mute")==="1"}catch(e){}
 // the theme is saved on the account; the browser also remembers it so the login screen matches
 function setTheme(t){t=t||"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("luc-theme",t)}catch(e){}}
-try{document.documentElement.dataset.theme=localStorage.getItem("luc-theme")||"dark"}catch(e){}
+function setMode(m){m=m==="light"?"light":"dark";document.documentElement.dataset.mode=m;try{localStorage.setItem("luc-mode",m)}catch(e){}}
+try{var lt=localStorage.getItem("luc-theme")||"dark";document.documentElement.dataset.theme=lt==="light"?"dark":lt;document.documentElement.dataset.mode=localStorage.getItem("luc-mode")||(lt==="light"?"light":"dark")}catch(e){}
 /* ---------- generated pixel art (16x16). o outline, a base, b light, c dark, g gold, w white ---------- */
 var TPL={
 sword:["..............oo",".............oba","............obba","...........obbao","..........obbao.",".........obbao..","..o.....obbao...","..oo...obbao....","...oo.obbao.....","....oobbao......",".....obao.......","....ogoo........","...ogoo.o.......","..ogo...........",".oo............."],
@@ -120,12 +130,34 @@ function draw(tpl,pal,emb,seed,rar){var c=document.createElement("canvas");c.wid
  if(emb){var m=EMB[emb];x.fillStyle=pal[0];for(var r=0;r<8;r++)for(var q=0;q<8;q++)if(m[r][q]==="#")x.fillRect(4+q,4+r,1,1)}
  if(rar>=2&&body.length)for(var k=0;k<(rar>=4?3:1);k++){var p=body[(seed>>(k*4))%body.length];x.fillStyle=k%2?"#ffffff":"#ffd24a";x.fillRect(p[0],p[1],1,1)}
  return c.toDataURL()}
+TPL.chest=["................","................","..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".oaaaaaaaaaaaao.",".ooooooggoooooo.",".ocaaaagwgaaaco.",".ocaaaaggaaaaco.",".ocaaaaaaaaaaco.",".occaaaaaaaacco.",".oooooooooooooo."];
+// a 4-colour sprite palette (outline, base, light, shadow) from one colour
+function palOf(hex){var n=parseInt(String(hex||"#888888").slice(1),16),c=[n>>16&255,n>>8&255,n&255],f=function(m,w){return"#"+c.map(function(v){return("0"+Math.round(w?v+(255-v)*m:v*m).toString(16)).slice(-2)}).join("")};return[f(.18),hex,f(.55,1),f(.6)]}
+function matR(k){return(CAT.matInfo&&CAT.matInfo[k]||{}).r||0}
+function chestOf(id){return(CAT.chests||[]).filter(function(c){return c.id===id})[0]}
+function chestR(c){return c.chance>=20?1:c.chance>=8?2:c.chance>=3?3:4}
 function mkSprite(t,id){var h=hash(t+id);
+ if(t==="chest"){var ch=chestOf(id);return draw("chest",palOf(ch?ch.color:"#a0692e"),null,h,0)}
  if(t==="item"){var d=item(id);return draw(TM[id]||SLT[d.slot],PAL[d.r],(d.slot==="armor"||d.slot==="aura"||d.slot==="amulet")?EM[d.g.charAt(0)]:null,h,d.r)}
- if(t==="mat")return draw(id==="essence"?"aura":id==="relic"?"relic":"shard",MPAL[id],null,h,0);
+ if(t==="mat")return draw(id==="essence"?"aura":id==="relic"?"relic":"shard",MPAL[id]||palOf((CAT.matInfo[id]||{}).color),null,h,0);
  return draw(id==="shield"?"shield":id==="catalyst"?"shard":"potion",CPAL[id],null,h,0)}
 // a texture made in the admin editor wins, then a file from assets/, then the generated pixel art
-function icoSrc(t,id){var k=t+":"+id;return CAT&&CAT.art&&CAT.art[id]?"/art/"+id+".png?v="+CAT.art[id]:A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)))}
+var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ bag:'<path d="M8 6V5a4 4 0 0 1 8 0v1"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M8 13h8v4H8z"/>',
+ craft:'<path d="M14.5 3.5l6 6-3 3-6-6z"/><path d="M11.5 6.5L3 15l3 3 8.5-8.5"/>',
+ shop:'<path d="M3 9l2-5h14l2 5"/><path d="M3 9h18"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/>',
+ trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4"/><path d="M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4"/><path d="M8 21h8"/><path d="M10 17h4v4h-4z"/>',
+ ranks:'<path d="M3 20h18"/><rect x="5" y="11" width="3.5" height="9" rx=".5"/><rect x="10.25" y="5" width="3.5" height="15" rx=".5"/><rect x="15.5" y="14" width="3.5" height="6" rx=".5"/>',
+ social:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14a6 6 0 0 1 3.5 6"/>',
+ profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+ admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ chest:'<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M3 9a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5"/><path d="M3 13h18"/><rect x="10.5" y="11.5" width="3" height="4" rx=".5"/>'};
+function ICON(n){return'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[n]||"")+"</svg>"}
+function artId(t,id){return t==="chest"?"chest_"+id:id}
+function icoSrc(t,id){var k=t+":"+id,a=artId(t,id);return CAT&&CAT.art&&CAT.art[a]?"/art/"+a+".png?v="+CAT.art[a]:A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)))}
 function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
 /* ---------- sounds: synthesized 8-bit effects, or your own files from assets/sfx ---------- */
 var AC=null;function tone(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=t||"square";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
@@ -142,13 +174,15 @@ function inst(id){return S.items.filter(function(i){return i.id===+id})[0]}
 function achName(id){var a=CAT.ach.filter(function(x){return x.id===id})[0];return a&&a.name?a.name:(S.ach[id]&&S.ach[id].name)||id}
 function statTxt(d,lv){var m=1+0.2*((lv||1)-1),o=[];for(var k in d.stats)o.push("+"+(Math.round(d.stats[k]*m*10)/10)+"% "+ST[k]);return o.length?o:["Cosmetic"]}
 function chips(d,lv){return statTxt(d,lv).map(function(t){return'<span class="chip">'+t+"</span>"}).join("")}
-function costTxt(c){var n={coins:"🪙",shard:"Shards",essence:"Essence",relic:"Relics"},o=[];for(var k in c)o.push(c[k]+" "+n[k]);return o.join(" · ")}
+function kindName(k){if(k==="coins")return"🪙";if(k.indexOf("chest:")===0){var c=chestOf(k.slice(6));return c?c.name:k}return CAT.mats[k]||(CAT.cons[k]||{}).name||k}
+function costTxt(c){var o=[];for(var k in c)o.push(c[k]+" "+kindName(k));return o.join(" · ")}
 function canPay(c){for(var k in c){var have=k==="coins"?S.coins:S.mats[k];if((have||0)<c[k])return false}return true}
 function outInfo(o){return o[0]==="item"?{name:item(o[1]).name,r:item(o[1]).r}:{name:CAT.cons[o[1]].name,r:1}}
-function slotHTML(o){return'<div class="sl'+(o.on?" on":"")+(o.r!=null?" rar":"")+(o.cls?" "+o.cls:"")+'" style="--rc:var(--c'+(o.r||0)+')" '+o.attr+(o.tip?' data-tip="'+o.tip+'"':"")+">"+(o.html||"")+(o.n>1?'<span class="n">'+o.n+"</span>":"")+(o.lv>1?'<span class="lv">'+o.lv+"</span>":"")+"</div>"}
+function slotHTML(o){return'<div class="sl'+(o.lock?" lkd":"")+(o.on?" on":"")+(o.r!=null?" rar":"")+(o.cls?" "+o.cls:"")+'" style="--rc:var(--c'+(o.r||0)+')" '+o.attr+(o.tip?' data-tip="'+o.tip+'"':"")+">"+(o.html||"")+(o.n>1?'<span class="n">'+o.n+"</span>":"")+(o.lv>1?'<span class="lv">'+o.lv+"</span>":"")+(o.lock?'<span class="lk">'+ICON("lock")+"</span>":"")+"</div>"}
 function tipFor(k){var p=k.split(":"),t=p[0],id=p[1];
  if(t==="item"){var i=inst(id);if(!i)return"";var d=item(i.def);return'<b style="color:'+RC[d.r]+'">'+d.name+"</b><br>"+RN[d.r]+" "+d.slot+" · LV "+i.level+"<br>"+statTxt(d,i.level).join("<br>")+(d.set?"<br>Set: "+CAT.sets[d.set].name:"")+"<br><i>"+d.f+"</i>"}
- if(t==="mat")return"<b>"+CAT.mats[id]+"</b><br>Crafting material.<br>Earned by playing rated games and dismantling gear.";
+ if(t==="mat")return"<b>"+CAT.mats[id]+"</b><br>Crafting material.<br>Earned from rated games, chests and dismantling gear.";
+ if(t==="chest"){var ch=chestOf(id);return ch?"<b>"+ch.name+"</b><br>Open it for crafting materials.":""}
  if(t==="cons")return"<b>"+CAT.cons[id].name+"</b><br>"+CAT.cons[id].desc;
  if(t==="eq")return"<b>"+id.toUpperCase()+"</b> slot";return""}
 /* ---------- data loading ---------- */
@@ -160,47 +194,63 @@ async function doPost(p,b,msg,snd){try{var r=await api(p,b);S=r;await refresh();
 /* ---------- views ---------- */
 function ccHTML(){
  if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
- if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment.</p>';
+ if(!S.changing&&S.cc)return'<h2>Chess.com</h2><p>Linked to <b>'+esc(S.cc)+'</b> ✔</p><div class="row"><button id="sy">Sync games</button><button class="g" id="cx">Change</button></div><p class="mu">Rated games only. Win +20 XP, draw +8, loss +3, plus bonuses. Every rewarded game also drops Iron Shards; every 3rd win drops Ember Essence and every 10th win a Relic Fragment. Wins can also drop a resource chest.</p>';
  return'<h2>Link chess.com</h2><input id="cc" placeholder="Your chess.com username"><div class="row"><button id="lk">Continue</button></div>'}
+function chestNudge(){var n=0;for(var k in S.chests)n+=S.chests[k];return n?'<div class="card" style="margin-bottom:16px;display:flex;align-items:center;gap:14px">'+slotHTML({attr:"",r:3,html:ico("chest",(CAT.chests.filter(function(c){return S.chests[c.id]>0})[0]||{}).id)})+'<div style="flex:1"><b>You have '+n+" chest"+(n>1?"s":"")+' to open</b><div class="mu">They hold crafting materials.</div></div><button id="goChests" style="flex:none">Open them</button></div>':""}
 function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc="",bf="";for(var k in b)bc+='<div><b>+'+b[k]+'%</b><span class="mu">'+ST[k]+"</span></div>";
  Object.keys(S.buffs).forEach(function(k){bf+='<span class="chip">'+CAT.cons[k].name+" · "+S.buffs[k]+" games left</span>"});
  return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
  +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
- +questsHTML()
+ +chestNudge()+questsHTML()
  +'<div class="card"><h2>Active bonuses from your gear</h2><div class="bn">'+bc+"</div>"+(bf?'<h2 style="margin-top:14px">Active potions</h2>'+bf:"")+"</div>"}
 function left(t){var s=Math.max(0,t-Math.floor(Date.now()/1000)),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+"d "+h+"h":h?h+"h "+m+"m":m+"m"}
 function questsHTML(){if(!S.quests)return"";var box=function(t,b){return'<div class="card"><div class="qh"><h2>'+t+'</h2><span class="mu">resets in '+left(b.ends)+"</span></div>"+b.list.map(function(q){var ready=q.cur>=q.n&&!q.claimed;
   return'<div class="q'+(q.claimed?" ok":ready?" ready":"")+'"><div><b>'+esc(q.desc)+'</b><div class="bar"><i style="width:'+Math.round(q.cur/q.n*100)+'%"></i></div><div class="mu">'+q.cur+" / "+q.n+" · "+costTxt(q.reward)+"</div></div>"+(q.claimed?'<span class="mu">Claimed ✔</span>':'<button data-q="'+q.id+'"'+(ready?"":" disabled")+">Claim</button>")+"</div>"}).join("")+"</div>"};
  return'<div class="qs">'+box("Daily quests",S.quests.daily)+box("Weekly quests",S.quests.weekly)+"</div>"}
-function bagList(){var o=[];Object.keys(CAT.mats).forEach(function(k){if(S.mats[k]>0)o.push({key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:k==="shard"?0:k==="essence"?2:4})});
- Object.keys(CAT.cons).forEach(function(k){if(S.cons[k]>0)o.push({key:"cons:"+k,t:"cons",id:k,n:S.cons[k],r:1})});
- S.items.filter(function(i){return!i.slot}).forEach(function(i){var d=item(i.def);o.push({key:"item:"+i.id,t:"item",id:i.def,lv:i.level,r:d.r})});return o}
+// everything in the backpack. Identical spare items (same item, level and lock) stack as one slot unless raw is set.
+function bagList(raw){var o=[],g={};
+ Object.keys(CAT.mats).forEach(function(k){if(S.mats[k]>0)o.push({key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:matR(k),cat:"mats"})});
+ (CAT.chests||[]).forEach(function(c){if(S.chests&&S.chests[c.id]>0)o.push({key:"chest:"+c.id,t:"chest",id:c.id,n:S.chests[c.id],r:chestR(c),cat:"chests"})});
+ Object.keys(CAT.cons).forEach(function(k){if(S.cons[k]>0)o.push({key:"cons:"+k,t:"cons",id:k,n:S.cons[k],r:1,cat:"cons"})});
+ S.items.filter(function(i){return!i.slot}).forEach(function(i){var d=item(i.def),e={key:"item:"+i.id,t:"item",id:i.def,lv:i.level,r:d.r,lock:i.locked,cat:"gear",n:1,iid:i.id,slot:d.slot,name:d.name};
+  if(raw){o.push(e);return}var k=i.def+"|"+i.level+"|"+(i.locked?1:0);if(g[k]){g[k].n++;return}g[k]=e;o.push(e)});return o}
+var invF="all",invS="new";
+function invList(){var l=bagList().filter(function(e){return invF==="all"||e.cat===invF}),order=CAT.slots.map(function(x){return x[0]});
+ if(invS==="rarity")l.sort(function(a,b){return b.r-a.r});
+ if(invS==="slot")l.sort(function(a,b){return(a.cat==="gear"?order.indexOf(a.slot):99)-(b.cat==="gear"?order.indexOf(b.slot):99)||b.r-a.r});
+ if(invS==="name")l.sort(function(a,b){return(a.name||"~").localeCompare(b.name||"~")});
+ if(invS==="new")l.sort(function(a,b){return(a.cat==="gear")-(b.cat==="gear")||(b.iid||0)-(a.iid||0)});
+ return l}
 function bagHTML(list,attr,onKey){var total=Math.max(24,Math.ceil(list.length/6)*6),h="";
- for(var i=0;i<total;i++){var e=list[i];h+=e?slotHTML({attr:attr+'="'+e.key+'"',tip:e.key,html:ico(e.t,e.id),n:e.n,lv:e.lv,r:e.r,on:onKey===e.key}):slotHTML({attr:""})}return'<div class="bag">'+h+"</div>"}
+ for(var i=0;i<total;i++){var e=list[i];h+=e?slotHTML({attr:attr+'="'+e.key+'"',tip:e.key,html:ico(e.t,e.id),n:e.n,lv:e.lv,r:e.r,lock:e.lock,on:onKey===e.key}):slotHTML({attr:""})}return'<div class="bag">'+h+"</div>"}
 function detail(){if(!sel)return'<p class="mu">Click an item to see its details and actions.</p>';var p=sel.split(":"),t=p[0],id=p[1];
- if(t==="item"){var i=inst(id);if(!i){sel=null;return detail()}var d=item(i.def),dis=!!i.slot;
+ if(t==="item"){var i=inst(id);if(!i){sel=null;return detail()}var d=item(i.def),dis=!!i.slot||i.locked,same=S.items.filter(function(x){return!x.slot&&x.def===i.def&&x.level===i.level&&!!x.locked===!!i.locked}).length;
   var set=d.set?'<p class="mu">Set: '+CAT.sets[d.set].name+" — "+Object.keys(CAT.sets[d.set].bonus).map(function(n){var s=CAT.sets[d.set].bonus[n],o=[];for(var k in s)o.push("+"+s[k]+"% "+ST[k]);return n+" pieces: "+o.join(", ")}).join(" · ")+"</p>":"";
-  return'<div style="display:flex;gap:12px;align-items:center">'+slotHTML({cls:"big",r:d.r,attr:"",html:ico("item",d.id),lv:i.level})+'<div><b style="color:'+RC[d.r]+'">'+d.name+'</b><div class="mu">'+RN[d.r]+" · "+d.slot+" · LV "+i.level+"/"+CAT.maxLevel+"</div><div>"+chips(d,i.level)+"</div></div></div>"+set+'<p class="fl">'+d.f+'</p><div class="row"><button data-a="equip" data-i="'+i.id+'">'+(i.slot?"Unequip":"Equip")+'</button><button class="g" data-a="upgrade" data-i="'+i.id+'"'+(i.up&&canPay(i.up)?"":" disabled")+">"+(i.up?"Upgrade · "+costTxt(i.up):"Max level")+'</button><button class="g" data-a="dismantle" data-i="'+i.id+'"'+(dis?" disabled":"")+">Dismantle → "+costTxt(i.dis)+"</button></div>"}
+  return'<div style="display:flex;gap:12px;align-items:center">'+slotHTML({cls:"big",r:d.r,attr:"",html:ico("item",d.id),lv:i.level})+'<div><b style="color:'+RC[d.r]+'">'+d.name+'</b><div class="mu">'+RN[d.r]+" · "+d.slot+" · LV "+i.level+"/"+CAT.maxLevel+"</div><div>"+chips(d,i.level)+"</div></div></div>"+set+'<p class="fl">'+d.f+'</p><div class="row"><button data-a="equip" data-i="'+i.id+'">'+(i.slot?"Unequip":"Equip")+'</button><button class="g" data-a="upgrade" data-i="'+i.id+'"'+(i.up&&canPay(i.up)?"":" disabled")+">"+(i.up?"Upgrade · "+costTxt(i.up):"Max level")+'</button><button class="g" data-a="dismantle" data-i="'+i.id+'"'+(dis?" disabled":"")+">Dismantle → "+costTxt(i.dis)+'</button><button class="g" data-a="lock" data-i="'+i.id+'">'+ICON("lock")+(i.locked?" Unlock":" Lock")+"</button></div>"
+  +(i.locked?'<p class="mu">Locked: it can’t be dismantled or used up in crafting.</p>':"")+(same>1&&!i.slot?'<p class="mu">You have '+same+" of these. Buttons act on one at a time.</p>":"")}
+ if(t==="chest"){var ch=chestOf(id),have=S.chests[id]||0;if(!ch)return"";return'<div style="display:flex;gap:12px;align-items:center">'+slotHTML({cls:"big",r:chestR(ch),attr:"",html:ico("chest",id),n:have})+"<div><b>"+esc(ch.name)+'</b><div class="mu">You have '+have+". Found after rated wins ("+ch.chance+"% per win).</div></div></div>"
+  +'<p class="mu" style="margin-bottom:4px">Each one can hold:</p>'+ch.loot.map(function(l){return'<div class="mu">• '+(l.min===l.max?l.min:l.min+"–"+l.max)+" "+esc(CAT.mats[l.id]||l.id)+(l.chance<100?" ("+l.chance+"% chance)":"")+"</div>"}).join("")
+  +'<div class="row"><button data-a="open" data-i="'+id+'" data-n="1"'+(have?"":" disabled")+">Open</button>"+(have>1?'<button class="g" data-a="open" data-i="'+id+'" data-n="'+Math.min(have,CAT.maxOpen)+'">Open '+Math.min(have,CAT.maxOpen)+"</button>":"")+"</div>"}
  if(t==="mat")return'<b>'+CAT.mats[id]+'</b><p class="mu">You have '+S.mats[id]+". Used on the crafting table for gear and potions, and for upgrades. Earned from rated games and by dismantling gear.</p>";
  if(t==="cons"){var c=CAT.cons[id];return'<b>'+c.name+"</b> × "+S.cons[id]+'<p class="mu">'+c.desc+'</p>'+(c.games?'<button data-a="use" data-i="'+id+'">Use</button>':"")}
  return'<p class="mu">Empty slot.</p>'}
 function vInv(){var eq=CAT.slots.map(function(x){var i=S.items.filter(function(y){return y.slot===x[0]})[0];
   return"<div>"+slotHTML(i?{attr:'data-s="item:'+i.id+'"',tip:"item:"+i.id,html:ico("item",i.def),lv:i.level,r:item(i.def).r,on:sel==="item:"+i.id}:{attr:'data-s="eq:'+x[0]+'"',tip:"eq:"+x[0]})+x[1].toUpperCase()+"</div>"}).join("");
  var sets=S.sets.length?S.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join(""):'<span class="mu">No set bonus yet</span>';
- return'<h1>Inventory</h1><p class="mu" style="margin:4px 0 14px">One item per slot. Equipped gear boosts what you earn; matching sets add bonuses.</p><div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+eq+'</div><div style="margin-top:10px">'+sets+'</div></div><div class="mc" style="flex:2 1 380px"><h2>Backpack</h2>'+bagHTML(bagList(),"data-s",sel)+'</div></div><div class="mc" style="margin-top:16px"><h2>Details</h2>'+detail()+"</div>"}
+ return'<h1>Inventory</h1><p class="mu" style="margin:4px 0 14px">One item per slot. Equipped gear boosts what you earn; matching sets add bonuses.</p><div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+eq+'</div><div style="margin-top:10px">'+sets+'</div></div><div class="mc" style="flex:2 1 380px"><div class="qh"><h2>Backpack</h2><span style="display:flex;gap:6px">'+fsel("invSort",[["new","Newest"],["rarity","Rarity"],["slot","Slot"],["name","Name"]],invS)+'<button class="g" id="dupBtn" style="flex:none;white-space:nowrap">Clear duplicates</button></span></div><div class="tabs">'+[["all","All"],["gear","Gear"],["mats","Materials"],["cons","Potions"],["chests","Chests"]].map(function(x){return'<button class="'+(invF===x[0]?"on":"")+'" data-if="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>"+bagHTML(invList(),"data-s",sel)+'</div></div><div class="mc" style="margin-top:16px"><h2>Details</h2>'+detail()+"</div>"}
 function gridEmpty(){return grid.every(function(c){return!c})}
 function cellHTML(i){var c=grid[i],h="",r=0;if(c){if(c.t==="mat")h=ico("mat",c.k);else{var x=inst(c.id);if(x){h=ico("item",x.def);r=item(x.def).r}}}return slotHTML({attr:'data-c="'+i+'"',html:h,r:c?r:null})}
 function resHTML(){if(!PV||!PV.match)return slotHTML({cls:"big",attr:'id="rslot"',html:'<span class="mu">?</span>'})+'<span class="mu">'+(gridEmpty()?"Pick an ingredient below, then click a table square.":"Nothing happens with this arrangement.")+"</span>";
  var o=PV.out,inf=outInfo([o.type,o.id]);return slotHTML({cls:"big",r:inf.r,attr:'id="rslot"',html:ico(o.type,o.id),n:o.qty})+"<b>"+inf.name+"</b>"+(PV.known?"":'<span class="chip">New recipe!</span>')+'<span class="mu '+(PV.can?"":"bad")+'">Uses '+costTxt(PV.cost)+'</span><button id="craftBtn"'+(PV.can?"":" disabled")+">Craft</button>"}
 function miniPattern(r){var t="";for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x],tok=ch==="."?null:r.key[ch];t+=slotHTML({attr:"",html:tok?(CAT.mats[tok]?ico("mat",tok):ico("item",tok)):""})}return'<div class="cg" style="grid-template-columns:repeat(3,56px)">'+t+"</div>"}
-function vCraft(){var pk=bagList().filter(function(e){return e.t==="item"});var mats=Object.keys(CAT.mats).map(function(k){return{key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:k==="shard"?0:k==="essence"?2:4}});
+function vCraft(){var pk=bagList(true).filter(function(e){return e.t==="item"&&!e.lock});var mats=Object.keys(CAT.mats).map(function(k){return{key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:matR(k)}});
  var known=S.recipes.filter(function(r){return r.known}),unk=S.recipes.filter(function(r){return!r.known});
  var kb=known.map(function(r){var o=outInfo(r.out);return'<div class="rb'+(rsel===r.id?" on":"")+'" data-rb="'+r.id+'">'+slotHTML({attr:"",r:o.r,html:ico(r.out[0],r.out[1])})+"<div><b>"+o.name+'</b><div class="mu">Crafted '+r.times+"×</div></div></div>"}).join("")||'<p class="mu">Nothing discovered yet. Experiment on the table!</p>';
  var ub=unk.map(function(r){var h=r.hint?'<div class="mu">💡 '+r.hint+"</div>":'<div class="mu">🔒 Hint locked — earn “'+achName(r.lock)+'”</div>';return'<div class="rb" style="cursor:default">'+slotHTML({attr:"",cls:"sil",html:ico(r.out[0],r.out[1])})+"<div><b>???</b>"+h+"</div></div>"}).join("");
  var rs=known.filter(function(r){return r.id===rsel})[0],rd=rs?'<div class="mc" style="margin-top:10px"><b>'+outInfo(rs.out).name+'</b><div class="mu">Each filled material square costs '+rs.mult+" · fee 🪙 "+rs.fee+"</div>"+miniPattern(rs)+'<div class="row"><button class="g" data-fill="'+rs.id+'">Fill the table</button></div></div>':"";
- return'<h1>Crafting</h1><p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+" found</h2>"+kb+rd+'</div><div class="mc" style="margin-top:14px"><h2>Undiscovered</h2>'+ub+"</div></div></div>"}
-var TV={dark:["#09090c","#14141a","#ff2d3d"],light:["#f4f1ec","#ffffff","#e0202f"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
-function giveInfo(g){return g.t==="item"?{name:item(g.id).name,r:item(g.id).r}:g.t==="mat"?{name:CAT.mats[g.id],r:g.id==="shard"?0:g.id==="essence"?2:4}:{name:CAT.cons[g.id].name,r:1}}
+ return'<h1>Crafting</h1><p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped and locked gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+" found</h2>"+kb+rd+'</div><div class="mc" style="margin-top:14px"><h2>Undiscovered</h2>'+ub+"</div></div></div>"}
+var TV={dark:["#09090c","#14141a","#ff2d3d"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
+function giveInfo(g){return g.t==="item"?{name:item(g.id).name,r:item(g.id).r}:g.t==="mat"?{name:CAT.mats[g.id],r:matR(g.id)}:{name:CAT.cons[g.id].name,r:1}}
 function merHTML(){var M=S.merchant;if(!M)return"";
  return'<div class="mc mer"><div class="qh"><h2>🧳 The Wandering Merchant</h2><span class="mu">new wares in '+left(M.ends)+'</span></div><p class="mu" style="margin:0 0 12px">Different offers every day, the same for everyone. Each has a daily limit.</p><div class="grid">'+M.offers.map(function(o){var g=o.give,inf=giveInfo(g),tag=o.kind==="deal"?"DEAL OF THE DAY":o.kind==="exclusive"?"MERCHANT ONLY":g.t==="mat"?"MATERIALS":"POTIONS";
   var sub=g.t==="item"?"<div>"+chips(item(g.id),1)+"</div>"+(item(g.id).set?'<div class="mu">Set: '+CAT.sets[item(g.id).set].name+"</div>":"")+'<div class="fl">'+item(g.id).f+"</div>":"";
@@ -209,7 +259,7 @@ function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleD
  var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+(TV[t.id]||[]).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
  +'<div class="card"><h2>Sound</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+"</button></div></div>"
- +'<div class="card" style="margin-bottom:16px"><h2>Theme</h2><p class="mu" style="margin:0 0 10px">Win rated games to unlock more themes.</p><div class="themes">'+th+"</div></div>"
+ +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
  +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+dangerHTML()}
 function dangerHTML(){return'<div class="card" style="margin-top:16px;border-color:#b91c1c"><h2>Danger zone</h2>'
  +'<p class="mu" style="margin-top:0"><b>Clear save data</b> starts you again from level 1: XP, coins, items, materials, achievements and quests are wiped. Your login, chess.com link, friends, clan and settings stay. Games that already earned you rewards won’t pay out again.</p>'
@@ -221,10 +271,10 @@ var AD={sub:"items",data:null,edit:null,redit:null,art:null,px:null,pxFor:null,c
 function fsel(id,opts,v,dis){return'<select id="'+id+'"'+(dis?" disabled":"")+">"+opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select>"}
 function flab(l,h){return'<label class="mu" style="display:block;margin-top:8px">'+l+"</label>"+h}
 function vAdmin(){if(!S.admin)return'<p class="mu">Not available.</p>';if(!AD.data){if(!AD.loading)adminLoad();return'<p class="mu">Loading…</p>'}
- var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["ach","Achievements"],["quests","Quests"],["offers","Merchant"],["sets","Sets"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
- return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,ach:adAch,quests:adQuests,offers:adOffers,sets:adSets,tools:toolsHTML}[AD.sub])()}
+ var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["ach","Achievements"],["quests","Quests"],["offers","Merchant"],["sets","Sets"],["mats","Materials"],["chests","Chests"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
+ return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,ach:adAch,quests:adQuests,offers:adOffers,sets:adSets,mats:adMats,chests:adChests,tools:toolsHTML}[AD.sub])()}
 async function adminLoad(){AD.loading=1;try{AD.data=await api("admin/content")}catch(e){toast(e.message);AD.data={recipes:[],owned:{}}}AD.loading=0;render()}
-async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned,sets:r.sets,ach:r.ach,quests:r.quests,offers:r.offers};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
+async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned,sets:r.sets,ach:r.ach,quests:r.quests,offers:r.offers,mats:r.mats,chests:r.chests};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
 function adItems(){if(AD.edit)return itemForm();var own=AD.data.owned||{},b=function(x){return'<span class="chip">'+x+"</span>"};
  var list=CAT.items.slice().sort(function(a,c){return CAT.slots.map(function(s){return s[0]}).indexOf(a.slot)-CAT.slots.map(function(s){return s[0]}).indexOf(c.slot)||a.r-c.r});
  return'<div class="row" style="margin:0 0 12px"><button id="adNew" style="flex:none">+ New item</button></div><div class="card">'+list.map(function(d){
@@ -236,11 +286,11 @@ function itemForm(){var d=AD.edit,isNew=!d.id,mc=d.merchantCost||null,glyphs=d.g
  +'<div class="row">'+["xp","coin","upset","streak"].map(function(k){return"<div>"+flab(ST[k]+" bonus %",'<input id="fx_'+k+'" type="number" min="0" max="50" step="0.5" value="'+((d.stats||{})[k]||0)+'">')+"</div>"}).join("")+"</div>"
  +'<div class="row"><div>'+flab("Shop price (0 = not in the shop)",'<input id="fP" type="number" min="0" max="100000" value="'+(d.price||0)+'">')+"</div><div>"+flab("Set",fsel("fT",[["","None"]].concat(Object.keys(CAT.sets).map(function(k){return[k,CAT.sets[k].name]})),d.set||""))+"</div></div>"
  +flab("Description",'<input id="fF" maxlength="120" value="'+esc(d.f||"")+'">')
- +flab('<input type="checkbox" id="fM"'+(mc?" checked":"")+' style="width:auto;margin:0 6px 0 0">Sold by the Wandering Merchant for:','<div class="row" style="margin-top:0">'+["coins","shard","essence","relic"].map(function(k){return'<input id="fm_'+k+'" type="number" min="0" max="100000" placeholder="'+k+'" title="'+k+'" value="'+((mc||{})[k]||"")+'">'}).join("")+"</div>")
+ +flab('<input type="checkbox" id="fM"'+(mc?" checked":"")+' style="width:auto;margin:0 6px 0 0">Sold by the Wandering Merchant for:','<div class="row" style="margin-top:0;flex-wrap:wrap">'+costKeys().map(function(k){return'<input id="fm_'+k+'" type="number" min="0" max="100000" placeholder="'+k+'" title="'+k+'" value="'+((mc||{})[k]||"")+'">'}).join("")+"</div>")
  +flab('<input type="checkbox" id="fX"'+(d.retired?" checked":"")+' style="width:auto;margin:0 6px 0 0">Retired: out of the shop, merchant and recipes (players keep theirs)',"")
  +'<div class="err" id="fe"></div><div class="row"><button id="fSave">Save</button><button class="g" id="fCancel">Cancel</button>'+(isNew?"":d.custom?'<button class="g" id="fDel">Delete</button>':d.edited?'<button class="g" id="fDel">Restore original</button>':"")+'</div><p class="mu">An item with no shop price, no merchant price and no recipe can only be given with the testing tools. Bonuses from all gear together are still capped.</p></div>'}
 function itemFromForm(){var $=function(i){return document.getElementById(i)},st={},mc=null;["xp","coin","upset","streak"].forEach(function(k){var v=+$("fx_"+k).value;if(v)st[k]=v});
- if($("fM").checked){mc={};["coins","shard","essence","relic"].forEach(function(k){var v=+$("fm_"+k).value;if(v)mc[k]=v})}
+ if($("fM").checked){mc={};costKeys().forEach(function(k){var v=+$("fm_"+k).value;if(v)mc[k]=v})}
  return{id:AD.edit.id,name:$("fN").value,slot:$("fS").value,r:+$("fR").value,g:$("fG").value,stats:st,price:+$("fP").value,set:$("fT").value||null,f:$("fF").value,merchantCost:mc,retired:$("fX").checked}}
 function gridMini(g){return'<div class="cg" style="grid-template-columns:repeat(3,30px);gap:2px;flex:none">'+g.map(function(t){return'<div class="sl" style="width:30px;height:30px;cursor:default">'+(t?(CAT.mats[t]?ico("mat",t):ico("item",t)).replace('class="px"','class="px" style="width:20px;height:20px"'):"")+"</div>"}).join("")+"</div>"}
 function outName(o){return o[0]==="item"?(item(o[1])?item(o[1]).name:o[1]):CAT.cons[o[1]].name}
@@ -259,8 +309,8 @@ function recipeForm(){var d=AD.redit,ings=[["","(empty)"]].concat(Object.keys(CA
  +'<div class="err" id="fe"></div><div class="row"><button id="rSave">Save</button><button class="g" id="rCancel">Cancel</button></div></div>'}
 function recipeFromForm(){var $=function(i){return document.getElementById(i)},o=$("rO").value.split(":");
  return{id:AD.redit.id,out:[o[0],o[1]],grid:[0,1,2,3,4,5,6,7,8].map(function(i){return $("rg_"+i).value||null}),qty:+$("rQ").value,mult:+$("rM").value,fee:+$("rF").value,hint:$("rH").value,hintAch:$("rA").value||null}}
-function adArt(){var things=CAT.items.map(function(i){return["item:"+i.id,i.name]}).concat(Object.keys(CAT.mats).map(function(k){return["mat:"+k,CAT.mats[k]+" (material)"]}),Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name+" (potion)"]}));
- if(!AD.art)AD.art=things[0][0];var p=AD.art.split(":"),t=p[0],id=p[1],has=CAT.art&&CAT.art[id],cells="";
+function adArt(){var things=CAT.items.map(function(i){return["item:"+i.id,i.name]}).concat(Object.keys(CAT.mats).map(function(k){return["mat:"+k,CAT.mats[k]+" (material)"]}),Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name+" (potion)"]}),(CAT.chests||[]).map(function(c){return["chest:"+c.id,c.name+" (chest)"]}));
+ if(!AD.art)AD.art=things[0][0];var p=AD.art.split(":"),t=p[0],id=p[1],has=CAT.art&&CAT.art[artId(t,id)],cells="";
  if(AD.pxFor!==AD.art)loadPixels(t,id);
  if(AD.px)for(var i=0;i<256;i++)cells+='<i data-pxi="'+i+'" style="background:'+(AD.px[i]||"transparent")+'"></i>';
  return'<div class="wrap"><div class="card" style="flex:1 1 280px"><h2>Choose</h2>'+fsel("artSel",things,AD.art)+'<div style="display:flex;gap:14px;align-items:center;margin-top:12px">'+slotHTML({cls:"big",attr:"",html:ico(t,id)})+'<span class="mu">'+(has?"Using a custom texture.":"Using the generated art.")+"</span></div>"
@@ -273,14 +323,15 @@ function adArt(){var things=CAT.items.map(function(i){return["item:"+i.id,i.name
 function loadPixels(t,id){var key=t+":"+id;AD.pxFor=key;AD.px=null;var img=new Image();img.onload=function(){if(AD.pxFor!==key)return;var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");x.imageSmoothingEnabled=false;x.drawImage(img,0,0,16,16);
   var d=x.getImageData(0,0,16,16).data,px=[];for(var i=0;i<256;i++){var a=d[i*4+3];px.push(a<128?null:"#"+[d[i*4],d[i*4+1],d[i*4+2]].map(function(v){return("0"+v.toString(16)).slice(-2)}).join(""))}AD.px=px;if(tab==="admin"&&AD.sub==="art")render()};img.src=icoSrc(t,id)}
 function savePixels(){var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");AD.px.forEach(function(col,i){if(col){x.fillStyle=col;x.fillRect(i%16,Math.floor(i/16),1,1)}});
- var id=AD.art.split(":")[1];adPost("admin/art",{id:id,png:c.toDataURL("image/png").split(",")[1]},"Texture saved.").then(function(r){if(r)AD.pxFor=null})}
+ var p=AD.art.split(":"),id=artId(p[0],p[1]);adPost("admin/art",{id:id,png:c.toDataURL("image/png").split(",")[1]},"Texture saved.").then(function(r){if(r)AD.pxFor=null})}
 function pxAt(e){var el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.dataset&&el.dataset.pxi!=null?el:null}
 function pxApply(el){var i=+el.dataset.pxi;if(AD.tool==="pick"){if(AD.px[i]){AD.col=AD.px[i];AD.tool="paint";render()}return}AD.px[i]=AD.tool==="erase"?null:AD.col;el.style.background=AD.px[i]||"transparent"}
 /* sets, achievements, quests and merchant offers: one list + form pattern; the server checks everything again */
-var COSTK=["coins","shard","essence","relic"],STATK=["xp","coin","upset","streak"];
+function costKeys(){return["coins"].concat(Object.keys(CAT.mats))}
+var STATK=["xp","coin","upset","streak"];
 function numIn(id,v,ph,min,max){return'<input id="'+id+'" type="number" min="'+(min||0)+'" max="'+(max||100000)+'" placeholder="'+(ph||"")+'" title="'+(ph||"")+'" value="'+(v==null?"":v)+'">'}
-function costIn(p,o){return'<div class="row" style="margin-top:0">'+COSTK.map(function(k){return numIn(p+k,(o||{})[k]||"",k==="coins"?"coins":CAT.mats[k])}).join("")+"</div>"}
-function costRead(p){var o={};COSTK.forEach(function(k){var v=+document.getElementById(p+k).value;if(v)o[k]=v});return o}
+function costIn(p,o){return'<div class="row" style="margin-top:0;flex-wrap:wrap">'+costKeys().map(function(k){return numIn(p+k,(o||{})[k]||"",k==="coins"?"coins":CAT.mats[k])}).join("")+"</div>"}
+function costRead(p){var o={};costKeys().forEach(function(k){var v=+document.getElementById(p+k).value;if(v)o[k]=v});return o}
 function cList(kind,rows,title,sub){var b=function(x){return'<span class="chip">'+x+"</span>"};
  return'<div class="row" style="margin:0 0 12px"><button data-adn="'+kind+'" style="flex:none">+ New</button></div><div class="card">'+rows.map(function(x){
   var btn=x.off?'<button class="g" data-adc="on" data-k="'+kind+'" data-i="'+x.id+'">Turn on</button>':'<button class="g" data-adc="edit" data-k="'+kind+'" data-i="'+x.id+'">Edit</button> '+(x.edited?'<button class="g" data-adc="restore" data-k="'+kind+'" data-i="'+x.id+'">Restore original</button> ':"")+(kind==="set"&&x.base?"":'<button class="g" data-adc="off" data-k="'+kind+'" data-i="'+x.id+'">'+(x.base?"Turn off":"Delete")+"</button>");
@@ -308,13 +359,29 @@ function adSets(){if(cOpen("set")){var d=AD.cedit.data,bn=d.bonus||{};
    +'<p class="mu">The bonus for wearing that many pieces of the set (leave a row empty for no bonus). Put items in the set from the item editor.</p>'
    +[2,3,4,5,6].map(function(n){return flab(n+" pieces",'<div class="row" style="margin-top:0">'+STATK.map(function(k){return numIn("cs"+n+"_"+k,(bn[n]||{})[k]||"",ST[k]+" %",0,50)}).join("")+"</div>")}).join(""))}
  return cList("set",AD.data.sets,function(x){return esc(x.name)},function(x){return Object.keys(x.bonus).map(function(n){var o=[];for(var k in x.bonus[n])o.push("+"+x.bonus[n][k]+"% "+ST[k]);return n+" pieces: "+o.join(", ")}).join(" · ")+" · "+x.used+" item"+(x.used===1?"":"s")})}
+function adMats(){if(cOpen("mat")){var d=AD.cedit.data;
+  return cForm(d.id?"Edit material":"New material",flab("Name",'<input id="cN" maxlength="30" value="'+esc(d.name||"")+'">')
+   +'<div class="row"><div>'+flab("Rarity colour",fsel("cR",RN.map(function(n,i){return[i,n]}),d.r||0))+"</div><div>"+flab("Sprite colour",'<input type="color" id="cC" value="'+(d.color||"#88ccff")+'" style="height:44px;padding:3px">')+"</div></div>"
+   +'<p class="mu">After saving, use it in recipes, merchant prices, quest rewards and chest loot. You can draw its picture in the Textures tab. A material nothing uses or gives out can’t be earned or spent, so add it to a chest or recipe.</p>')}
+ return cList("mat",AD.data.mats,function(m){return ico("mat",m.id).replace('class="px"','class="px" style="width:22px;height:22px;display:inline-block;vertical-align:middle"')+" "+esc(m.name)},function(m){return RN[m.r]+" · "+m.held+" held by players"})}
+function adChests(){var all=AD.data.chests.reduce(function(s,c){return s+(AD.cedit&&AD.cedit.data.id===c.id?0:c.chance)},0);
+ if(cOpen("chest")){var d=AD.cedit.data,loot=(d.loot||[]).concat([{},{},{},{},{},{},{},{}]).slice(0,8),mats=[["","(none)"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}));
+  return cForm(d.id?"Edit chest":"New chest",flab("Name",'<input id="cN" maxlength="30" value="'+esc(d.name||"")+'">')
+   +'<div class="row"><div>'+flab("Drop chance per rated win (%)",numIn("cP",d.chance==null?5:d.chance,"",0,100))+"</div><div>"+flab("Colour",'<input type="color" id="cC" value="'+(d.color||"#a0692e")+'" style="height:44px;padding:3px">')+"</div></div>"
+   +'<p class="mu">The other chests add up to '+Math.round(all*10)/10+"%, so this one can be at most "+Math.round((100-all)*10)/10+"%. The rest of the time a win drops no chest. Set 0% to stop it dropping.</p>"
+   +flab("Loot: each line has its own chance, then an amount from min to max. A chest is never empty: if nothing comes up, the first line pays its minimum.",
+     loot.map(function(l,i){return'<div class="row" style="margin-top:4px">'+fsel("cl"+i,mats,l.id||"")+numIn("cl"+i+"a",l.min||"","min",1,1000)+numIn("cl"+i+"b",l.max||"","max",1,1000)+numIn("cl"+i+"c",l.chance||"","chance %",0,100)+"</div>"}).join("")))}
+ return'<p class="mu" style="margin:0 0 10px">Each rated win: '+AD.data.chests.slice().sort(function(a,b){return a.chance-b.chance}).map(function(c){return esc(c.name)+" "+c.chance+"%"}).join(", ")+", nothing "+Math.round((100-all)*10)/10+"%.</p>"
+  +cList("chest",AD.data.chests,function(c){return ico("chest",c.id).replace('class="px"','class="px" style="width:22px;height:22px;display:inline-block;vertical-align:middle"')+" "+esc(c.name)},function(c){return c.chance+"% per win · "+c.loot.map(function(l){return(l.min===l.max?l.min:l.min+"–"+l.max)+" "+(CAT.mats[l.id]||l.id)+(l.chance<100?" ("+l.chance+"%)":"")}).join(", ")+" · "+c.held+" unopened"})}
 function cRead(){var $=function(i){return document.getElementById(i)},k=AD.cedit.kind,d={id:AD.cedit.data.id};
  if(k==="ach"){d.name=$("cN").value;d.desc=$("cD").value;d.rule=$("cR")?$("cR").value:AD.cedit.data.rule;d.n=+$("cT").value;d.reward=+$("cW").value;d.hidden=$("cH").checked}
  if(k==="quest"){d.kind=$("cK").value;d.type=$("cY").value;d.n=+$("cT").value;d.tc=$("cC").value||null;d.desc=$("cD").value;d.reward=costRead("cr_")}
  if(k==="offer"){var g=$("cG").value.split(":");d.give={t:g[0],id:g[1],qty:+$("cQ").value};d.limit=+$("cL").value;d.cost=costRead("cp_")}
+ if(k==="mat"){d.name=$("cN").value;d.r=+$("cR").value;d.color=$("cC").value}
+ if(k==="chest"){d.name=$("cN").value;d.chance=+$("cP").value;d.color=$("cC").value;d.loot=[0,1,2,3,4,5,6,7].map(function(i){return{id:$("cl"+i).value,min:+$("cl"+i+"a").value,max:+$("cl"+i+"b").value,chance:+$("cl"+i+"c").value}}).filter(function(l){return l.id})}
  if(k==="set"){d.name=$("cN").value;d.bonus={};[2,3,4,5,6].forEach(function(n){var o={};STATK.forEach(function(s2){var v=+$("cs"+n+"_"+s2).value;if(v)o[s2]=v});if(Object.keys(o).length)d.bonus[n]=o})}
  return d}
-function toolsHTML(){var kinds=[["coins","Coins"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),Object.keys(CAT.cons).map(function(k){return[k,CAT.cons[k].name]}));
+function toolsHTML(){var kinds=[["coins","Coins"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),Object.keys(CAT.cons).map(function(k){return[k,CAT.cons[k].name]}),(CAT.chests||[]).map(function(c){return["chest:"+c.id,c.name]}));
  var opt=function(l){return l.map(function(x){return'<option value="'+x[0]+'">'+esc(x[1])+"</option>"}).join("")};
  return'<div class="card"><h2>Testing tools</h2><p class="mu" style="margin-top:0">These only affect your own account. Every use is recorded, and admin accounts are left off the public leaderboard.</p>'
  +'<div class="row"><select id="adK">'+opt(kinds)+'</select><input id="adN" type="number" min="1" max="100000" value="1000"><button id="adGive" style="flex:none">Give</button></div>'
@@ -383,20 +450,29 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
  if($("mk"))$("mk").onclick=async function(){busy("mk",true);try{await api("signup",{username:AU.un,password:AU.pw,cc:AU.cc,token:AU.token});AU={mode:"login"};tab="home";await boot();toast("Welcome! Hit Sync to set your baseline.")}catch(e){busy("mk",false);fail(e)}}}
 function render(){var R=document.getElementById("root");
  if(!S){authView(R);return}
- var N=[["home","⌂ Home"],["inv","🎒 Inventory"],["craft","⚒ Crafting"],["shop","◆ Shop"],["ach","🏆 Achievements"],["ranks","☰ Ranks"],["social","👥 Social"],["profile","👤 Profile"]].concat(S.admin?[["admin","🛠 Admin"]]:[]),V={admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
- setTheme(S.theme);
+ // [tab, label, short label for the phone bar, icon]
+ var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["craft","Crafting","Craft","craft"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ setTheme(S.theme);setMode(S.mode);
  // an admin changed items or textures: fetch the new catalog, then draw again
  if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
- R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'">'+n[1]+"</button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
+ R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="modeQuick" style="padding:5px" title="'+(S.mode==="light"?"Switch to dark mode":"Switch to light mode")+'">'+ICON(S.mode==="light"?"moon":"sun")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("snd"))$("snd").onclick=$("mute").onclick;
+ var flip=function(m){setMode(m);doPost("mode",{mode:m},null,"click")};
+ if($("modeSw"))$("modeSw").onchange=function(){flip($("modeSw").checked?"light":"dark")};
+ $("modeQuick").onclick=function(){flip(S.mode==="light"?"dark":"light")};
  var dz=async function(p,w,ok){if(String($("dzc").value).trim().toUpperCase()!==w){$("dze").textContent="Type "+w+" in the box to confirm.";return}
   if(!confirm(w==="DELETE"?"Delete your account for good? This can’t be undone.":"Clear all your progress and start again from level 1?"))return;
   try{var r=await api(p,{password:$("dzp").value,confirm:w});if(w==="DELETE"){S=null;AU={mode:"login"};tab="home";render()}else{S=r;tab="home";render()}toast(ok)}catch(e){$("dze").textContent=e.message;sfx("error")}};
  if($("dzReset"))$("dzReset").onclick=function(){dz("account/reset","RESET","Your save data was cleared. Welcome back to level 1!")};
  if($("dzDel"))$("dzDel").onclick=function(){dz("account/delete","DELETE","Your account was deleted.")};
+ if($("invSort"))$("invSort").onchange=function(){invS=$("invSort").value;render()};
+ if($("goChests"))$("goChests").onclick=function(){tab="inv";invF="chests";var c=CAT.chests.filter(function(x){return S.chests[x.id]>0})[0];if(c)sel="chest:"+c.id;render();window.scrollTo(0,0)};
+ if($("dupBtn"))$("dupBtn").onclick=async function(){try{var p=await api("dismantle/dupes");if(!p.count){toast("No duplicates: you only have one of each spare item (locked and equipped ones are kept).");return}
+  if(!confirm("Dismantle "+p.count+" duplicate item"+(p.count>1?"s":"")+" for "+costTxt(p.yield)+"?\n\nYour highest-level copy of each item is kept, and so is anything locked or equipped."))return;
+  await doPost("dismantle/dupes",{},function(r){return"Dismantled "+r.dupes.count+" duplicates for "+costTxt(r.dupes.yield)+"."});sel=null;render()}catch(e){toast(e.message)}};
  if($("cCancel"))$("cCancel").onclick=function(){AD.cedit=null;render()};
  if($("cSave"))$("cSave").onclick=async function(){if(await adPost("admin/content/save",{kind:AD.cedit.kind,data:cRead()},"Saved.")){AD.cedit=null;render()}};
  if($("adNew"))$("adNew").onclick=function(){AD.edit={};render()};
@@ -407,8 +483,8 @@ function render(){var R=document.getElementById("root");
  if($("rCancel"))$("rCancel").onclick=function(){AD.redit=null;render()};
  if($("rSave"))$("rSave").onclick=async function(){if(await adPost("admin/recipe/save",{recipe:recipeFromForm()},"Recipe saved.")){AD.redit=null;render()}};
  if($("artSel"))$("artSel").onchange=function(){AD.art=$("artSel").value;render()};
- if($("artFile"))$("artFile").onchange=function(){var f=$("artFile").files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){adPost("admin/art",{id:AD.art.split(":")[1],png:String(rd.result).split(",")[1]},"Texture uploaded.").then(function(r){if(r)AD.pxFor=null})};rd.readAsDataURL(f)};
- if($("artClear"))$("artClear").onclick=function(){adPost("admin/art/clear",{id:AD.art.split(":")[1]},"Back to the generated art.").then(function(r){if(r){AD.pxFor=null;render()}})};
+ if($("artFile"))$("artFile").onchange=function(){var f=$("artFile").files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){adPost("admin/art",{id:artId(AD.art.split(":")[0],AD.art.split(":")[1]),png:String(rd.result).split(",")[1]},"Texture uploaded.").then(function(r){if(r)AD.pxFor=null})};rd.readAsDataURL(f)};
+ if($("artClear"))$("artClear").onclick=function(){adPost("admin/art/clear",{id:artId(AD.art.split(":")[0],AD.art.split(":")[1])},"Back to the generated art.").then(function(r){if(r){AD.pxFor=null;render()}})};
  if($("pxCol"))$("pxCol").oninput=function(){AD.col=$("pxCol").value;if(AD.tool!=="paint"){AD.tool="paint";render()}};
  if($("pxClear"))$("pxClear").onclick=function(){if(AD.px){AD.px=AD.px.map(function(){return null});render()}};
  if($("pxReload"))$("pxReload").onclick=function(){AD.pxFor=null;render()};
@@ -430,7 +506,8 @@ function render(){var R=document.getElementById("root");
 function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();sfx("click");if(ok)toast(ok);if(S.unlocked&&S.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+S.unlocked.map(achName).join(", "))},ok?1800:0)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message;sfx("error")}}}
 async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";var fx=S.items.some(function(i){return i.slot==="aura"});
  try{var r=await api("sync",{});S=r;await refresh();render();
-  if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+CAT.mats[k]}).join(", ");toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else toast("No new rated games since last sync.");
+  if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+kindName(k)}).join(", "),got=Object.keys(r.drops||{}).filter(function(k){return k.indexOf("chest:")===0});
+  if(got.length)setTimeout(function(){sfx("discover");burst(["🎁","✨"]);toast("🎁 You found "+got.map(function(k){return(r.drops[k]>1?r.drops[k]+"× ":"a ")+kindName(k)}).join(" and ")+"! Open it in your Inventory.")},1400);toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else toast("No new rated games since last sync.");
   if(r.unlocked&&r.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.unlocked.map(achName).join(", "))},2200)
  }catch(e){se.textContent=e.message;sfx("error")}}
 /* ---------- crafting table interaction ---------- */
@@ -447,7 +524,7 @@ function fill(id){var r=S.recipes.filter(function(x){return x.id===id})[0],used=
 document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("a.pl[href^='#/u/']")){e.preventDefault();var h=b.getAttribute("href");if(location.hash===h)route();else location.hash=h;return}
  if(b=e.target.closest("[data-rk]")){e.preventDefault();rk=b.dataset.rk;if(b.dataset.t)tab=b.dataset.t;render();sfx("click");return}
- if(b=e.target.closest("[data-adc]")){var ck=b.dataset.k,cid=b.dataset.i,ca2=b.dataset.adc,crow=AD.data[{set:"sets",ach:"ach",quest:"quests",offer:"offers"}[ck]].filter(function(x){return x.id===cid})[0];
+ if(b=e.target.closest("[data-adc]")){var ck=b.dataset.k,cid=b.dataset.i,ca2=b.dataset.adc,crow=AD.data[{set:"sets",ach:"ach",quest:"quests",offer:"offers",mat:"mats",chest:"chests"}[ck]].filter(function(x){return x.id===cid})[0];
   if(ca2==="edit"){AD.cedit={kind:ck,data:JSON.parse(JSON.stringify(crow))};render();window.scrollTo(0,0);return}
   if(ca2==="off"&&!confirm(crow.base?"Turn this off? You can turn it back on later.":"Delete this for good?"))return;
   await adPost(ca2==="off"?"admin/content/delete":"admin/content/restore",{kind:ck,id:cid},"Done.");return}
@@ -473,11 +550,12 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-rb]")){rsel=b.dataset.rb;render();sfx("click");return}
  if(b=e.target.closest("[data-p]")){var p=b.dataset.p.split(":");pick=p[0]==="mat"?{t:"mat",k:p[1]}:{t:"item",id:+p[1]};sfx("click");render();return}
  if(b=e.target.closest("[data-c]")){place(+b.dataset.c);return}
+ if(b=e.target.closest("[data-if]")){invF=b.dataset.if;sfx("click");render();return}
  if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
  if(b=e.target.closest("[data-a]")){var a=b.dataset.a,i=b.dataset.i;
   if(a==="dismantle"&&!confirm("Dismantle this item for materials? This can’t be undone."))return;
-  var body=a==="buy"?{id:i}:a==="use"?{kind:i}:{iid:+i},msg={buy:"Purchased!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!",use:"Potion activated!"}[a];
-  var r=await doPost(a,body,msg,a==="equip"?"equip":a==="buy"?"buy":"click");if(r&&a==="dismantle")sel=null;if(r)render()}});
+  var body=a==="buy"?{id:i}:a==="use"?{kind:i}:a==="open"?{id:i,n:+b.dataset.n||1}:{iid:+i},msg={buy:"Purchased!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!",use:"Potion activated!",lock:null,open:function(r){return"🎁 "+(r.opened.n>1?r.opened.n+" chests: ":"")+costTxt(r.opened.loot)}}[a];
+  var r=await doPost(a==="open"?"chest/open":a,body,msg,a==="equip"?"equip":a==="buy"||a==="open"?"buy":"click");if(r&&a==="open")burst(["✨","💎"]);if(r&&a==="dismantle")sel=null;if(r)render()}});
 document.addEventListener("contextmenu",function(e){var c=e.target.closest("[data-c]");if(c&&S){e.preventDefault();grid[+c.dataset.c]=null;pvSoon();render()}});
 document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
 document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});

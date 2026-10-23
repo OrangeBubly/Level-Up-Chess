@@ -154,8 +154,13 @@ app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid)))
 app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
 app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
 app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
+app.post("/api/chest/open", auth, act((u, b) => core.openChest(u, String(b.id || ""), Number(b.n) || 1)));
+app.post("/api/lock", auth, act((u, b) => core.toggleLock(u, Number(b.iid))));
+app.get("/api/dismantle/dupes", auth, (req, res) => res.json(core.dupesPreview(req.u.id)));
+app.post("/api/dismantle/dupes", auth, act(u => core.dismantleDupes(u)));
 app.post("/api/merchant", auth, act((u, b) => core.buyOffer(u, String(b.id || ""))));
 app.post("/api/theme", auth, act((u, b) => core.setTheme(u, String(b.theme || ""))));
+app.post("/api/mode", auth, act((u, b) => core.setMode(u, String(b.mode || ""))));
 // ---- friends, public profiles and clans ----
 const friendLimit = req => { if (!limit("friend:" + req.u.id, 20, 864e5)) throw new AppError("rate_limited", "That’s a lot of friend requests for one day. Try again tomorrow.", 429); };
 app.post("/api/friend", auth, (req, res, next) => { friendLimit(req); next(); }, act((u, b) => core.addFriend(u, String(b.name || ""))));

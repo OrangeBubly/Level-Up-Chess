@@ -22,12 +22,12 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 2. **All balance and item changes go through `grant`/`spend`/`giveItem` in `lib/core.js`**, which write the `ledger`. Never `UPDATE balances` directly elsewhere. The ledger must always add up to the balances (a test checks this).
 3. **The server decides rewards.** The browser only sends ids and intent, never amounts or game results.
 4. **A player can claim a game once** (`claims` primary key). Rated, standard chess only. Keep the anti-farming limits in `lib/rules.js`.
-5. **Fair play and no pay-to-win.** Equipment bonuses change website rewards only, never chess.com games. No paid loot boxes. Cosmetic-only monetization would need checking with Chess.com first (legal@chess.com).
+5. **Fair play and no pay-to-win.** Equipment bonuses change website rewards only, never chess.com games. No paid loot boxes: resource chests are only earned by winning rated games (and admin testing), never sold for coins or money. Cosmetic-only monetization would need checking with Chess.com first (legal@chess.com).
 6. **Be polite to the chess.com API:** one request at a time, use ETag caching, keep the contact email in the User-Agent. Don't copy chess.com's artwork or sounds, and don't use Minecraft's assets.
 7. Every recipe needs a **unique pattern** and every material must stay consumable by a repeatable potion recipe (tests enforce both).
 
 ## Adding content
-- The owner adds and edits items, recipes, textures, sets, achievements, quests and merchant offers from the **Admin tab** on the live site (no code needed). Those live in the `custom_items`, `custom_recipes`, `art` and `custom_content` tables and are layered over the built-ins by `applyCustom()` in `lib/content.js`. Don't overwrite them from code. Items players own are retired, never deleted.
+- The owner adds and edits items, recipes, textures, sets, achievements, quests, merchant offers, materials and chests from the **Admin tab** on the live site (no code needed). Those live in the `custom_items`, `custom_recipes`, `art` and `custom_content` tables and are layered over the built-ins by `applyCustom()` in `lib/content.js`. Don't overwrite them from code. Items players own are retired, never deleted.
 - New built-in item (in code): add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
 - New recipe, potion or achievement: add it in `lib/content.js` and extend the tests. Hidden recipes' patterns are only sent to the player after they are discovered.
 - New feature that needs data: add a migration, put logic in `lib/core.js`, add routes in `server.js`, add tests, then the UI.
