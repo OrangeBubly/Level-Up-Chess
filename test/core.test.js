@@ -5,7 +5,7 @@ const { open, migrate } = require("../lib/db"), { createCore } = require("../lib
 
 function setup(opts) {
   const db = open(":memory:"); migrate(db);
-  const core = createCore(db, { now: () => 5000, ...opts });
+  const core = createCore(db, { now: () => 5000, rand: () => 0.999, ...opts }); // rand 0.999: no chest drops unless a test asks
   const mk = (name, ccName, wm = 1) => { const id = core.createUser(name, "s", "h"); db.prepare("UPDATE users SET cc=?, cc_player_id=?, watermark=? WHERE id=?").run(ccName, id, wm, id); return id; };
   return { db, core, mk };
 }
@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -552,4 +552,43 @@ test("editor: quests and merchant offers, with minimum pool sizes kept", () => {
   for (const bad of [{ give: { t: "coins", id: "coins", qty: 1 } }, { give: { t: "mat", id: "gold", qty: 1 } }, { cost: {} }, { limit: 0 }])
     assert.throws(() => core.saveContent("offer", { give: { t: "mat", id: "shard", qty: 5 }, cost: { coins: 10 }, limit: 1, ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
   assert.throws(() => core.saveContent("nope", {}), e => e.code === "bad_kind");
+});
+
+test("chest odds: rarest checked first, each gets exactly its chance, the rest is nothing", () => {
+  const pick = r => (R.rollChest(C.CHESTS, r) || { id: "none" }).id;
+  assert.equal(pick(0), "gold"); assert.equal(pick(0.0299), "gold"); assert.equal(pick(0.03), "iron"); assert.equal(pick(0.1299), "iron");
+  assert.equal(pick(0.13), "wood"); assert.equal(pick(0.3799), "wood"); assert.equal(pick(0.38), "none"); assert.equal(pick(0.999), "none");
+  const n = { gold: 0, iron: 0, wood: 0, none: 0 }; for (let i = 0; i < 10000; i++) n[pick(i / 10000)]++;
+  assert.deepEqual(n, { gold: 300, iron: 1000, wood: 2500, none: 6200 });
+});
+
+test("chests: only rewarded wins drop them, they open for materials through the ledger, never empty", () => {
+  let r = 0; const { db, core, mk } = setup({ rand: () => r }), a = mk("alice", "alice");
+  core.sync(a, [G("alice", "l1", "loss"), G("alice", "w1", "win")]); // rand 0: the win drops a gold chest, the loss nothing
+  assert.deepEqual(core.view(a).chests, { wood: 0, iron: 0, gold: 1 });
+  core.sync(a, [G("alice", "u1", "win", { rated: false })]); assert.equal(core.view(a).chests.gold, 1); // unrated: nothing
+  const before = core.view(a).mats, o = core.openChest(a, "gold");
+  assert.deepEqual(o.opened.loot, { shard: 15, essence: 2, relic: 1 }); assert.ok(o.ach.includes("chest1")); // rand 0: every line hits, minimum amounts
+  assert.equal(core.view(a).mats.shard, before.shard + 15); assert.equal(core.view(a).chests.gold, 0);
+  assert.throws(() => core.openChest(a, "gold"), e => e.code === "insufficient"); assert.throws(() => core.openChest(a, "nope"), e => e.code === "not_found");
+  for (const k of ["shard", "essence", "relic", "chest:gold"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  r = 0.999; assert.deepEqual(R.rollLoot(C.CHESTS.find(c => c.id === "wood"), () => r), { shard: 8 }); // 100% line always pays; top of 4-8
+  assert.deepEqual(R.rollLoot({ loot: [{ id: "relic", min: 2, max: 5, chance: 10 }] }, () => 0.999), { relic: 2 }); // nothing came up: first line's minimum
+  core.adminGive(a, "chest:wood", 3); assert.equal(core.openChest(a, "wood", 3).opened.n, 3); assert.equal(core.view(a).chests.wood, 0);
+});
+
+test("item locks: a locked item can't be dismantled or crafted away; duplicates keep the best copy", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  for (const d of ["w2", "w2", "w2", "h2", "w1"]) core.adminItem(a, d);
+  const ids = db.prepare("SELECT id FROM items WHERE user_id=? AND def='w2' ORDER BY id").all(a).map(x => x.id);
+  db.prepare("UPDATE items SET level=3 WHERE id=?").run(ids[2]); // the best copy
+  core.toggleLock(a, ids[0]); assert.ok(core.view(a).items.find(i => i.id === ids[0]).locked);
+  assert.throws(() => core.dismantle(a, ids[0]), e => e.code === "locked");
+  const p = core.dupesPreview(a); assert.equal(p.count, 1); assert.deepEqual(p.items.map(x => x.id), [ids[1]]); // locked and best are kept
+  const shards = core.view(a).mats.shard, r = core.dismantleDupes(a);
+  assert.equal(r.dupes.count, 1); assert.equal(core.view(a).mats.shard, shards + r.dupes.yield.shard);
+  assert.deepEqual(db.prepare("SELECT id FROM items WHERE user_id=? AND def='w2' ORDER BY id").all(a).map(x => x.id), [ids[0], ids[2]]);
+  assert.equal(core.dupesPreview(a).count, 0);
+  core.toggleLock(a, ids[0]); core.dismantle(a, ids[0]); // unlocked again: fine
+  assert.equal(bal(db, a, "shard"), ledgerSum(db, a, "shard"));
 });
