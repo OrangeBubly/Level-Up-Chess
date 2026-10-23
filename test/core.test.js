@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -123,7 +123,7 @@ test("recipes: patterns are unique, every material has a repeatable consumable s
   assert.equal(C.BY_PATTERN.size, C.RECIPES.length);
   for (const m of Object.keys(C.MATS)) assert.ok(C.RECIPES.some(r => r.out[0] === "cons" && Object.values(r.key).includes(m)), "no consumable uses " + m);
   for (const r of C.RECIPES) { assert.ok(r.hintAch === null || C.ACHIEVEMENT[r.hintAch], r.id); if (r.out[0] === "item") assert.ok(C.ITEM[r.out[1]], r.id); else assert.ok(C.CONS[r.out[1]], r.id); }
-  for (const d of C.ITEMS) if (d.price === 0 && d.slot !== "title") assert.ok(C.RECIPES.some(r => r.out[1] === d.id), "no recipe for " + d.id);
+  for (const d of C.ITEMS) if (d.price === 0 && d.slot !== "title" && !d.merchant) assert.ok(C.RECIPES.some(r => r.out[1] === d.id), "no recipe for " + d.id);
 });
 
 test("crafting table: shape matters, position does not, discovery is recorded", () => {
@@ -246,4 +246,86 @@ test("achievement progress: counts show real counts, rarity tiers show 0 / 1 unt
   const v = core.view(a);
   assert.deepEqual(v.ach.rare, { cur: 0, max: 1 }); assert.deepEqual(v.ach.mythic, { cur: 0, max: 1 });
   assert.deepEqual(v.ach.games25, { cur: 0, max: 25 }); assert.deepEqual(v.ach.linked, { done: 1 });
+});
+
+test("usernames are unique", () => {
+  const { core } = setup(); core.createUser("alice", "s", "h");
+  assert.throws(() => core.createUser("alice", "s", "h"), /UNIQUE/);
+});
+
+test("merchant: same offers for everyone each day, a deal, a merchant-only item and pool offers", () => {
+  const a = R.merchantOffers("d2026-10-23"), b = R.merchantOffers("d2026-10-24"), days = new Set();
+  assert.deepEqual(a, R.merchantOffers("d2026-10-23")); assert.equal(a.length, 2 + C.MERCHANT_POOL_PICKS);
+  assert.deepEqual(a.map(o => o.kind), ["deal", "exclusive", "pool", "pool", "pool"]);
+  const deal = a[0], d = C.ITEM[deal.give.id]; assert.ok(d.price > 0); assert.equal(deal.cost.coins, Math.round(d.price * 0.75));
+  assert.ok(C.ITEM[a[1].give.id].merchant); assert.equal(new Set(a.map(o => o.id)).size, a.length);
+  for (let i = 1; i <= 28; i++) days.add(R.merchantOffers("d2026-11-" + String(i).padStart(2, "0")).map(o => o.id).join());
+  assert.ok(days.size > 20, "offers should change from day to day"); assert.notDeepEqual(a, b);
+});
+
+test("merchant content: every merchant-only item has a price, isn't in the shop, and can't be crafted", () => {
+  const ids = C.ITEMS.filter(d => d.merchant).map(d => d.id);
+  assert.deepEqual(ids.sort(), Object.keys(C.MERCHANT_ITEMS).sort());
+  for (const id of ids) { assert.equal(C.ITEM[id].price, 0); assert.ok(!C.RECIPES.some(r => r.out[1] === id), id); }
+  for (const o of C.MERCHANT_POOL) assert.ok(C.MATS[o.give.id] || C.CONS[o.give.id], o.id);
+});
+
+test("merchant: buying spends and gives through the ledger, daily limits hold, a new day restocks", () => {
+  let t = 5000; const { db, core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
+  for (const k of ["coins", "shard", "essence", "relic"]) core._grant(a, k, 10000, "t");
+  const { key, offers } = core.merchant(a);
+  for (const o of offers) {
+    for (let i = 0; i < o.limit; i++) assert.deepEqual(core.buyOffer(a, o.id).bought, o.give);
+    assert.throws(() => core.buyOffer(a, o.id), e => e.code === "sold_out");
+  }
+  assert.ok(core.merchant(a).offers.every(o => o.left === 0));
+  for (const k of ["coins", "shard", "essence", "relic", "tonic", "draught", "brew", "shield", "catalyst"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  const ex = offers.find(o => o.kind === "exclusive").give.id;
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE user_id=? AND def=?").get(a, ex).n, 1);
+  assert.throws(() => core.buy(a, ex), e => e.code === "not_for_sale");
+  t += 86400; const next = core.merchant(a);
+  assert.notEqual(next.key, key); assert.ok(next.offers.every(o => o.left === o.limit));
+  const gone = offers.find(o => !next.offers.some(x => x.id === o.id));
+  if (gone) assert.throws(() => core.buyOffer(a, gone.id), e => e.code === "not_found");
+});
+
+test("merchant: not enough coins means nothing changes", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), o = core.merchant(a).offers.find(x => x.kind === "exclusive");
+  const before = bal(db, a, "coins");
+  assert.throws(() => core.buyOffer(a, o.id), e => e.code === "insufficient");
+  assert.equal(bal(db, a, "coins"), before); assert.equal(core.merchant(a).offers.find(x => x.id === o.id).left, 1);
+});
+
+test("themes: free ones always work, others unlock with wins", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  core.setTheme(a, "light"); assert.equal(core.view(a).theme, "light");
+  assert.throws(() => core.setTheme(a, "emerald"), e => e.code === "locked");
+  assert.throws(() => core.setTheme(a, "nope"), e => e.code === "not_found");
+  db.prepare("UPDATE users SET wins=10 WHERE id=?").run(a); core.setTheme(a, "emerald"); assert.equal(core.view(a).theme, "emerald");
+  assert.throws(() => core.setTheme(a, "royal"), e => e.code === "locked");
+});
+
+test("changing the password logs out other sessions", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice"), sv = core.user(a).sv;
+  core.setPassword(a, "s2", "h2"); const u = core.user(a);
+  assert.equal(u.sv, sv + 1); assert.equal(u.hash, "h2");
+});
+
+test("Well Travelled: wearing all four Wanderer pieces", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  for (const d of ["a5", "h4", "b5"]) core.equip(a, Number(db.prepare("INSERT INTO items(user_id,def) VALUES(?,?)").run(a, d).lastInsertRowid));
+  const last = Number(db.prepare("INSERT INTO items(user_id,def) VALUES(?,?)").run(a, "m4").lastInsertRowid);
+  assert.ok(core.equip(a, last).ach.includes("wanderer"));
+  assert.deepEqual(R.bonusOf([{ def: "a5", level: 1 }, { def: "h4", level: 1 }, { def: "b5", level: 1 }, { def: "m4", level: 1 }]).active.map(x => x.pieces), [2, 3, 4]);
+});
+
+test("linked sign-up: the account is created already linked, and a chess.com account can only be used once", () => {
+  const { db, core } = setup();
+  const a = core.createLinkedUser("alice", "s", "h", "alicecc", 77), u = core.user(a);
+  assert.equal(u.cc, "alicecc"); assert.equal(u.cc_player_id, 77); assert.equal(u.watermark, 0); // first sync still only sets a baseline
+  assert.equal(bal(db, a, "coins"), C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward); assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.throws(() => core.createLinkedUser("alice", "s", "h", "other", 78), e => e.code === "username_taken");
+  assert.throws(() => core.createLinkedUser("bob", "s", "h", "alicecc", 79), e => e.code === "cc_taken");
+  assert.throws(() => core.createLinkedUser("bob", "s", "h", "renamed", 77), e => e.code === "cc_taken"); // same chess.com account after a rename
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM users").get().n, 1);
 });

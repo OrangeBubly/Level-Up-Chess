@@ -40,5 +40,6 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - The owner is new to programming: explain git and deployment steps in plain words and ask before anything destructive.
 - Make small commits with clear messages. Do not rewrite working systems without a strong reason.
 
-## Roadmap (not built yet)
-Next: daily and weekly quests, a rotating NPC shop, more items and recipes. Later: public profiles and friends, clans, limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.
+## Roadmap
+Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, and sign-up that proves a chess.com account before the account exists.
+Not built yet: public profiles and friends, clans, limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.
