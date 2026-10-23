@@ -419,3 +419,32 @@ test("leaderboard can leave admin accounts off", () => {
   assert.deepEqual(core.leaderboard().map(x => x.username), ["alice", "bob"]);
   assert.deepEqual(core.leaderboard(new Set(["alice"])).map(x => x.username), ["bob"]);
 });
+
+test("clear save data: progress goes, login, link, friends and claimed games stay", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core.adminGive(a, "coins", 5000); core.adminGive(a, "shard", 50); core.adminItem(a, "w2"); core.adminWins(a, 30); core.setTheme(a, "royal");
+  core.addFriend(a, "bob"); core.answerFriend(b, "alice", true); core.createClan(a, "Reset Club", "RC");
+  const g = G("alice", "q1"); core.sync(a, [g]); const claims = db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n;
+  core.resetProgress(a); const u = core.user(a), v = core.view(a);
+  assert.equal(u.xp, 0); assert.equal(u.wins, 0); assert.equal(u.cc, "alice"); assert.equal(u.theme, "dark");
+  assert.equal(v.items.length, 0); assert.equal(v.mats.shard, 0); assert.equal(v.coins, C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward + C.ACHIEVEMENT.friend1.reward + C.ACHIEVEMENT.clan1.reward);
+  assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.deepEqual(v.social.friends.map(x => x.username), ["bob"]); assert.equal(v.clan.mine.tag, "RC");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n, claims);
+  assert.equal(core.sync(a, [g]).count, 0); // the same game can't pay out twice
+});
+
+test("delete account: everything goes, others keep working, the names are free again", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
+  core.adminGive(a, "coins", 5000); core.adminItem(a, "w2"); core.equip(a, db.prepare("SELECT id FROM items WHERE user_id=?").get(a).id);
+  core.addFriend(a, "bob"); core.answerFriend(b, "alice", true); core.createClan(a, "Gone Soon", "GS"); core.joinClan(b, core.view(a).clan.mine.id);
+  core.sync(a, [G("alice", "q2")]); core.deleteAccount(a);
+  assert.equal(core.user(a), undefined);
+  const leftovers = ["balances", "ledger", "items", "equipment", "claims", "achievements", "quest_claims", "merchant_buys", "clan_members"]
+    .filter(t => db.prepare(`SELECT COUNT(*) n FROM ${t} WHERE user_id=?`).get(a).n);
+  assert.deepEqual(leftovers, []);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM friends WHERE user_id=? OR friend_id=?").get(a, a).n, 0);
+  const vb = core.view(b); assert.deepEqual(vb.social.friends, []); assert.ok(vb.clan.mine.leader); // bob now leads the clan
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM games").get().n, 1); // shared game records stay
+  assert.ok(core.createLinkedUser("alice", "s", "h", "alice", 999));
+});

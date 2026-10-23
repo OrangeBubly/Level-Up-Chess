@@ -18,7 +18,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `test/core.test.js`: the test suite.
 
 ## Rules that must not be broken
-1. **Never reset, delete or rewrite production player data.** Schema changes are a NEW entry at the end of `MIGRATIONS` in `lib/db.js` (additive first). Never edit an old migration. The app backs up the database before applying a migration to existing data.
+1. **Never reset, delete or rewrite production player data.** Schema changes are a NEW entry at the end of `MIGRATIONS` in `lib/db.js` (additive first). Never edit an old migration. The app backs up the database before applying a migration to existing data. The only exception: a player's own request, through `resetProgress`/`deleteAccount` in `lib/core.js` (password and typed confirmation required). Keep their `claims` on a reset so old games can't pay out twice.
 2. **All balance and item changes go through `grant`/`spend`/`giveItem` in `lib/core.js`**, which write the `ledger`. Never `UPDATE balances` directly elsewhere. The ledger must always add up to the balances (a test checks this).
 3. **The server decides rewards.** The browser only sends ids and intent, never amounts or game results.
 4. **A player can claim a game once** (`claims` primary key). Rated, standard chess only. Keep the anti-farming limits in `lib/rules.js`.

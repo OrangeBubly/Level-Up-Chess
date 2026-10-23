@@ -182,14 +182,29 @@ app.post("/api/clan/open", auth, act((u, b) => core.setClanOpen(u, b.open === tr
 let clanCache = { at: 0, rows: [] };
 app.get("/api/clans", auth, (req, res) => { if (Date.now() - clanCache.at > 15e3) clanCache = { at: Date.now(), rows: core.clanBoard() }; res.json(clanCache.rows); });
 
+const checkPassword = async (u, pw) => {
+  if (!crypto.timingSafeEqual(Buffer.from(await hashPw(String(pw || "").slice(0, 200), u.salt)), Buffer.from(u.hash))) throw new AppError("bad_login", "Your current password is wrong.", 401);
+};
 app.post("/api/password", auth, async (req, res) => {
   authLimit(req);
-  const old = String(body(req).old || ""), p = String(body(req).password || "");
-  if (!crypto.timingSafeEqual(Buffer.from(await hashPw(old.slice(0, 200), req.u.salt)), Buffer.from(req.u.hash))) throw new AppError("bad_login", "Your current password is wrong.", 401);
+  const p = String(body(req).password || "");
+  await checkPassword(req.u, body(req).old);
   if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
   const salt = crypto.randomBytes(16).toString("hex");
   core.setPassword(req.u.id, salt, await hashPw(p, salt));
   setSession(res, core.user(req.u.id)); res.json({ ok: true }); // this device stays logged in, every other one is logged out
+});
+// Clearing save data and deleting the account both need the password plus a typed confirmation word.
+const confirmWord = (req, w) => { if (String(body(req).confirm || "").trim().toUpperCase() !== w) throw new AppError("confirm", `Type ${w} to confirm.`); };
+app.post("/api/account/reset", auth, async (req, res) => {
+  authLimit(req); confirmWord(req, "RESET"); await checkPassword(req.u, body(req).password);
+  core.resetProgress(req.u.id); log("info", { msg: "progress reset", user: req.u.username });
+  res.json(reply(req.u, {}));
+});
+app.post("/api/account/delete", auth, async (req, res) => {
+  authLimit(req); confirmWord(req, "DELETE"); await checkPassword(req.u, body(req).password);
+  core.deleteAccount(req.u.id); log("info", { msg: "account deleted", id: req.u.id });
+  res.setHeader("Set-Cookie", "sid=; Max-Age=0; Path=/"); res.json({ ok: true });
 });
 app.post("/api/craft/preview", auth, (req, res) => {
   if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
