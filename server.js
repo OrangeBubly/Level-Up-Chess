@@ -2,7 +2,7 @@
 // Level Up Chess: HTTP layer. Game logic lives in lib/core.js; this file does auth, routing and errors.
 const express = require("express"), crypto = require("crypto"), fs = require("fs"), path = require("path"), { promisify } = require("util");
 const { open, migrate } = require("./lib/db"), { createCore } = require("./lib/core"), { createChesscom } = require("./lib/chesscom");
-const C = require("./lib/content"), { AppError } = require("./lib/errors");
+const C = require("./lib/content"), R = require("./lib/rules"), { AppError } = require("./lib/errors");
 const scrypt = promisify(crypto.scrypt);
 
 const PROD = process.env.NODE_ENV === "production", PORT = process.env.PORT || 3000;
@@ -58,6 +58,15 @@ if (hops !== "") app.set("trust proxy", /^\d+$/.test(hops) ? +hops : hops);
 const smallJson = express.json({ limit: "10kb" }), artJson = express.json({ limit: "400kb" });
 app.use((req, res, next) => req.path === "/api/admin/art" ? next() : smallJson(req, res, next));
 app.use((req, res, next) => { const t0 = Date.now(); res.on("finish", () => { if (req.path.startsWith("/api")) log("info", { m: req.method, p: req.path, s: res.statusCode, ms: Date.now() - t0 }); }); next(); });
+// standard protective headers: no framing by other sites (clickjacking), no content-type guessing, no full URLs sent to
+// other sites, and HTTPS only on the live site
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.set({ "X-Frame-Options": "DENY", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "same-origin" });
+  if (!res.get("Content-Security-Policy")) res.set("Content-Security-Policy", "frame-ancestors 'none'");
+  if (PROD) res.set("Strict-Transport-Security", "max-age=15552000");
+  next();
+});
 app.use(express.static(path.join(__dirname, "public")));
 
 function auth(req, res, next) {
@@ -76,6 +85,9 @@ app.get("/api/catalog", (req, res) => res.json(C.catalog()));
 function signupFields(req) {
   const n = String(body(req).username || "").trim().toLowerCase(), p = String(body(req).password || ""), name = String(body(req).cc || "").trim().toLowerCase();
   if (!/^[a-z0-9_]{3,20}$/.test(n)) throw new AppError("bad_username", "Username: 3-20 letters, numbers or underscores.");
+  // admin usernames can never be signed up for, or anyone could claim one that has no account yet (or was deleted)
+  if (ADMINS.has(n)) throw new AppError("username_taken", "That username is taken.", 409);
+  if (R.isOffensive(n)) throw new AppError("bad_username", "Please choose a different username.");
   if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
   if (!/^[a-z0-9_-]{3,25}$/.test(name)) throw new AppError("bad_cc", "That doesn’t look like a chess.com username.");
   if (db.prepare("SELECT 1 FROM users WHERE username=?").get(n)) throw new AppError("username_taken", "That username is taken.", 409);
@@ -184,6 +196,7 @@ app.post("/api/review/complete", auth, (req, res) => {
 });
 // ---- the guided tour: the reward needs the tour to have been started at least TOUR_MIN_SECONDS earlier ----
 const tourStarted = new Map();
+setInterval(() => { const old = Date.now() - 6 * 3600e3; for (const [k, t] of tourStarted) if (t < old) tourStarted.delete(k); }, 30 * 60e3).unref();
 app.post("/api/tour/start", auth, (req, res) => { tourStarted.set(req.u.id, Date.now()); res.json({ ok: true }); });
 app.post("/api/tour/skip", auth, act(u => core.skipTour(u)));
 app.post("/api/tour/complete", auth, (req, res) => {
@@ -312,6 +325,7 @@ app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
   if (err instanceof AppError) return res.status(err.status).json({ error: err.message, code: err.code });
   if (err.type === "entity.parse.failed" || err.status === 400) return res.status(400).json({ error: "Invalid request.", code: "bad_request" });
+  if (err.type === "entity.too.large" || err.status === 413) return res.status(413).json({ error: "That request is too large.", code: "too_large" });
   log("error", { p: req.path, msg: err.message, stack: err.stack });
   res.status(500).json({ error: "Something went wrong on our side. Please try again.", code: "internal" });
 });
