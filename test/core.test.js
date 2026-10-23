@@ -181,3 +181,11 @@ test("achievements: unlock once, pay their reward, and the hidden Giant Slayer n
   assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins")); assert.equal(core.view(a).ach.giant.name, "Giant Slayer");
   const v = core.view(mk("bob", "bob")); assert.deepEqual(v.ach.giant, {}); assert.equal(v.recipes.find(x => x.id === "a3").hint, null);
 });
+
+test("achievement progress: counts show real counts, rarity tiers show 0 / 1 until owned", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice");
+  core.buy(a, "w1"); // a Common item: rarity tier 0
+  const v = core.view(a);
+  assert.deepEqual(v.ach.rare, { cur: 0, max: 1 }); assert.deepEqual(v.ach.mythic, { cur: 0, max: 1 });
+  assert.deepEqual(v.ach.games25, { cur: 0, max: 25 }); assert.deepEqual(v.ach.linked, { done: 1 });
+});
