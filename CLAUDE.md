@@ -1,7 +1,7 @@
 # Level Up Chess: briefing for Claude Code
 
 A website that turns a player's rated chess.com games into XP, loot, crafting and a leaderboard (a chess RPG).
-Node 20+, Express 5, SQLite (`better-sqlite3`), one static frontend file with no build step. It is live on Render.
+Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), one static frontend file with no build step. It is live on Render.
 
 ## Commands
 - `npm install`, then `npm start` (http://localhost:3000)
