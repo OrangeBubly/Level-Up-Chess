@@ -15,6 +15,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `lib/content.js`: all game content as data: items, sets, recipes, potions, achievements.
 - `lib/db.js`: numbered migrations. `lib/chesscom.js`: serial, cached chess.com client.
 - `public/index.html`: the whole frontend (generated pixel art, synthesized sounds, all screens).
+- `public/vendor/`: third-party files served as-is (Stockfish WASM under GPL-3.0, chess.js under BSD-2); see its README. Keep the licence files with them.
 - `test/core.test.js`: the test suite.
 
 ## Rules that must not be broken
@@ -43,5 +44,5 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - Make small commits with clear messages. Do not rewrite working systems without a strong reason.
 
 ## Roadmap
-Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, sign-up that proves a chess.com account before the account exists, public profiles, friends and clans.
+Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, sign-up that proves a chess.com account before the account exists, public profiles, friends and clans, resource chests, and game review (Stockfish in the browser, XP for fully reviewing your own games).
 Not built yet: limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.

@@ -85,6 +85,16 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .sw i{width:38px;height:22px;border-radius:99px;background:var(--tr);border:1px solid var(--bd);position:relative;transition:.2s;flex:none}
 .sw i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--mu);transition:.2s}
 .sw input:checked+i{background:var(--red)}.sw input:checked+i::after{left:18px;background:#fff}
+.res{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px}
+.bwrap{display:flex;gap:8px;max-width:460px}.board{position:relative;display:grid;grid-template-columns:repeat(8,1fr);flex:1;aspect-ratio:1;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.bq{display:grid;place-items:center;position:relative}.bq.lt{background:#dfe3e8}.bq.dk{background:#7d8fa3}.bq.hl::after{content:"";position:absolute;inset:0;background:rgba(250,204,21,.42)}
+.pc{font-size:min(9.2vw,46px);line-height:1;position:relative;z-index:1;user-select:none}.pc.w{color:#fff;text-shadow:0 0 1px #000,0 0 1px #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000}.pc.b{color:#111;text-shadow:0 0 1px #fff8}
+.arr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.ebar{width:22px;flex:none;border-radius:6px;background:#1f2937;position:relative;overflow:hidden;border:1px solid var(--bd)}.ebar i{position:absolute;left:0;right:0;bottom:0;background:#f1f5f9;transition:height .3s}
+.ebar span{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:10px;font-weight:800;color:#ef4444;text-align:center;white-space:nowrap}
+.graph{width:100%;max-width:460px;height:90px;border-radius:8px;display:block;cursor:pointer;border:1px solid var(--bd)}
+.mvs{max-height:420px;overflow:auto}.mv{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;padding:2px 0}.mvb{cursor:pointer;padding:2px 6px;border-radius:6px;display:flex;align-items:center;gap:6px}.mvb:hover{background:var(--p2)}.mvb.on{background:rgb(var(--acr) / .22);font-weight:800}
+.mvb i{width:8px;height:8px;border-radius:50%;flex:none}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -153,6 +163,7 @@ var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10
  admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+ review:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M7.5 12l2-2.5 1.8 1.5 2.2-3"/>',
  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
  chest:'<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M3 9a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5"/><path d="M3 13h18"/><rect x="10.5" y="11.5" width="3" height="4" rx=".5"/>'};
 function ICON(n){return'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[n]||"")+"</svg>"}
@@ -435,6 +446,82 @@ function vUser(){if(!PU)return'<p class="mu">Loading…</p>';var p=PU,acts={none
   +'<div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+gear+'</div><div style="margin-top:10px">'+(p.sets.length?p.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join(""):'<span class="mu">No set bonus</span>')+'</div></div><div style="flex:2 1 380px"><div class="card" style="margin-bottom:16px"><h2>Bonuses from gear</h2><div class="bn">'+bc+'</div></div><div class="card"><h2>Achievements · '+p.ach.length+"</h2>"+ach+'<p class="mu" style="margin-bottom:0">'+(p.cc?"Chess.com: "+esc(p.cc)+" · ":"")+"Member since "+new Date(p.since*1000).toLocaleDateString()+"</p></div></div></div>"}
 async function openUser(n){tab="user";PU=null;render();try{PU=await api("u/"+encodeURIComponent(n))}catch(e){toast(e.message);sfx("error");location.hash="";tab="ranks"}render();window.scrollTo(0,0)}
 function route(){var m=/^#\/u\/(.+)$/.exec(location.hash);if(m&&S)openUser(decodeURIComponent(m[1]))}
+/* ---------- game review: Stockfish runs in this browser; the server only lists games, sends moves and decides the XP ---------- */
+var RV={list:null,left:0,cur:null};
+var LBL={best:["Best","#16a34a"],good:["Good","#64748b"],inaccuracy:["Inaccuracy","#ca8a04"],mistake:["Mistake","#ea580c"],blunder:["Blunder","#dc2626"]};
+var PIECE={k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
+function winPct(cp){cp=Math.max(-1000,Math.min(1000,cp));return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1)}
+function evalTxt(e){if(!e)return"";if(e.mate!=null)return(e.mate>0?"+":"−")+"M"+Math.abs(e.mate);var v=e.cp/100;return(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(1)}
+async function rvList(){try{var r=await api("review/games");RV.list=r.games;RV.left=r.left;RV.xp=r.xp}catch(e){RV.list=[];toast(e.message)}if(tab==="review")render()}
+function vReview(){if(RV.cur)return rvScreen();if(!RV.list){rvList();return'<h1>Review</h1><p class="mu">Loading your games…</p>'}
+ var head='<h1>Review</h1><p class="mu" style="margin:4px 0 14px">Go through your games with an engine to see where they were won and lost. Reviewing helps you improve, so each fully reviewed game earns <b>+'+RV.xp+' XP</b> ('+RV.left+" of "+CAT.reviewsPerDay+" left today). The analysis runs on your device.</p>";
+ if(!RV.list.length)return head+'<div class="card"><p class="mu" style="margin:0">No rated games to review yet. Play some, then press Sync on Home.</p></div>';
+ return head+'<div class="card">'+RV.list.map(function(g){var c={win:["W","#16a34a"],draw:["D","#64748b"],loss:["L","#dc2626"]}[g.res];
+  return'<div class="q"><span class="res" style="background:'+c[1]+'">'+c[0]+'</span><div><b>vs '+esc(g.opp.name)+'</b> <span class="mu">('+g.opp.rating+")</span><div class=\"mu\">"+esc(g.tclass)+" · you played "+g.color+" · "+new Date(g.at*1000).toLocaleDateString()+"</div></div>"
+   +(g.reviewed?'<span class="mu" style="margin-right:8px">Reviewed ✓'+(g.accuracy!=null?" · "+g.accuracy+"%":"")+"</span>":"")+'<button class="'+(g.reviewed?"g":"")+'" data-rv="'+esc(g.key)+'">'+(g.reviewed?"Look again":"Review")+"</button></div>"}).join("")+"</div>"}
+// opens a game: fetch its moves, replay them with chess.js, then analyse every position with Stockfish
+async function rvOpen(key){RV.cur={loading:true};render();window.scrollTo(0,0);
+ try{var g=await api("review/game?key="+encodeURIComponent(key)),lib=await import("/vendor/chess/chess.js"),ch=new lib.Chess();RV.lib=lib;ch.loadPgn(g.pgn);
+  var hist=ch.history({verbose:true}),b=new lib.Chess(),fens=[b.fen()],ends=[null];
+  hist.forEach(function(m){b.move(m.san);fens.push(b.fen());ends.push(b.isCheckmate()?"mate":b.isDraw()||b.isStalemate()?"draw":null)});
+  RV.cur={g:g,moves:hist,fens:fens,ends:ends,ply:0,ev:[],cls:[],acc:null,seen:{0:1},done:false,depth:RV.depth||13,flip:g.color==="black"};render();rvAnalyse()}
+ catch(e){RV.cur=null;toast(e.message||"Couldn’t open that game.");render()}}
+function rvClose(){if(RV.worker){RV.worker.terminate();RV.worker=null}RV.cur=null;rvList()}
+// one engine for the page; positions are analysed one after another, sending "go depth" for each
+function rvEngine(){if(RV.worker)return Promise.resolve(RV.worker);return new Promise(function(ok,no){try{var w=new Worker("/vendor/stockfish/stockfish-19-lite-single.js");
+ w.onmessage=function(e){if(String(e.data)==="readyok"){w.onmessage=null;RV.worker=w;ok(w)}};w.onerror=function(){no(new Error("The analysis engine couldn’t start in this browser."))};w.postMessage("uci");w.postMessage("isready")}catch(e){no(e)}})}
+function rvEval(w,fen,depth){return new Promise(function(ok){var last={cp:0},white=fen.split(" ")[1]==="w";
+ w.onmessage=function(e){var s=String(e.data),m;
+  if(s.indexOf("info")===0&&s.indexOf(" pv ")>0&&s.indexOf("multipv 2")<0){if(m=/score cp (-?\d+)/.exec(s))last={cp:+m[1]};else if(m=/score mate (-?\d+)/.exec(s))last={mate:+m[1]}}
+  if(s.indexOf("bestmove")===0){var best=s.split(" ")[1];// scores come from the side to move: turn them into White's view
+   var e2=last.mate!=null?{mate:white?last.mate:-last.mate,cp:(white?1:-1)*(last.mate>0?1:-1)*(10000-Math.abs(last.mate)*10)}:{cp:white?last.cp:-last.cp};e2.best=best&&best!=="(none)"?best:null;ok(e2)}};
+ w.postMessage("position fen "+fen);w.postMessage("go depth "+depth)})}
+async function rvAnalyse(){var c=RV.cur,w;try{w=await rvEngine()}catch(e){toast(e.message);return}
+ for(var i=0;i<c.fens.length;i++){if(RV.cur!==c)return;
+  if(c.ends[i]==="mate"){var whiteMated=c.fens[i].split(" ")[1]==="w";c.ev[i]={cp:whiteMated?-10000:10000,mate:0,best:null}}
+  else if(c.ends[i]==="draw")c.ev[i]={cp:0,best:null};else c.ev[i]=await rvEval(w,c.fens[i],c.depth);
+  if(i%3===0||i===c.fens.length-1)rvPaint()}
+ if(RV.cur!==c)return;rvGrade(c);c.done=true;sfx("discover");render()}
+// labels from how much each move lost in winning chances (the mover's view); accuracy uses Lichess's open formula
+function rvGrade(c){var acc={w:[],b:[]};
+ c.moves.forEach(function(m,i){var white=i%2===0,b=winPct(c.ev[i].cp),a=winPct(c.ev[i+1].cp);if(!white){b=100-b;a=100-a}
+  var drop=Math.max(0,b-a),uci=m.from+m.to+(m.promotion||""),k=uci===c.ev[i].best?"best":drop>=30?"blunder":drop>=20?"mistake":drop>=10?"inaccuracy":"good";
+  c.cls[i]=k;acc[white?"w":"b"].push(Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*drop)-3.1669)))});
+ var avg=function(l){return l.length?Math.round(l.reduce(function(s,x){return s+x},0)/l.length*10)/10:null};c.acc={w:avg(acc.w),b:avg(acc.b)}}
+function rvMine(c,i){return(i%2===0)===(c.g.color==="white")}
+function rvTodo(c){return c.moves.map(function(m,i){return i}).filter(function(i){return rvMine(c,i)&&["inaccuracy","mistake","blunder"].indexOf(c.cls[i])>-1})}
+function rvReady(c){return c.done&&c.seen[c.fens.length-1]&&rvTodo(c).every(function(i){return c.seen[i+1]})}
+function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.seen[c.ply]=1;render()}
+function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n=t.filter(function(p){return p>c.ply})[0];rvGo(n!=null?n:t[0]!=null?t[0]:c.fens.length-1)}
+function rvPaint(){if(tab==="review"&&RV.cur&&!RV.cur.done)render()}
+function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
+ for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
+ var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(s.p?'<span class="pc '+(s.p===s.p.toUpperCase()?"w":"b")+'">'+PIECE[s.p.toLowerCase()]+"︎</span>":"")+"</div>"}).join("");
+ var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
+ if(prev&&prev.best&&c.cls[c.ply-1]&&c.cls[c.ply-1]!=="best"){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
+  arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
+ return'<div class="board">'+cells+arrow+"</div>"}
+function rvGraph(c){if(!c.ev.length)return"";var n=c.fens.length-1||1,pts=c.ev.map(function(e,i){return(i/n*100).toFixed(2)+","+(100-winPct(e.cp)).toFixed(2)}).join(" ");
+ var marks=c.cls.map(function(k,i){return["mistake","blunder"].indexOf(k)>-1?'<circle cx="'+((i+1)/n*100).toFixed(2)+'" cy="'+(100-winPct(c.ev[i+1].cp)).toFixed(2)+'" r="1.6" fill="'+LBL[k][1]+'"/>':""}).join("");
+ return'<svg class="graph" viewBox="0 0 100 100" preserveAspectRatio="none" id="rvGraph"><rect width="100" height="100" fill="#1f2937"/><polygon points="0,100 '+pts+" "+(c.ev.length-1)/n*100+',100" fill="#e5e7eb"/><line x1="0" y1="50" x2="100" y2="50" stroke="#94a3b8" stroke-width=".4" stroke-dasharray="1.5 1.5"/><line x1="'+(c.ply/n*100)+'" y1="0" x2="'+(c.ply/n*100)+'" y2="100" stroke="var(--red)" stroke-width=".8"/>'+marks+"</svg>"}
+function rvScreen(){var c=RV.cur;if(c.loading)return'<h1>Review</h1><p class="mu">Getting the moves from chess.com…</p>';
+ var g=c.g,e=c.ev[c.ply],pct=e?winPct(e.cp):50,flipPct=c.flip?100-pct:pct,ana=c.ev.length,tot=c.fens.length,m=c.ply?c.moves[c.ply-1]:null,k=c.ply?c.cls[c.ply-1]:null,prev=c.ply?c.ev[c.ply-1]:null;
+ var note=!c.ply?"Starting position. Step through the game, or jump to your mistakes.":!k?"Analysing…":(Math.ceil(c.ply/2)+(c.ply%2?". ":"… ")+m.san+' is <b style="color:'+LBL[k][1]+'">'+LBL[k][0].toLowerCase()+"</b>"+(k!=="best"&&prev&&prev.best?". The engine preferred "+rvSan(c,c.ply-1,prev.best)+" (green arrow).":"."));
+ var list="";for(var i=0;i<c.moves.length;i+=2){list+='<div class="mv"><span class="mu">'+(i/2+1)+".</span>"+[i,i+1].map(function(j){if(j>=c.moves.length)return"<span></span>";var kk=c.cls[j];return'<span class="mvb'+(c.ply===j+1?" on":"")+'" data-rp="'+(j+1)+'">'+esc(c.moves[j].san)+(kk&&kk!=="good"?'<i style="background:'+LBL[kk][1]+'" title="'+LBL[kk][0]+'"></i>':"")+"</span>"}).join("")+"</div>"}
+ var todo=rvTodo(c),seenTodo=todo.filter(function(i){return c.seen[i+1]}).length,ready=rvReady(c),side=function(w){var n={best:0,good:0,inaccuracy:0,mistake:0,blunder:0};c.cls.forEach(function(x,i){if((i%2===0)===w&&x)n[x]++});return["inaccuracy","mistake","blunder"].map(function(x){return'<span style="color:'+LBL[x][1]+'">'+n[x]+" "+LBL[x][0].toLowerCase()+(n[x]===1?"":"s")+"</span>"}).join(" · ")};
+ var sum=c.done?'<div class="card" style="margin-top:14px"><h2>Summary</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+(c.acc.w==null?"–":c.acc.w+"%")+'</b><span class="mu">White accuracy</span><div class="mu" style="font-size:12px">'+side(true)+'</div></div><div><b>'+(c.acc.b==null?"–":c.acc.b+"%")+'</b><span class="mu">Black accuracy</span><div class="mu" style="font-size:12px">'+side(false)+"</div></div></div></div>":"";
+ var fin=g.reviewed?'<p class="mu">You’ve already reviewed this game.</p>':!c.done?'<p class="mu">Analysing position '+Math.min(ana,tot)+" of "+tot+"…</p>"
+  :'<p class="mu">To finish: '+(todo.length===1?"look at your one inaccuracy, mistake or blunder ("+seenTodo+"/1 seen), and ":todo.length?"look at each of your "+todo.length+" inaccuracies, mistakes and blunders ("+seenTodo+"/"+todo.length+" seen), and ":"")+"step to the end of the game"+(c.seen[tot-1]?" ✓":"")+'.</p><button id="rvFinish"'+(ready?"":" disabled")+">Finish review"+(RV.left?" · +"+RV.xp+" XP":"")+"</button>"+(RV.left?"":'<p class="mu">You’ve used today’s '+CAT.reviewsPerDay+" XP reviews; this one is still saved.</p>");
+ return'<div class="qh"><h1>vs '+esc(g.opp.name)+'</h1><button class="g" id="rvBack" style="flex:none">← All games</button></div><p class="mu" style="margin:4px 0 14px">'+esc(g.me.name)+" ("+g.me.rating+") vs "+esc(g.opp.name)+" ("+g.opp.rating+") · "+esc(g.tclass)+" · "+g.res+'</p>'
+  +'<div class="wrap"><div style="flex:0 1 460px"><div class="bwrap"><div class="ebar" title="'+evalTxt(e)+'"><i style="height:'+flipPct.toFixed(1)+'%"></i><span>'+evalTxt(e)+"</span></div>"+rvBoard(c)+"</div>"
+  +'<div class="row" style="max-width:460px"><button class="g" data-rp="0">⏮</button><button class="g" data-rp="'+(c.ply-1)+'">◀</button><button class="g" data-rp="'+(c.ply+1)+'">▶</button><button class="g" data-rp="'+(tot-1)+'">⏭</button><button class="g" id="rvMist"'+(c.done&&todo.length?"":" disabled")+">Next mistake</button></div>"
+  +'<p style="max-width:460px">'+note+"</p>"+rvGraph(c)+'<div class="row" style="max-width:460px"><span class="mu" style="flex:none">Engine depth</span>'+fsel("rvDepth",[[10,"Quick (10)"],[13,"Normal (13)"],[16,"Deep (16)"]],c.depth)+"</div></div>"
+  +'<div style="flex:1 1 280px"><div class="card"><h2>Moves</h2><div class="mvs">'+list+"</div></div>"+sum+'<div class="card" style="margin-top:14px">'+fin+'</div><p class="mu" style="font-size:12px">Engine: Stockfish 19 (GPL-3.0), running in your browser. <a class="pl" href="/vendor/README.txt" target="_blank">Licences and source</a>.</p></div></div>'}
+function rvSan(c,i,uci){try{var b=new RV.lib.Chess(c.fens[i]);var m=b.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"});return m?m.san:uci}catch(e){return uci}}
+async function rvFinish(){var c=RV.cur,mine=c.g.color==="white"?c.acc.w:c.acc.b;
+ var r=await doPost("review/complete",{key:c.g.key,accuracy:mine},function(r){return r.review.xp?"📈 Review complete! +"+r.review.xp+" XP"+(r.review.leveled?" 🎉 Level up!":""):"Review saved (no XP: daily limit reached)."},"levelup");
+ if(r){c.g.reviewed=true;RV.left=Math.max(0,RV.left-(r.review.xp?1:0));render()}}
 /* log in, or sign up in two steps: details, then prove the chess.com account with a code in its Location */
 var AU={mode:"login"};
 function authView(R){var $=function(i){return document.getElementById(i)},v=function(i){return $(i)?$(i).value:""},f=AU.mode==="signup",c=AU.mode==="code";
@@ -451,7 +538,7 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
 function render(){var R=document.getElementById("root");
  if(!S){authView(R);return}
  // [tab, label, short label for the phone bar, icon]
- var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["craft","Crafting","Craft","craft"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["craft","Crafting","Craft","craft"],["review","Review","Review","review"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
  setTheme(S.theme);setMode(S.mode);
  // an admin changed items or textures: fetch the new catalog, then draw again
  if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
@@ -468,6 +555,11 @@ function render(){var R=document.getElementById("root");
   try{var r=await api(p,{password:$("dzp").value,confirm:w});if(w==="DELETE"){S=null;AU={mode:"login"};tab="home";render()}else{S=r;tab="home";render()}toast(ok)}catch(e){$("dze").textContent=e.message;sfx("error")}};
  if($("dzReset"))$("dzReset").onclick=function(){dz("account/reset","RESET","Your save data was cleared. Welcome back to level 1!")};
  if($("dzDel"))$("dzDel").onclick=function(){dz("account/delete","DELETE","Your account was deleted.")};
+ if($("rvBack"))$("rvBack").onclick=rvClose;
+ if($("rvMist"))$("rvMist").onclick=rvNextMistake;
+ if($("rvFinish"))$("rvFinish").onclick=rvFinish;
+ if($("rvDepth"))$("rvDepth").onchange=function(){var c=RV.cur;RV.depth=c.depth=+$("rvDepth").value;c.ev=[];c.cls=[];c.done=false;render();rvAnalyse()};
+ if($("rvGraph"))$("rvGraph").onclick=function(e){var r=this.getBoundingClientRect();rvGo(Math.round((e.clientX-r.left)/r.width*(RV.cur.fens.length-1)))};
  if($("invSort"))$("invSort").onchange=function(){invS=$("invSort").value;render()};
  if($("goChests"))$("goChests").onclick=function(){tab="inv";invF="chests";var c=CAT.chests.filter(function(x){return S.chests[x.id]>0})[0];if(c)sel="chest:"+c.id;render();window.scrollTo(0,0)};
  if($("dupBtn"))$("dupBtn").onclick=async function(){try{var p=await api("dismantle/dupes");if(!p.count){toast("No duplicates: you only have one of each spare item (locked and equipped ones are kept).");return}
@@ -550,6 +642,8 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-rb]")){rsel=b.dataset.rb;render();sfx("click");return}
  if(b=e.target.closest("[data-p]")){var p=b.dataset.p.split(":");pick=p[0]==="mat"?{t:"mat",k:p[1]}:{t:"item",id:+p[1]};sfx("click");render();return}
  if(b=e.target.closest("[data-c]")){place(+b.dataset.c);return}
+ if(b=e.target.closest("[data-rv]")){rvOpen(b.dataset.rv);return}
+ if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
  if(b=e.target.closest("[data-if]")){invF=b.dataset.if;sfx("click");render();return}
  if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
  if(b=e.target.closest("[data-a]")){var a=b.dataset.a,i=b.dataset.i;
@@ -560,5 +654,7 @@ document.addEventListener("contextmenu",function(e){var c=e.target.closest("[dat
 document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
 document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});
 window.addEventListener("hashchange",route);
+// arrow keys step through a game under review
+document.addEventListener("keydown",function(e){if(tab!=="review"||!RV.cur||!RV.cur.fens||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==="ArrowLeft"){rvGo(RV.cur.ply-1);e.preventDefault()}if(e.key==="ArrowRight"){rvGo(RV.cur.ply+1);e.preventDefault()}});
 boot();
 </script></body></html>
