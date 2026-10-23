@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -692,4 +692,17 @@ test("openings: read from chess.com's PGN headers, grouped into a repertoire for
   assert.deepEqual(r.black, [{ name: "Sicilian Defense", games: 1, win: 1, draw: 0, loss: 0, score: 100 }]);
   const plain = G("alice", "x5"); core.sync(a, [plain]); tag(plain, "French-Defense"); core.sync(a, [plain]); // seen again later with its opening
   assert.equal(db.prepare("SELECT opening FROM games WHERE key=?").get(plain.url).opening, "French Defense");
+});
+
+test("site tour: new accounts get the pop-up, the reward pays once and survives a reset", () => {
+  const { db, core, mk } = setup(), old = mk("oldtimer", "oldtimer"), a = core.createLinkedUser("newbie", "s", "h", "newbiecc", 501);
+  assert.equal(core.view(old).tutorial, 2); assert.equal(core.view(a).tutorial, 0); // only new sign-ups see the pop-up
+  core.skipTour(a); assert.equal(core.view(a).tutorial, 2);
+  const xp0 = core.user(a).xp, coins0 = bal(db, a, "coins"), r = core.completeTour(a); // "maybe later" can still claim it
+  assert.deepEqual(r.tour, { xp: C.TOUR_XP, coins: C.TOUR_COINS, leveled: true }); assert.equal(core.user(a).xp, xp0 + C.TOUR_XP);
+  assert.equal(bal(db, a, "coins"), coins0 + C.TOUR_COINS); assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.throws(() => core.completeTour(a), e => e.code === "already");
+  core.resetProgress(a); assert.throws(() => core.completeTour(a), e => e.code === "already"); // a reset doesn't re-open it
+  core.skipTour(a); assert.equal(core.view(a).tutorial, 1); // skipping after finishing changes nothing
+  core.completeTour(old); assert.equal(core.view(old).tutorial, 1); // older accounts can take it for the reward too
 });

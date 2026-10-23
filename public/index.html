@@ -99,9 +99,39 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .graph{width:100%;max-width:460px;height:90px;border-radius:8px;display:block;cursor:pointer;border:1px solid var(--bd)}
 .mvs{max-height:420px;overflow:auto}.mv{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;padding:2px 0}.mvb{cursor:pointer;padding:2px 6px;border-radius:6px;display:flex;align-items:center;gap:6px}.mvb:hover{background:var(--p2)}.mvb.on{background:rgb(var(--acr) / .22);font-weight:800}
 .bdg{position:absolute;top:2%;right:2%;z-index:3;width:44%;height:44%;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:clamp(9px,2.2vw,13px);line-height:1;letter-spacing:-.5px;border:2px solid rgba(255,255,255,.9);box-shadow:0 1px 4px rgba(0,0,0,.45);font-family:system-ui,sans-serif}
+.pbar{display:flex;align-items:center;gap:8px;max-width:460px;padding:7px 10px;margin:6px 0;border-radius:10px;background:var(--p2);border:1px solid var(--bd);font-size:14px}.pbar.turn{border-color:var(--red);box-shadow:0 0 10px rgb(var(--acr) / .3)}
+.pchip{display:inline-block;width:15px;height:15px;border-radius:4px;flex:none;border:1.5px solid #64748b;vertical-align:-2px;margin-right:6px}.pchip.w{background:#fff}.pchip.b{background:#1e293b}
+.mvh{font-size:12px;font-weight:800;color:var(--mu);padding-bottom:6px;border-bottom:1px solid var(--bd);margin-bottom:4px}.mvh span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mbdg{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:900;font-size:10px;line-height:1;letter-spacing:-.5px;flex:none;font-style:normal}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
+.gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
+.rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
+/* extra animations: only with <html class="fx"> */
+html.fx body{transition:background-color .3s}
+html.fx main.enter{animation:pgIn .32s ease-out}
+html.fx main.enter .card,html.fx main.enter .mc,html.fx main.enter .stat,html.fx main.enter .it{animation:popIn .42s cubic-bezier(.2,1.2,.4,1) backwards}
+html.fx main.enter .stat:nth-child(2),html.fx main.enter .it:nth-child(2){animation-delay:.04s}html.fx main.enter .stat:nth-child(3),html.fx main.enter .it:nth-child(3){animation-delay:.08s}html.fx main.enter .stat:nth-child(4),html.fx main.enter .it:nth-child(4){animation-delay:.12s}
+html.fx main.enter .bar i{animation:barGrow .9s cubic-bezier(.2,.8,.3,1)}
+html.fx button{transition:transform .12s,filter .15s,box-shadow .2s}html.fx button:active:not(:disabled){transform:scale(.94)}
+html.fx .it,html.fx .stat,html.fx .card{transition:transform .2s,box-shadow .2s}html.fx .it:hover,html.fx .stat:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.25)}
+html.fx .sl{transition:transform .14s,background .14s}html.fx .sl:hover{transform:scale(1.07)}
+html.fx #toast.on{animation:toastIn .5s cubic-bezier(.2,1.6,.4,1)}
+html.fx .bdg{animation:bdgPop .4s cubic-bezier(.2,1.8,.4,1)}
+html.fx .pz.slide{animation:slide .24s ease-out}html.fx .pz.slide.glow{animation:slide .24s ease-out,glow 1.6s ease-in-out .24s infinite alternate}
+html.fx .gdot{transition:transform .2s}html.fx .nav{transition:background .2s,color .2s,transform .15s}html.fx .nav:active{transform:scale(.96)}
+@keyframes pgIn{from{opacity:0;transform:translateY(10px)}}
+@keyframes popIn{from{opacity:0;transform:translateY(12px) scale(.97)}}
+@keyframes barGrow{from{width:0}}
+@keyframes toastIn{from{transform:translate(-50%,40px) scale(.85);opacity:0}}
+@keyframes bdgPop{from{transform:scale(0)}60%{transform:scale(1.25)}}
+@keyframes slide{from{transform:translate(var(--fx),var(--fy))}}
+#tut{display:none}#tut.on{display:block}#tut .tblock{position:fixed;inset:0;z-index:60}
+#tut .tspot{position:fixed;z-index:61;border-radius:12px;pointer-events:none;box-shadow:0 0 0 200vmax rgba(5,5,12,.74);outline:2px solid var(--red);transition:left .3s,top .3s,width .3s,height .3s}
+#tut .tspot.none{left:50%;top:50%;width:0;height:0;outline:0}#tut .tspot.pulse{animation:tpulse 1.2s ease-in-out infinite}
+#tut .tbox{position:fixed;z-index:62;width:min(340px,calc(100vw - 24px));background:var(--p);color:var(--tx);border:1px solid var(--red);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#tut .tbox h3{margin:4px 0 6px;font-size:17px}#toast{z-index:70!important}
+@keyframes tpulse{50%{outline-offset:4px;outline-color:var(--red3)}}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -119,6 +149,9 @@ var RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],RC=["#8e8e9e","#
 try{muted=localStorage.getItem("luc-mute")==="1"}catch(e){}
 // the theme is saved on the account; the browser also remembers it so the login screen matches
 function setTheme(t){t=t||"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("luc-theme",t)}catch(e){}}
+var FX=(function(){try{var v=localStorage.getItem("luc-fx");if(v)return v==="on"}catch(e){}return!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)})();
+function setFx(on){FX=on;document.documentElement.classList.toggle("fx",on);try{localStorage.setItem("luc-fx",on?"on":"off")}catch(e){}}
+document.documentElement.classList.toggle("fx",FX);
 function setMode(m){m=m==="light"?"light":"dark";document.documentElement.dataset.mode=m;try{localStorage.setItem("luc-mode",m)}catch(e){}}
 try{var lt=localStorage.getItem("luc-theme")||"dark";document.documentElement.dataset.theme=lt==="light"?"dark":lt;document.documentElement.dataset.mode=localStorage.getItem("luc-mode")||(lt==="light"?"light":"dark")}catch(e){}
 /* ---------- generated pixel art (16x16). o outline, a base, b light, c dark, g gold, w white ---------- */
@@ -202,6 +235,7 @@ function tipFor(k){var p=k.split(":"),t=p[0],id=p[1];
  if(t==="mat")return"<b>"+CAT.mats[id]+"</b><br>Crafting material.<br>Earned from rated games, chests and dismantling gear.";
  if(t==="chest"){var ch=chestOf(id);return ch?"<b>"+ch.name+"</b><br>Open it for crafting materials.":""}
  if(t==="cons")return"<b>"+CAT.cons[id].name+"</b><br>"+CAT.cons[id].desc;
+ if(t==="rcp"){var rc=S.recipes.filter(function(x){return x.id===id})[0];if(!rc)return"";if(!rc.known)return"<b>???</b><br>"+rcpHint(rc);var oi=outInfo(rc.out);return'<b style="color:'+RC[oi.r]+'">'+oi.name+"</b><br>Crafted "+rc.times+"×<br><i>Click to see the pattern</i>"}
  if(t==="eq")return"<b>"+id.toUpperCase()+"</b> slot";return""}
 /* ---------- data loading ---------- */
 async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await api("me")}catch(e){S=null}await refresh();render();route();setTimeout(autoSync,800);
@@ -252,10 +286,13 @@ function detail(){if(!sel)return'<p class="mu">Click an item to see its details 
  if(t==="mat")return'<b>'+CAT.mats[id]+'</b><p class="mu">You have '+S.mats[id]+". Used on the crafting table for gear and potions, and for upgrades. Earned from rated games and by dismantling gear.</p>";
  if(t==="cons"){var c=CAT.cons[id];return'<b>'+c.name+"</b> × "+S.cons[id]+'<p class="mu">'+c.desc+'</p>'+(c.games?'<button data-a="use" data-i="'+id+'">Use</button>':"")}
  return'<p class="mu">Empty slot.</p>'}
+var invSub="bag";
+function invTabs(){return'<div class="tabs ptabs">'+[["bag","🎒 Bag & gear"],["craft","⚒ Crafting"]].map(function(x){return'<button class="'+(invSub===x[0]?"on":"")+'" data-isub="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>"}
+function vInvPage(){return invSub==="craft"?vCraft():vInv()}
 function vInv(){var eq=CAT.slots.map(function(x){var i=S.items.filter(function(y){return y.slot===x[0]})[0];
   return"<div>"+slotHTML(i?{attr:'data-s="item:'+i.id+'"',tip:"item:"+i.id,html:ico("item",i.def),lv:i.level,r:item(i.def).r,on:sel==="item:"+i.id}:{attr:'data-s="eq:'+x[0]+'"',tip:"eq:"+x[0]})+x[1].toUpperCase()+"</div>"}).join("");
  var sets=S.sets.length?S.sets.map(function(x){return'<span class="chip">'+CAT.sets[x.set].name+" "+x.pieces+"-piece</span>"}).join(""):'<span class="mu">No set bonus yet</span>';
- return'<h1>Inventory</h1><p class="mu" style="margin:4px 0 14px">One item per slot. Equipped gear boosts what you earn; matching sets add bonuses.</p><div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+eq+'</div><div style="margin-top:10px">'+sets+'</div></div><div class="mc" style="flex:2 1 380px"><div class="qh"><h2>Backpack</h2><span style="display:flex;gap:6px">'+fsel("invSort",[["new","Newest"],["rarity","Rarity"],["slot","Slot"],["name","Name"]],invS)+'<button class="g" id="dupBtn" style="flex:none;white-space:nowrap">Clear duplicates</button></span></div><div class="tabs">'+[["all","All"],["gear","Gear"],["mats","Materials"],["cons","Potions"],["chests","Chests"]].map(function(x){return'<button class="'+(invF===x[0]?"on":"")+'" data-if="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>"+bagHTML(invList(),"data-s",sel)+'</div></div><div class="mc" style="margin-top:16px"><h2>Details</h2>'+detail()+"</div>"}
+ return'<h1>Inventory</h1>'+invTabs()+'<p class="mu" style="margin:4px 0 14px">One item per slot. Equipped gear boosts what you earn; matching sets add bonuses.</p><div class="wrap"><div class="mc" style="flex:0 0 auto"><h2>Equipment</h2><div class="eqs">'+eq+'</div><div style="margin-top:10px">'+sets+'</div></div><div class="mc" style="flex:2 1 380px"><div class="qh"><h2>Backpack</h2><span style="display:flex;gap:6px">'+fsel("invSort",[["new","Newest"],["rarity","Rarity"],["slot","Slot"],["name","Name"]],invS)+'<button class="g" id="dupBtn" style="flex:none;white-space:nowrap">Clear duplicates</button></span></div><div class="tabs">'+[["all","All"],["gear","Gear"],["mats","Materials"],["cons","Potions"],["chests","Chests"]].map(function(x){return'<button class="'+(invF===x[0]?"on":"")+'" data-if="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>"+bagHTML(invList(),"data-s",sel)+'</div></div><div class="mc" style="margin-top:16px"><h2>Details</h2>'+detail()+"</div>"}
 function gridEmpty(){return grid.every(function(c){return!c})}
 function cellHTML(i){var c=grid[i],h="",r=0;if(c){if(c.t==="mat")h=ico("mat",c.k);else{var x=inst(c.id);if(x){h=ico("item",x.def);r=item(x.def).r}}}return slotHTML({attr:'data-c="'+i+'"',html:h,r:c?r:null})}
 function resHTML(){if(!PV||!PV.match)return slotHTML({cls:"big",attr:'id="rslot"',html:'<span class="mu">?</span>'})+'<span class="mu">'+(gridEmpty()?"Pick an ingredient below, then click a table square.":"Nothing happens with this arrangement.")+"</span>";
@@ -263,22 +300,26 @@ function resHTML(){if(!PV||!PV.match)return slotHTML({cls:"big",attr:'id="rslot"
 function miniPattern(r){var t="";for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x],tok=ch==="."?null:r.key[ch];t+=slotHTML({attr:"",html:tok?(CAT.mats[tok]?ico("mat",tok):ico("item",tok)):""})}return'<div class="cg" style="grid-template-columns:repeat(3,56px)">'+t+"</div>"}
 function vCraft(){var pk=bagList(true).filter(function(e){return e.t==="item"&&!e.lock});var mats=Object.keys(CAT.mats).map(function(k){return{key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:matR(k)}});
  var known=S.recipes.filter(function(r){return r.known}),unk=S.recipes.filter(function(r){return!r.known});
- var kb=known.map(function(r){var o=outInfo(r.out);return'<div class="rb'+(rsel===r.id?" on":"")+'" data-rb="'+r.id+'">'+slotHTML({attr:"",r:o.r,html:ico(r.out[0],r.out[1])})+"<div><b>"+o.name+'</b><div class="mu">Crafted '+r.times+"×</div></div></div>"}).join("")||'<p class="mu">Nothing discovered yet. Experiment on the table!</p>';
- var ub=unk.map(function(r){var h=r.hint?'<div class="mu">💡 '+r.hint+"</div>":'<div class="mu">🔒 Hint locked — earn “'+achName(r.lock)+'”</div>';return'<div class="rb" style="cursor:default">'+slotHTML({attr:"",cls:"sil",html:ico(r.out[0],r.out[1])})+"<div><b>???</b>"+h+"</div></div>"}).join("");
- var rs=known.filter(function(r){return r.id===rsel})[0],rd=rs?'<div class="mc" style="margin-top:10px"><b>'+outInfo(rs.out).name+'</b><div class="mu">Each filled material square costs '+rs.mult+" · fee 🪙 "+rs.fee+"</div>"+miniPattern(rs)+'<div class="row"><button class="g" data-fill="'+rs.id+'">Fill the table</button></div></div>':"";
- return'<h1>Crafting</h1><p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped and locked gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+" found</h2>"+kb+rd+'</div><div class="mc" style="margin-top:14px"><h2>Undiscovered</h2>'+ub+"</div></div></div>"}
+ var kb=known.length?'<div class="rbook">'+known.map(function(r){var o=outInfo(r.out);return slotHTML({attr:'data-rb="'+r.id+'"',tip:"rcp:"+r.id,r:o.r,html:ico(r.out[0],r.out[1]),n:r.times,on:rsel===r.id})}).join("")+"</div>":'<p class="mu">Nothing discovered yet. Experiment on the table!</p>';
+ var ub=unk.length?'<div class="rbook">'+unk.map(function(r){return slotHTML({attr:'data-rb="'+r.id+'"',tip:"rcp:"+r.id,cls:"sil",html:ico(r.out[0],r.out[1]),on:rsel===r.id})}).join("")+"</div>":'<p class="mu">You’ve found every recipe!</p>';
+ var ru=unk.filter(function(r){return r.id===rsel})[0],rs=known.filter(function(r){return r.id===rsel})[0],rd=ru?'<div class="mc" style="margin-top:10px"><b>Undiscovered recipe</b><div class="mu">'+rcpHint(ru)+"</div></div>":rs?'<div class="mc" style="margin-top:10px"><b>'+outInfo(rs.out).name+'</b><div class="mu">Each filled material square costs '+rs.mult+" · fee 🪙 "+rs.fee+"</div>"+miniPattern(rs)+'<div class="row"><button class="g" data-fill="'+rs.id+'">Fill the table</button></div></div>':"";
+ return'<h1>Inventory</h1>'+invTabs()+'<p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped and locked gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+' found</h2><p class="mu" style="margin-top:0">Hover a recipe for its name, click it for the pattern.</p>'+kb+'<h2 style="margin-top:14px">Undiscovered</h2>'+ub+rd+"</div></div></div>"}
+function rcpHint(r){return r.hint?"💡 "+esc(r.hint):"🔒 Hint locked: earn “"+esc(achName(r.lock))+"”"}
 var TV={dark:["#09090c","#14141a","#ff2d3d"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
+// theme preview colours: background, panel and accent, matching light or dark mode
+function swatch(id){var c=TV[id]||TV.dark;return S&&S.mode==="light"?["#f4f1ec","#ffffff",c[2]]:c}
 function giveInfo(g){return g.t==="item"?{name:item(g.id).name,r:item(g.id).r}:g.t==="mat"?{name:CAT.mats[g.id],r:matR(g.id)}:{name:CAT.cons[g.id].name,r:1}}
 function merHTML(){var M=S.merchant;if(!M)return"";
  return'<div class="mc mer"><div class="qh"><h2>🧳 The Wandering Merchant</h2><span class="mu">new wares in '+left(M.ends)+'</span></div><p class="mu" style="margin:0 0 12px">Different offers every day, the same for everyone. Each has a daily limit.</p><div class="grid">'+M.offers.map(function(o){var g=o.give,inf=giveInfo(g),tag=o.kind==="deal"?"DEAL OF THE DAY":o.kind==="exclusive"?"MERCHANT ONLY":g.t==="mat"?"MATERIALS":"POTIONS";
   var sub=g.t==="item"?"<div>"+chips(item(g.id),1)+"</div>"+(item(g.id).set?'<div class="mu">Set: '+CAT.sets[item(g.id).set].name+"</div>":"")+'<div class="fl">'+item(g.id).f+"</div>":"";
   return'<div class="it" style="--rc:var(--c'+inf.r+')"><span class="rar2">'+tag+"</span>"+ico(g.t,g.id)+"<b>"+inf.name+(g.qty>1?" ×"+g.qty:"")+"</b>"+sub+'<div class="mu">'+(o.left?o.left+" of "+o.limit+" left today":"Sold out for today")+'</div><div class="row"><button data-m="'+o.id+'"'+(o.left&&canPay(o.cost)?"":" disabled")+">"+(o.was?'<span class="was">🪙 '+o.was+"</span> ":"")+costTxt(o.cost)+"</button></div></div>"}).join("")+"</div></div>"}
 function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleDateString();
- var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+(TV[t.id]||[]).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
+ var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+swatch(t.id).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
- +'<div class="card"><h2>Sound</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+"</button></div></div>"
+ +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button><label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
  +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
- +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+dangerHTML()}
+ +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+tourCard()+dangerHTML()}
+function tourCard(){return'<div class="card" style="margin-top:16px"><h2>Site tour</h2><p class="mu" style="margin-top:0">A quick guided walk through everything on the site'+(S.tutorial===1?".":', with a one-time reward of <b>+'+CAT.tourXp+" XP and "+CAT.tourCoins+" coins</b>.")+'</p><button id="tourBtn">'+(S.tutorial===1?"Take the tour again":"Take the tour")+"</button></div>"}
 function dangerHTML(){return'<div class="card" style="margin-top:16px;border-color:#b91c1c"><h2>Danger zone</h2>'
  +'<p class="mu" style="margin-top:0"><b>Clear save data</b> starts you again from level 1: XP, coins, items, materials, achievements and quests are wiped. Your login, chess.com link, friends, clan and settings stay. Games that already earned you rewards won’t pay out again.</p>'
  +'<p class="mu"><b>Delete account</b> permanently removes your account and everything in it. This can’t be undone.</p>'
@@ -466,9 +507,10 @@ function route(){var m=/^#\/u\/(.+)$/.exec(location.hash);if(m&&S)openUser(decod
 var RV={list:null,left:0,cur:null};
 var LBL={book:["Book","#a16207",'<svg viewBox="0 0 24 24" style="width:64%;height:64%;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round"><path d="M3 5.5C3 4.7 3.7 4 4.5 4H10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H3z"/><path d="M21 5.5c0-.8-.7-1.5-1.5-1.5H14a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h7z"/></svg>'],brilliant:["Brilliant","#0891b2","!!"],best:["Best","#16a34a","★"],good:["Good","#64748b",""],inaccuracy:["Inaccuracy","#ca8a04","?!"],mistake:["Mistake","#ea580c","?"],blunder:["Blunder","#dc2626","??"]};
 var VAL={p:1,n:3,b:3,r:5,q:9,k:0};
-// a sacrifice: after the move, the moved piece (not a pawn) can be taken by something cheaper, or taken with no way to take back
-function rvSac(c,i){var m=c.moves[i],v=VAL[m.piece];if(!RV.lib||v<3)return false;try{var b=new RV.lib.Chess(c.fens[i+1]),caps=b.moves({verbose:true}).filter(function(x){return x.to===m.to});
- return caps.some(function(x){if(VAL[x.piece]<v)return true;var t=new RV.lib.Chess(c.fens[i+1]);t.move(x);return!t.moves({verbose:true}).some(function(y){return y.to===m.to})})}catch(e){return false}}
+// a real sacrifice: the moved piece (knight or better) ends up giving away at least 2 points of material, counting anything it
+// captured, because something 2+ points cheaper can take it or it can be taken with no way to take it back
+function rvSac(c,i){var m=c.moves[i],v=VAL[m.piece],got=m.captured?VAL[m.captured]:0;if(!RV.lib||v<3||v-got<2)return false;try{var b=new RV.lib.Chess(c.fens[i+1]),caps=b.moves({verbose:true}).filter(function(x){return x.to===m.to});
+ return caps.some(function(x){if(v-VAL[x.piece]>=2)return true;var t=new RV.lib.Chess(c.fens[i+1]);t.move(x);return!t.moves({verbose:true}).some(function(y){return y.to===m.to})})}catch(e){return false}}
 function badge(k,cls){var l=LBL[k];return l&&l[2]?'<span class="'+(cls||"bdg")+'" style="background:'+l[1]+'" title="'+l[0]+'">'+l[2]+"</span>":""}
 // the site's own flat piece set, drawn on a 100 x 100 grid; colours come from CSS (.pz.w / .pz.b), the eye and lines are .dt
 var BASE='<path d="M28 78h44a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2H27a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3z"/>';
@@ -524,22 +566,25 @@ async function rvAnalyse(){var c=RV.cur,w;try{w=await rvEngine()}catch(e){toast(
 function rvGrade(c){var acc={w:[],b:[]};
  c.moves.forEach(function(m,i){var white=i%2===0,b=winPct(c.ev[i].cp),a=winPct(c.ev[i+1].cp);if(!white){b=100-b;a=100-a}
   var drop=Math.max(0,b-a),uci=m.from+m.to+(m.promotion||""),k=uci===c.ev[i].best?"best":drop>=30?"blunder":drop>=20?"mistake":drop>=10?"inaccuracy":"good";
-  if((k==="best"||drop<2)&&a>=50&&rvSac(c,i))k="brilliant";
+  // brilliant: the exact best move, giving up at least 2 points of material, from a position that wasn't already lost, and still doing well after
+  if(k==="best"&&b>=15&&a>=50&&rvSac(c,i))k="brilliant";
   if(c.book&&c.book[i]&&drop<10&&k!=="brilliant")k="book";
   c.cls[i]=k;acc[white?"w":"b"].push(Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*drop)-3.1669)))});
  var avg=function(l){return l.length?Math.round(l.reduce(function(s,x){return s+x},0)/l.length*10)/10:null};c.acc={w:avg(acc.w),b:avg(acc.b)}}
 function rvMine(c,i){return(i%2===0)===(c.g.color==="white")}
 function rvTodo(c){return c.moves.map(function(m,i){return i}).filter(function(i){return rvMine(c,i)&&["inaccuracy","mistake","blunder"].indexOf(c.cls[i])>-1})}
 function rvReady(c){return c.done&&c.seen[c.fens.length-1]&&rvTodo(c).every(function(i){return c.seen[i+1]})}
-function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.seen[c.ply]=1;render()}
+function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;c.prev=c.ply;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.seen[c.ply]=1;render()}
 function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n=t.filter(function(p){return p>c.ply})[0];rvGo(n!=null?n:t[0]!=null?t[0]:c.fens.length-1)}
 function rvPaint(){if(tab==="review"&&RV.cur&&!RV.cur.done)render()}
+// how far the moved piece travels, in its own widths (a piece is 90% of a square, so one square is 111%)
+function slideBy(c,m){var f="abcdefgh",dx=f.indexOf(m.from[0])-f.indexOf(m.to[0]),dy=(+m.to[1])-(+m.from[1]);if(c.flip){dx=-dx;dy=-dy}return"--fx:"+(dx*111.1).toFixed(1)+"%;--fy:"+(dy*111.1).toFixed(1)+"%"}
 function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
  // brilliant, best and blunder moves make the moved piece glow in the label colour
  var gl=c.ply&&["brilliant","best","blunder"].indexOf(c.cls[c.ply-1])>-1?c.cls[c.ply-1]:null;
  for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
  var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
-  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]:"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(last&&last.to===n&&c.prev===c.ply-1?" slide":"")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]+";"+slideBy(c,last):last&&last.to===n&&c.prev===c.ply-1?'" style="'+slideBy(c,last):"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
  if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant","book"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
@@ -557,10 +602,14 @@ function rvScreen(){var c=RV.cur;if(c.loading)return'<h1>Review</h1><p class="mu
  var fin=c.view?'<p class="mu">You’re replaying '+esc(g.owner)+'’s best game ('+g.accuracy+'% accuracy when they reviewed it). Looking at other players’ games doesn’t earn XP.</p>':g.reviewed?'<p class="mu">You’ve already reviewed this game.</p>':!c.done?'<p class="mu">Analysing position '+Math.min(ana,tot)+" of "+tot+"…</p>"
   :'<p class="mu">To finish: '+(todo.length===1?"look at your one inaccuracy, mistake or blunder ("+seenTodo+"/1 seen), and ":todo.length?"look at each of your "+todo.length+" inaccuracies, mistakes and blunders ("+seenTodo+"/"+todo.length+" seen), and ":"")+"step to the end of the game"+(c.seen[tot-1]?" ✓":"")+'.</p><button id="rvFinish"'+(ready?"":" disabled")+">Finish review"+(RV.left?" · +"+RV.xp+" XP":"")+"</button>"+(RV.left?"":'<p class="mu">You’ve used today’s '+CAT.reviewsPerDay+" XP reviews; this one is still saved.</p>");
  return'<div class="qh"><h1>vs '+esc(g.opp.name)+'</h1><button class="g" id="rvBack" style="flex:none">'+(c.view?"← Back to profile":"← All games")+'</button></div><p class="mu" style="margin:4px 0 14px">'+esc(g.me.name)+" ("+g.me.rating+") vs "+esc(g.opp.name)+" ("+g.opp.rating+") · "+esc(g.tclass)+" · "+g.res+(c.opening?' · <b>'+esc(c.opening[0]+" "+c.opening[1])+"</b>":"")+'</p>'
-  +'<div class="wrap"><div style="flex:0 1 460px"><div class="bwrap"><div class="ebar" title="'+evalTxt(e)+'"><i style="height:'+flipPct.toFixed(1)+'%"></i><span>'+evalTxt(e)+"</span></div>"+rvBoard(c)+"</div>"
+  +'<div class="wrap"><div style="flex:0 1 460px">'+rvBar(c,c.flip?"white":"black")+'<div class="bwrap"><div class="ebar" title="'+evalTxt(e)+'"><i style="height:'+flipPct.toFixed(1)+'%"></i><span>'+evalTxt(e)+"</span></div>"+rvBoard(c)+"</div>"+rvBar(c,c.flip?"black":"white")
   +'<div class="row" style="max-width:460px"><button class="g" data-rp="0">⏮</button><button class="g" data-rp="'+(c.ply-1)+'">◀</button><button class="g" data-rp="'+(c.ply+1)+'">▶</button><button class="g" data-rp="'+(tot-1)+'">⏭</button><button class="g" id="rvMist"'+(c.done&&todo.length?"":" disabled")+'>Next mistake</button><button class="g" id="rvFlip" title="Flip the board" style="flex:none">⇅ Flip</button></div>'
   +'<p style="max-width:460px">'+note+"</p>"+rvGraph(c)+'<div class="row" style="max-width:460px"><span class="mu" style="flex:none">Engine depth</span>'+fsel("rvDepth",[[10,"Quick (10)"],[13,"Normal (13)"],[16,"Deep (16)"]],c.depth)+"</div></div>"
-  +'<div style="flex:1 1 280px"><div class="card"><h2>Moves</h2><div class="mvs">'+list+"</div></div>"+sum+'<div class="card" style="margin-top:14px">'+fin+'</div><p class="mu" style="font-size:12px">Engine: Stockfish 19 (GPL-3.0), running in your browser. <a class="pl" href="/vendor/README.txt" target="_blank">Licences and source</a>.</p></div></div>'}
+  +'<div style="flex:1 1 280px"><div class="card"><h2>Moves</h2><div class="mv mvh"><span></span>'+["white","black"].map(function(col){return'<span><i class="pchip '+col[0]+'"></i>'+esc(rvSide(c,col).name)+"</span>"}).join("")+'</div><div class="mvs">'+list+"</div></div>"+sum+'<div class="card" style="margin-top:14px">'+fin+'</div><p class="mu" style="font-size:12px">Engine: Stockfish 19 (GPL-3.0), running in your browser. <a class="pl" href="/vendor/README.txt" target="_blank">Licences and source</a>.</p></div></div>'}
+// who played which colour, for the player bars and the move list
+function rvSide(c,col){var me=c.g.color===col;return{name:(me?c.g.me:c.g.opp).name,rating:(me?c.g.me:c.g.opp).rating,me:me&&!c.view}}
+function rvBar(c,col){var p=rvSide(c,col),turn=c.fens[c.ply].split(" ")[1]===col[0]&&c.ply<c.fens.length-1;
+ return'<div class="pbar'+(turn?" turn":"")+'"><i class="pchip '+col[0]+'"></i><b>'+esc(p.name)+'</b><span class="mu">('+p.rating+")</span>"+(p.me?'<span class="chip" style="margin:0">You</span>':"")+'<span class="mu" style="margin-left:auto">'+(col==="white"?"White":"Black")+(turn?" · to move":"")+"</span></div>"}
 function rvSan(c,i,uci){try{var b=new RV.lib.Chess(c.fens[i]);var m=b.move({from:uci.slice(0,2),to:uci.slice(2,4),promotion:uci[4]||"q"});return m?m.san:uci}catch(e){return uci}}
 async function rvFinish(){var c=RV.cur,mine=c.g.color==="white"?c.acc.w:c.acc.b;
  var r=await doPost("review/complete",{key:c.g.key,accuracy:mine},function(r){return r.review.xp?"📈 Review complete! +"+r.review.xp+" XP"+(r.review.leveled?" 🎉 Level up!":""):"Review saved (no XP: daily limit reached)."},"levelup");
@@ -578,18 +627,82 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
  if($("nx"))$("nx").onclick=async function(){var b={username:v("un"),password:v("pw"),cc:v("ccn")};busy("nx",true);try{var r=await api("signup/start",b);AU={mode:"code",un:b.username,pw:b.password,cc:b.cc,code:r.code,token:r.token};render()}catch(e){busy("nx",false);fail(e)}};
  if($("bk"))$("bk").onclick=function(){AU={mode:"signup",un:AU.un,cc:AU.cc};render()};
  if($("mk"))$("mk").onclick=async function(){busy("mk",true);try{await api("signup",{username:AU.un,password:AU.pw,cc:AU.cc,token:AU.token});AU={mode:"login"};tab="home";await boot();toast("Welcome! Hit Sync to set your baseline.")}catch(e){busy("mk",false);fail(e)}}}
-function render(){var R=document.getElementById("root");
+/* ---------- the guided tour: the page goes dark except a spotlight on one thing, with a text box beside it ----------
+   Steps with click only move on when the spotlighted thing is clicked; the others have a Next button.
+   sel: what to spotlight; up: spotlight its nearest parent matching this instead; tab/sub: the page it's on. */
+var TUT={on:false,i:0,asked:false};
+var TSTEPS=[
+ {tab:"home",sel:".hero",t:"Welcome to Level Up Chess!",x:"This is you. Every rated game you play on chess.com earns XP here, and XP levels you up."},
+ {tab:"home",sel:"#sy",up:".card",t:"Your chess.com games",x:"Your account is linked here. New games sync by themselves while the site is open, paying XP, coins and crafting materials."},
+ {tab:"home",sel:".qs",t:"Quests",x:"Daily and weekly quests pay extra coins and materials. Finish one, then press Claim."},
+ {tab:"home",click:'.nav[data-t="inv"]',t:"Your gear",x:"Click Inventory to see what you're carrying."},
+ {tab:"inv",sub:"bag",sel:".eqs",up:".mc",t:"Equipment",x:"Equip gear to boost the XP and coins you earn. Wearing pieces from the same set adds a bonus."},
+ {tab:"inv",sub:"bag",sel:".bag",up:".mc",t:"Your backpack",x:"Gear, crafting materials, potions and chests live here. Click anything to equip it, open it or use it."},
+ {tab:"inv",sub:"bag",click:'[data-isub="craft"]',t:"Crafting",x:"Click Crafting."},
+ {tab:"inv",sub:"craft",sel:".cg",up:".mc",t:"The crafting table",x:"Put materials into a shape to craft gear and potions. The shape decides what you make, so experiment!"},
+ {tab:"inv",sub:"craft",sel:".rbook",up:".mc",t:"Recipe book",x:"Every pattern you discover is saved here. Hover a recipe for its name and click it to see the pattern again."},
+ {tab:"inv",sub:"craft",click:'.nav[data-t="review"]',t:"Game review",x:"Click Review."},
+ {tab:"review",sel:"main .card",t:"Learn from your games",x:"Go through your games with a chess engine to find your best moves and your mistakes. Each full review earns XP."},
+ {tab:"review",click:'.nav[data-t="shop"]',t:"The shop",x:"Click Shop."},
+ {tab:"shop",sel:".mer",t:"The Wandering Merchant",x:"New offers every day, including gear you can't get anywhere else. Starter gear for coins is further down."},
+ {tab:"shop",click:'.nav[data-t="ach"]',t:"Achievements",x:"Click Achievements."},
+ {tab:"ach",sel:"main .grid",t:"Achievements",x:"Each one pays coins, and some unlock hints for secret recipes."},
+ {tab:"ach",click:'.nav[data-t="ranks"]',t:"Leaderboards",x:"Click Ranks."},
+ {tab:"ranks",sel:"main .tabs",t:"Leaderboards",x:"Compete with every player, just your friends, or as a clan."},
+ {tab:"ranks",click:'.nav[data-t="social"]',t:"Friends and clans",x:"Click Social."},
+ {tab:"social",sel:".prof",t:"Friends and clans",x:"Add friends by username, and found or join a clan to climb the clan leaderboard together."},
+ {tab:"social",click:'.nav[data-t="profile"]',t:"Make it yours",x:"Click Profile."},
+ {tab:"profile",sel:".themes",up:".card",t:"Themes",x:"Pick a colour theme and light or dark mode. More colours unlock as you win games."},
+ {t:"You're all set!",x:"That's everything. Go and play some rated games, and your rewards will be waiting here.",last:true}];
+function tutLayer(){var l=document.getElementById("tut");if(l)return l;document.body.insertAdjacentHTML("beforeend",'<div id="tut"><div class="tblock"></div><div class="tspot"></div><div class="tbox"></div></div>');l=document.getElementById("tut");
+ l.querySelector(".tblock").onclick=function(e){var s=TSTEPS[TUT.i],el=s&&s.click&&document.querySelector(s.click);if(!el)return;var r=el.getBoundingClientRect();
+  if(e.clientX>=r.left-6&&e.clientX<=r.right+6&&e.clientY>=r.top-6&&e.clientY<=r.bottom+6){el.click();TUT.i++;tutGo()}};
+ l.querySelector(".tbox").onclick=function(e){var b=e.target.closest("[data-tut]");if(!b)return;var a=b.dataset.tut;
+  if(a==="next"){TUT.i++;sfx("click");tutGo()}if(a==="skip")tutEnd(false);if(a==="finish")tutEnd(true);if(a==="start")tutStart();if(a==="later")tutLater()};return l}
+function tutStart(){TUT.on=true;TUT.i=0;api("tour/start",{}).catch(function(){});sfx("click");tutGo()}
+function tutGo(){var s=TSTEPS[TUT.i];if(!s)return tutEnd(true);var want=s.tab;if(want&&(tab!==want||(s.sub&&invSub!==s.sub))){tab=want;if(s.sub)invSub=s.sub;render()}else tutPlace()}
+function tutTarget(s){var el=document.querySelector(s.click||s.sel);return el&&s.up?el.closest(s.up)||el:el}
+function tutPlace(){var l=tutLayer(),s=TSTEPS[TUT.i];if(!TUT.on||!s)return;l.className="on";var spot=l.querySelector(".tspot"),box=l.querySelector(".tbox"),el=s.last?null:tutTarget(s);
+ box.innerHTML='<div class="mu" style="font-size:12px;font-weight:800;letter-spacing:1px">STEP '+(TUT.i+1)+" OF "+TSTEPS.length+"</div><h3>"+s.t+'</h3><p style="margin:0 0 12px">'+s.x+'</p><div class="row" style="margin:0;align-items:center">'
+  +(s.last?'<button data-tut="finish">'+(S.tutorial===1?"Finish":"Claim +"+CAT.tourXp+" XP and "+CAT.tourCoins+" coins")+"</button>":s.click?'<span class="mu" style="flex:1">👆 Click the highlighted button</span>':'<button data-tut="next">Next</button>')
+  +(s.last?"":'<button class="g" data-tut="skip" style="flex:none">Skip tour</button>')+"</div>";
+ if(!el){spot.className="tspot none";box.style.left=Math.max(12,(innerWidth-box.offsetWidth)/2)+"px";box.style.top=Math.max(12,(innerHeight-box.offsetHeight)/2)+"px";return}
+ // where the box goes: below the spotlight, else above, else beside it; if none fits, the box sits at the bottom (or top)
+ // of the screen and the spotlight is trimmed so it never runs under the box
+ el.scrollIntoView({block:"center",inline:"center"});var r0=el.getBoundingClientRect(),p=8,g=12,bw=box.offsetWidth,bh=box.offsetHeight,H=innerHeight,W=innerWidth;
+ var r={left:r0.left,right:r0.right,top:Math.max(r0.top,p+4),bottom:Math.min(r0.bottom,H-p-4)},top,left=Math.max(g,Math.min(W-bw-g,(r.left+r.right)/2-bw/2));
+ var below=H-(r.bottom+p)-g,above=r.top-p-g,right=W-(r.right+p)-g,leftSide=r.left-p-g;
+ if(r.right-r.left<240&&right>=bw){left=r.right+p+16;top=Math.max(g,Math.min(H-bh-g,(r.top+r.bottom)/2-bh/2))} // small things like menu buttons: beside them
+ else if(below>=bh)top=r.bottom+p+g;else if(above>=bh)top=r.top-p-g-bh;
+ else if(right>=bw){left=r.right+p+g;top=Math.max(g,Math.min(H-bh-g,r.top))}else if(leftSide>=bw){left=r.left-p-g-bw;top=Math.max(g,Math.min(H-bh-g,r.top))}
+ else if(r.top<H/2){top=H-bh-g;r.bottom=Math.min(r.bottom,top-p-g)}else{top=g;r.top=Math.max(r.top,top+bh+p+g)}
+ spot.className="tspot"+(s.click?" pulse":"");spot.style.left=r.left-p+"px";spot.style.top=r.top-p+"px";spot.style.width=r.right-r.left+p*2+"px";spot.style.height=Math.max(0,r.bottom-r.top)+p*2+"px";
+ box.style.top=top+"px";box.style.left=left+"px"}
+async function tutEnd(finished){var l=tutLayer();TUT.on=false;l.className="";tab="home";
+ if(finished&&S.tutorial!==1){try{S=await api("tour/complete",{});sfx("levelup");burst(["⭐","✨","🎉","♟️"]);toast("🎉 Tour complete! +"+S.tour.xp+" XP and "+S.tour.coins+" coins"+(S.tour.leveled?" · Level up!":""))}catch(e){toast(e.message)}}
+ else if(!finished&&S.tutorial===0){try{S=await api("tour/skip",{})}catch(e){}toast("You can take the tour any time from your Profile.")}
+ render();window.scrollTo(0,0)}
+// the welcome pop-up for brand-new accounts
+function tutWelcome(){var l=tutLayer(),box=l.querySelector(".tbox");TUT.asked=true;l.className="on";l.querySelector(".tspot").className="tspot none";
+ box.innerHTML='<h3 style="font-size:20px">Welcome, '+esc(S.username)+'! ♟️</h3><p>Want a quick tour of everything Level Up Chess has to offer? It takes about two minutes, and you’ll start with a head start:</p><p style="font-size:18px;font-weight:800;color:var(--red);margin:4px 0 14px">+'+CAT.tourXp+" XP and "+CAT.tourCoins+' coins</p><div class="row" style="margin:0"><button data-tut="start">Start the tour</button><button class="g" data-tut="later" style="flex:none">Maybe later</button></div>';
+ box.style.left=Math.max(12,(innerWidth-box.offsetWidth)/2)+"px";box.style.top=Math.max(12,(innerHeight-box.offsetHeight)/2)+"px"}
+async function tutLater(){var l=tutLayer();l.className="";try{S=await api("tour/skip",{})}catch(e){}toast("No problem. You can take the tour any time from your Profile.");render()}
+function render(){render0();if(TUT.on)tutPlace();else if(S&&S.tutorial===0&&!TUT.asked)tutWelcome()}
+function render0(){var R=document.getElementById("root");
  if(!S){authView(R);return}
  // [tab, label, short label for the phone bar, icon]
- var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["craft","Crafting","Craft","craft"],["review","Review","Review","review"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["review","Review","Review","review"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInvPage,craft:vInvPage,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ if(tab==="craft"){tab="inv";invSub="craft"} // Crafting lives inside Inventory now
  setTheme(S.theme);setMode(S.mode);
  // an admin changed items or textures: fetch the new catalog, then draw again
  if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
- R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="modeQuick" style="padding:5px" title="'+(S.mode==="light"?"Switch to dark mode":"Switch to light mode")+'">'+ICON(S.mode==="light"?"moon":"sun")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
+ R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="modeQuick" style="padding:5px" title="'+(S.mode==="light"?"Switch to dark mode":"Switch to light mode")+'">'+ICON(S.mode==="light"?"moon":"sun")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main'+(render.last!==tab?' class="enter"':"")+'>'+V[tab]()+"</main></div>";render.last=tab;
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("snd"))$("snd").onclick=$("mute").onclick;
+ if($("tourBtn"))$("tourBtn").onclick=tutStart;
+ if($("fxSw"))$("fxSw").onchange=function(){setFx($("fxSw").checked);toast(FX?"✨ Extra animations on":"Extra animations off");sfx("click")};
  var flip=function(m){setMode(m);doPost("mode",{mode:m},null,"click")};
  if($("modeSw"))$("modeSw").onchange=function(){flip($("modeSw").checked?"light":"dark")};
  $("modeQuick").onclick=function(){flip(S.mode==="light"?"dark":"light")};
@@ -657,7 +770,7 @@ async function sync(quiet){var se=document.getElementById("se");if(SY.busy)retur
 setInterval(function(){if(Date.now()-SY.last>=SY.every)autoSync()},30e3);
 document.addEventListener("visibilitychange",function(){if(Date.now()-SY.last>60e3)autoSync()});
 /* ---------- crafting table interaction ---------- */
-function pvSoon(){clearTimeout(pvT);pvT=setTimeout(async function(){var el=document.getElementById("res");if(gridEmpty()){PV=null}else{try{PV=await api("craft/preview",{grid:grid})}catch(e){PV=null}}if(el&&tab==="craft")el.innerHTML=resHTML();var b=document.getElementById("craftBtn");if(b)b.onclick=craftNow},120)}
+function pvSoon(){clearTimeout(pvT);pvT=setTimeout(async function(){var el=document.getElementById("res");if(gridEmpty()){PV=null}else{try{PV=await api("craft/preview",{grid:grid})}catch(e){PV=null}}if(el&&tab==="inv"&&invSub==="craft")el.innerHTML=resHTML();var b=document.getElementById("craftBtn");if(b)b.onclick=craftNow},120)}
 function place(i){var c=grid[i];if(!pick){if(c){grid[i]=null;pvSoon();render();sfx("click")}return}
  if(pick.t==="item")grid=grid.map(function(x){return x&&x.t==="item"&&x.id===pick.id?null:x});grid[i]=pick.t==="mat"?{t:"mat",k:pick.k}:{t:"item",id:pick.id};sfx("click");pvSoon();render()}
 async function craftNow(){var r=await doPost("craft",{grid:grid},function(r){var o=outInfo([r.crafted.type,r.crafted.id]);return(r.discovered?"✨ Recipe discovered: ":"Crafted ")+o.name+(r.crafted.qty>1?" ×"+r.crafted.qty:"")+"!"},"craft");
@@ -699,6 +812,8 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-rv]")){rvOpen(b.dataset.rv);return}
  if(b=e.target.closest("[data-bg]")){rvOpen(null,b.dataset.bg);return}
  if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
+ if(b=e.target.closest("[data-go]")){var go=b.dataset.go.split(":");tab=go[0];if(go[1])invSub=go[1];render();window.scrollTo(0,0);sfx("click");return}
+ if(b=e.target.closest("[data-isub]")){invSub=b.dataset.isub;sel=null;render();sfx("click");return}
  if(b=e.target.closest("[data-if]")){invF=b.dataset.if;sfx("click");render();return}
  if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
  if(b=e.target.closest("[data-a]")){var a=b.dataset.a,i=b.dataset.i;
@@ -709,6 +824,7 @@ document.addEventListener("contextmenu",function(e){var c=e.target.closest("[dat
 document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
 document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});
 window.addEventListener("hashchange",route);
+window.addEventListener("resize",function(){if(TUT.on)tutPlace()});
 // arrow keys step through a game under review
 document.addEventListener("keydown",function(e){if(tab!=="review"||!RV.cur||!RV.cur.fens||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==="ArrowLeft"){rvGo(RV.cur.ply-1);e.preventDefault()}if(e.key==="ArrowRight"){rvGo(RV.cur.ply+1);e.preventDefault()}});
 boot();

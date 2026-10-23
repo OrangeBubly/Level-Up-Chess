@@ -182,6 +182,15 @@ app.post("/api/review/complete", auth, (req, res) => {
   reviewOpened.delete(req.u.id + ":" + key);
   res.json(reply(req.u, core.completeReview(req.u.id, key, body(req).accuracy)));
 });
+// ---- the guided tour: the reward needs the tour to have been started at least TOUR_MIN_SECONDS earlier ----
+const tourStarted = new Map();
+app.post("/api/tour/start", auth, (req, res) => { tourStarted.set(req.u.id, Date.now()); res.json({ ok: true }); });
+app.post("/api/tour/skip", auth, act(u => core.skipTour(u)));
+app.post("/api/tour/complete", auth, (req, res) => {
+  const t = tourStarted.get(req.u.id);
+  if (!t || Date.now() - t < C.TOUR_MIN_SECONDS * 1000) throw new AppError("too_fast", "Take the whole tour to get the reward.");
+  tourStarted.delete(req.u.id); res.json(reply(req.u, core.completeTour(req.u.id)));
+});
 app.post("/api/chest/open", auth, act((u, b) => core.openChest(u, String(b.id || ""), Number(b.n) || 1)));
 app.post("/api/lock", auth, act((u, b) => core.toggleLock(u, Number(b.iid))));
 app.get("/api/dismantle/dupes", auth, (req, res) => res.json(core.dupesPreview(req.u.id)));
