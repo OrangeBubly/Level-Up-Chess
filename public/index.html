@@ -5,7 +5,8 @@
 <style>
 :root{--bg:#09090c;--p:#14141a;--p2:#1c1c24;--bd:#2a2a34;--tx:#f3f3f6;--mu:#8e8e9e;--red:#ff2d3d;--red2:#b3001b;--red3:#ff8a94;--acr:255 45 61;--on:#fff;--mc:#16161d;--hi:#3b3b48;--lo:#0b0b0f;--sl:#2a2a33;--slh:#34343f;--hi2:#55555f;--tr:#26262f;--c0:#8e8e9e;--c1:#3ddc84;--c2:#3da9ff;--c3:#b44dff;--c4:#ffb020;--c5:#ff2d3d}
 /* themes: set on <html data-theme>, chosen on the Profile page */
-[data-theme=light]{--bg:#f4f1ec;--p:#fff;--p2:#f0ece6;--bd:#ddd6cc;--tx:#1d1b20;--mu:#6b6670;--red:#e0202f;--red2:#a3101d;--red3:#c4142a;--acr:224 32 47;--mc:#fbf9f6;--hi:#fff;--lo:#c9c1b5;--sl:#e9e4dc;--slh:#ded8ce;--hi2:#b9b0a3;--tr:#e2ddd5;color-scheme:light}
+/* light mode works with every colour theme: it swaps the surfaces and keeps the theme's accent */
+html[data-mode=light]{--bg:#f4f1ec;--p:#fff;--p2:#f0ece6;--bd:#ddd6cc;--tx:#1d1b20;--mu:#6b6670;--red3:var(--red2);--mc:#fbf9f6;--hi:#fff;--lo:#c9c1b5;--sl:#e9e4dc;--slh:#ded8ce;--hi2:#b9b0a3;--tr:#e2ddd5;color-scheme:light}
 [data-theme=emerald]{--red:#22c55e;--red2:#11743a;--red3:#86efac;--acr:34 197 94}
 [data-theme=royal]{--red:#a855f7;--red2:#6b21a8;--red3:#d8b4fe;--acr:168 85 247;--p:#16121c;--p2:#1e1828;--bd:#2e2640;--mc:#18131f}
 [data-theme=ocean]{--red:#38bdf8;--red2:#0369a1;--red3:#bae6fd;--acr:56 189 248;--bg:#070b12;--p:#0f1520;--p2:#16202e;--bd:#22304a;--mc:#101826;--on:#06121c}
@@ -80,6 +81,10 @@ select{width:100%;padding:10px 12px;margin:5px 0;border:1px solid var(--bd);bord
 .nav{display:flex;align-items:center;gap:11px}.nav .ns{display:none}.nav.on .ic{color:var(--red);filter:drop-shadow(0 0 6px rgb(var(--acr) / .6))}
 .sl .lk{position:absolute;right:2px;top:1px;color:#ffe29a;line-height:0}.sl .lk .ic{width:12px;height:12px;stroke-width:2.4;filter:drop-shadow(1px 1px 0 #000)}
 button .ic{width:15px;height:15px;vertical-align:-2px}
+.sw{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--tx)}.sw input{display:none}
+.sw i{width:38px;height:22px;border-radius:99px;background:var(--tr);border:1px solid var(--bd);position:relative;transition:.2s;flex:none}
+.sw i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--mu);transition:.2s}
+.sw input:checked+i{background:var(--red)}.sw input:checked+i::after{left:18px;background:#fff}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -97,7 +102,8 @@ var RN=["COMMON","UNCOMMON","RARE","EPIC","LEGENDARY","MYTHIC"],RC=["#8e8e9e","#
 try{muted=localStorage.getItem("luc-mute")==="1"}catch(e){}
 // the theme is saved on the account; the browser also remembers it so the login screen matches
 function setTheme(t){t=t||"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("luc-theme",t)}catch(e){}}
-try{document.documentElement.dataset.theme=localStorage.getItem("luc-theme")||"dark"}catch(e){}
+function setMode(m){m=m==="light"?"light":"dark";document.documentElement.dataset.mode=m;try{localStorage.setItem("luc-mode",m)}catch(e){}}
+try{var lt=localStorage.getItem("luc-theme")||"dark";document.documentElement.dataset.theme=lt==="light"?"dark":lt;document.documentElement.dataset.mode=localStorage.getItem("luc-mode")||(lt==="light"?"light":"dark")}catch(e){}
 /* ---------- generated pixel art (16x16). o outline, a base, b light, c dark, g gold, w white ---------- */
 var TPL={
 sword:["..............oo",".............oba","............obba","...........obbao","..........obbao.",".........obbao..","..o.....obbao...","..oo...obbao....","...oo.obbao.....","....oobbao......",".....obao.......","....ogoo........","...ogoo.o.......","..ogo...........",".oo............."],
@@ -145,6 +151,8 @@ var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10
  social:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14a6 6 0 0 1 3.5 6"/>',
  profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
  admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
  chest:'<rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M3 9a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5"/><path d="M3 13h18"/><rect x="10.5" y="11.5" width="3" height="4" rx=".5"/>'};
 function ICON(n){return'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[n]||"")+"</svg>"}
@@ -241,7 +249,7 @@ function vCraft(){var pk=bagList(true).filter(function(e){return e.t==="item"&&!
  var ub=unk.map(function(r){var h=r.hint?'<div class="mu">💡 '+r.hint+"</div>":'<div class="mu">🔒 Hint locked — earn “'+achName(r.lock)+'”</div>';return'<div class="rb" style="cursor:default">'+slotHTML({attr:"",cls:"sil",html:ico(r.out[0],r.out[1])})+"<div><b>???</b>"+h+"</div></div>"}).join("");
  var rs=known.filter(function(r){return r.id===rsel})[0],rd=rs?'<div class="mc" style="margin-top:10px"><b>'+outInfo(rs.out).name+'</b><div class="mu">Each filled material square costs '+rs.mult+" · fee 🪙 "+rs.fee+"</div>"+miniPattern(rs)+'<div class="row"><button class="g" data-fill="'+rs.id+'">Fill the table</button></div></div>':"";
  return'<h1>Crafting</h1><p class="mu" style="margin:4px 0 14px">Pick an ingredient, then click a table square. The shape decides what you make, not where it sits. Right-click (or click) a square to clear it.</p><div class="wrap"><div><div class="mc"><div class="craftrow"><div class="cg">'+[0,1,2,3,4,5,6,7,8].map(cellHTML).join("")+'</div><div class="arrow">➜</div><div class="resbox" id="res">'+resHTML()+'</div></div><div class="row"><button class="g" id="clearBtn" style="flex:none">Clear table</button></div></div><div class="mc" style="margin-top:14px"><h2>Ingredients</h2>'+bagHTML(mats.concat(pk),"data-p",pick&&(pick.t==="mat"?"mat:"+pick.k:"item:"+pick.id))+'<p class="mu">Materials can fill any number of squares. Spare gear is used up. Equipped and locked gear can’t be used.</p></div></div><div><div class="mc"><h2>Recipe book · '+known.length+" / "+S.recipes.length+" found</h2>"+kb+rd+'</div><div class="mc" style="margin-top:14px"><h2>Undiscovered</h2>'+ub+"</div></div></div>"}
-var TV={dark:["#09090c","#14141a","#ff2d3d"],light:["#f4f1ec","#ffffff","#e0202f"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
+var TV={dark:["#09090c","#14141a","#ff2d3d"],emerald:["#09090c","#14141a","#22c55e"],royal:["#09090c","#16121c","#a855f7"],ocean:["#070b12","#0f1520","#38bdf8"],inferno:["#09090c","#14141a","#ff7a1a"],gold:["#0c0a05","#17140b","#ffc400"]};
 function giveInfo(g){return g.t==="item"?{name:item(g.id).name,r:item(g.id).r}:g.t==="mat"?{name:CAT.mats[g.id],r:matR(g.id)}:{name:CAT.cons[g.id].name,r:1}}
 function merHTML(){var M=S.merchant;if(!M)return"";
  return'<div class="mc mer"><div class="qh"><h2>🧳 The Wandering Merchant</h2><span class="mu">new wares in '+left(M.ends)+'</span></div><p class="mu" style="margin:0 0 12px">Different offers every day, the same for everyone. Each has a daily limit.</p><div class="grid">'+M.offers.map(function(o){var g=o.give,inf=giveInfo(g),tag=o.kind==="deal"?"DEAL OF THE DAY":o.kind==="exclusive"?"MERCHANT ONLY":g.t==="mat"?"MATERIALS":"POTIONS";
@@ -251,7 +259,7 @@ function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleD
  var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+(TV[t.id]||[]).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
  +'<div class="card"><h2>Sound</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+"</button></div></div>"
- +'<div class="card" style="margin-bottom:16px"><h2>Theme</h2><p class="mu" style="margin:0 0 10px">Win rated games to unlock more themes.</p><div class="themes">'+th+"</div></div>"
+ +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
  +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+dangerHTML()}
 function dangerHTML(){return'<div class="card" style="margin-top:16px;border-color:#b91c1c"><h2>Danger zone</h2>'
  +'<p class="mu" style="margin-top:0"><b>Clear save data</b> starts you again from level 1: XP, coins, items, materials, achievements and quests are wiped. Your login, chess.com link, friends, clan and settings stay. Games that already earned you rewards won’t pay out again.</p>'
@@ -444,14 +452,17 @@ function render(){var R=document.getElementById("root");
  if(!S){authView(R);return}
  // [tab, label, short label for the phone bar, icon]
  var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["craft","Crafting","Craft","craft"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInv,craft:vCraft,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
- setTheme(S.theme);
+ setTheme(S.theme);setMode(S.mode);
  // an admin changed items or textures: fetch the new catalog, then draw again
  if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
- R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
+ R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="modeQuick" style="padding:5px" title="'+(S.mode==="light"?"Switch to dark mode":"Switch to light mode")+'">'+ICON(S.mode==="light"?"moon":"sun")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main>'+V[tab]()+"</main></div>";
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
  if($("snd"))$("snd").onclick=$("mute").onclick;
+ var flip=function(m){setMode(m);doPost("mode",{mode:m},null,"click")};
+ if($("modeSw"))$("modeSw").onchange=function(){flip($("modeSw").checked?"light":"dark")};
+ $("modeQuick").onclick=function(){flip(S.mode==="light"?"dark":"light")};
  var dz=async function(p,w,ok){if(String($("dzc").value).trim().toUpperCase()!==w){$("dze").textContent="Type "+w+" in the box to confirm.";return}
   if(!confirm(w==="DELETE"?"Delete your account for good? This can’t be undone.":"Clear all your progress and start again from level 1?"))return;
   try{var r=await api(p,{password:$("dzp").value,confirm:w});if(w==="DELETE"){S=null;AU={mode:"login"};tab="home";render()}else{S=r;tab="home";render()}toast(ok)}catch(e){$("dze").textContent=e.message;sfx("error")}};

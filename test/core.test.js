@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -298,11 +298,24 @@ test("merchant: not enough coins means nothing changes", () => {
 
 test("themes: free ones always work, others unlock with wins", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
-  core.setTheme(a, "light"); assert.equal(core.view(a).theme, "light");
+  assert.equal(core.view(a).mode, "dark"); core.setMode(a, "light"); assert.equal(core.view(a).mode, "light");
+  assert.throws(() => core.setMode(a, "dim"), e => e.code === "bad_mode");
+  assert.throws(() => core.setTheme(a, "light"), e => e.code === "not_found"); // Daylight is a mode now, not a theme
   assert.throws(() => core.setTheme(a, "emerald"), e => e.code === "locked");
   assert.throws(() => core.setTheme(a, "nope"), e => e.code === "not_found");
   db.prepare("UPDATE users SET wins=10 WHERE id=?").run(a); core.setTheme(a, "emerald"); assert.equal(core.view(a).theme, "emerald");
+  assert.equal(core.view(a).mode, "light"); // the colour and light mode are independent
   assert.throws(() => core.setTheme(a, "royal"), e => e.code === "locked");
+});
+
+test("accounts saved with the old Daylight theme read as Crimson in light mode, until they change it", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  db.prepare("UPDATE users SET theme='light' WHERE id=?").run(a);
+  assert.deepEqual([core.view(a).theme, core.view(a).mode], ["dark", "light"]);
+  db.prepare("UPDATE users SET wins=10 WHERE id=?").run(a); core.setTheme(a, "emerald");
+  assert.deepEqual([core.view(a).theme, core.view(a).mode], ["emerald", "light"]); // still light
+  db.prepare("UPDATE users SET theme='light', mode='dark' WHERE id=?").run(a); core.setMode(a, "dark");
+  assert.deepEqual([core.user(a).theme, core.user(a).mode], ["dark", "dark"]);
 });
 
 test("changing the password logs out other sessions", () => {
