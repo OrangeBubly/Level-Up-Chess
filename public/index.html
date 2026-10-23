@@ -221,10 +221,10 @@ var AD={sub:"items",data:null,edit:null,redit:null,art:null,px:null,pxFor:null,c
 function fsel(id,opts,v,dis){return'<select id="'+id+'"'+(dis?" disabled":"")+">"+opts.map(function(o){return'<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?" selected":"")+">"+esc(o[1])+"</option>"}).join("")+"</select>"}
 function flab(l,h){return'<label class="mu" style="display:block;margin-top:8px">'+l+"</label>"+h}
 function vAdmin(){if(!S.admin)return'<p class="mu">Not available.</p>';if(!AD.data){if(!AD.loading)adminLoad();return'<p class="mu">Loading…</p>'}
- var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
- return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,tools:toolsHTML}[AD.sub])()}
+ var t='<div class="tabs">'+[["items","Items"],["recipes","Recipes"],["art","Textures"],["ach","Achievements"],["quests","Quests"],["offers","Merchant"],["sets","Sets"],["tools","Testing tools"]].map(function(x){return'<button class="'+(AD.sub===x[0]?"on":"")+'" data-ad="'+x[0]+'">'+x[1]+"</button>"}).join("")+"</div>";
+ return'<h1>Admin</h1><p class="mu" style="margin:4px 0 14px">Changes here go live for every player straight away, and each one is recorded in the server log.</p>'+t+({items:adItems,recipes:adRecipes,art:adArt,ach:adAch,quests:adQuests,offers:adOffers,sets:adSets,tools:toolsHTML}[AD.sub])()}
 async function adminLoad(){AD.loading=1;try{AD.data=await api("admin/content")}catch(e){toast(e.message);AD.data={recipes:[],owned:{}}}AD.loading=0;render()}
-async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
+async function adPost(p,b,msg){try{var r=await api(p,b);CAT=r.catalog;AD.data={recipes:r.recipes,owned:r.owned,sets:r.sets,ach:r.ach,quests:r.quests,offers:r.offers};IMG={};S=await api("me");sfx("buy");if(msg)toast(msg);render();return r}catch(e){sfx("error");toast(e.message);var fe=document.getElementById("fe");if(fe)fe.textContent=e.message;return null}}
 function adItems(){if(AD.edit)return itemForm();var own=AD.data.owned||{},b=function(x){return'<span class="chip">'+x+"</span>"};
  var list=CAT.items.slice().sort(function(a,c){return CAT.slots.map(function(s){return s[0]}).indexOf(a.slot)-CAT.slots.map(function(s){return s[0]}).indexOf(c.slot)||a.r-c.r});
  return'<div class="row" style="margin:0 0 12px"><button id="adNew" style="flex:none">+ New item</button></div><div class="card">'+list.map(function(d){
@@ -276,6 +276,44 @@ function savePixels(){var c=document.createElement("canvas");c.width=c.height=16
  var id=AD.art.split(":")[1];adPost("admin/art",{id:id,png:c.toDataURL("image/png").split(",")[1]},"Texture saved.").then(function(r){if(r)AD.pxFor=null})}
 function pxAt(e){var el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.dataset&&el.dataset.pxi!=null?el:null}
 function pxApply(el){var i=+el.dataset.pxi;if(AD.tool==="pick"){if(AD.px[i]){AD.col=AD.px[i];AD.tool="paint";render()}return}AD.px[i]=AD.tool==="erase"?null:AD.col;el.style.background=AD.px[i]||"transparent"}
+/* sets, achievements, quests and merchant offers: one list + form pattern; the server checks everything again */
+var COSTK=["coins","shard","essence","relic"],STATK=["xp","coin","upset","streak"];
+function numIn(id,v,ph,min,max){return'<input id="'+id+'" type="number" min="'+(min||0)+'" max="'+(max||100000)+'" placeholder="'+(ph||"")+'" title="'+(ph||"")+'" value="'+(v==null?"":v)+'">'}
+function costIn(p,o){return'<div class="row" style="margin-top:0">'+COSTK.map(function(k){return numIn(p+k,(o||{})[k]||"",k==="coins"?"coins":CAT.mats[k])}).join("")+"</div>"}
+function costRead(p){var o={};COSTK.forEach(function(k){var v=+document.getElementById(p+k).value;if(v)o[k]=v});return o}
+function cList(kind,rows,title,sub){var b=function(x){return'<span class="chip">'+x+"</span>"};
+ return'<div class="row" style="margin:0 0 12px"><button data-adn="'+kind+'" style="flex:none">+ New</button></div><div class="card">'+rows.map(function(x){
+  var btn=x.off?'<button class="g" data-adc="on" data-k="'+kind+'" data-i="'+x.id+'">Turn on</button>':'<button class="g" data-adc="edit" data-k="'+kind+'" data-i="'+x.id+'">Edit</button> '+(x.edited?'<button class="g" data-adc="restore" data-k="'+kind+'" data-i="'+x.id+'">Restore original</button> ':"")+(kind==="set"&&x.base?"":'<button class="g" data-adc="off" data-k="'+kind+'" data-i="'+x.id+'">'+(x.base?"Turn off":"Delete")+"</button>");
+  return'<div class="q"'+(x.off?' style="opacity:.5"':"")+"><div><b>"+title(x)+"</b> "+(x.custom?b("Added"):"")+(x.edited?b("Edited"):"")+(x.off?b("Off"):"")+'<div class="mu">'+sub(x)+"</div></div><div>"+btn+"</div></div>"}).join("")+"</div>"}
+function cForm(title,body){return'<div class="card"><h2>'+title+"</h2>"+body+'<div class="err" id="fe"></div><div class="row"><button id="cSave">Save</button><button class="g" id="cCancel">Cancel</button></div></div>'}
+function cOpen(k){return AD.cedit&&AD.cedit.kind===k}
+var QT={play:"Play rated games",win:"Win games",wd:"Win or draw games",upset:"Beat higher-rated players"};
+function adAch(){if(cOpen("ach")){var d=AD.cedit.data,fixed=d.rule&&!CAT.achRules[d.rule];
+  return cForm(d.id?"Edit achievement":"New achievement",flab("Name",'<input id="cN" maxlength="40" value="'+esc(d.name||"")+'">')+flab("Description",'<input id="cD" maxlength="100" value="'+esc(d.desc||"")+'">')
+   +'<div class="row"><div>'+flab("Counts",fixed?'<input disabled value="Special rule (built into the game)">':fsel("cR",Object.keys(CAT.achRules).map(function(k){return[k,CAT.achRules[k]]}),d.rule||"wins"))+"</div><div>"+flab("Target",numIn("cT",d.n==null?1:d.n,"",0))+"</div><div>"+flab("Reward (coins)",numIn("cW",d.reward==null?50:d.reward,"",0,10000))+"</div></div>"
+   +flab('<input type="checkbox" id="cH"'+(d.hidden?" checked":"")+' style="width:auto;margin:0 6px 0 0">Hidden until unlocked',"")
+   +'<p class="mu">Players who already qualify unlock it, and get the reward, the next time they do anything on the site.</p>')}
+ return cList("ach",AD.data.ach,function(a){return esc(a.name)+(a.hidden?" 🔒":"")},function(a){return esc(a.desc)+" · 🪙 "+a.reward+(a.off?"":" · "+(a.owners||0)+" unlocked")})}
+function adQuests(){if(cOpen("quest")){var d=AD.cedit.data;
+  return cForm(d.id?"Edit quest":"New quest",'<div class="row"><div>'+flab("Daily or weekly"+(d.id?" (fixed)":""),fsel("cK",[["daily","Daily"],["weekly","Weekly"]],d.kind||"daily",!!d.id))+"</div><div>"+flab("Goal",fsel("cY",Object.keys(QT).map(function(k){return[k,QT[k]]}),d.type||"play"))+"</div><div>"+flab("How many",numIn("cT",d.n||3,"",1,1000))+"</div><div>"+flab("Time control",fsel("cC",[["","Any"],["bullet","Bullet"],["blitz","Blitz"],["rapid","Rapid"]],d.tc||""))+"</div></div>"
+   +flab("Text players see",'<input id="cD" maxlength="60" value="'+esc(d.desc||"")+'" placeholder="Win 3 blitz games">')+flab("Reward",costIn("cr_",d.reward))
+   +'<p class="mu">Quests only count rated games that earned XP, so the usual anti-farming limits apply. Changing the list can change which quests players see for the rest of today or this week.</p>')}
+ return cList("quest",AD.data.quests,function(q){return esc(q.desc)},function(q){return(q.kind==="daily"?"Daily":"Weekly")+" · "+QT[q.type].toLowerCase()+" × "+q.n+(q.tc?" ("+q.tc+")":"")+" · "+costTxt(q.reward)})}
+function adOffers(){if(cOpen("offer")){var d=AD.cedit.data,g=d.give||{t:"mat",id:"shard",qty:1},things=Object.keys(CAT.mats).map(function(k){return["mat:"+k,CAT.mats[k]]}).concat(Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name]}));
+  return cForm(d.id?"Edit merchant offer":"New merchant offer",'<div class="row"><div>'+flab("Gives",fsel("cG",things,g.t+":"+g.id))+"</div><div>"+flab("How many",numIn("cQ",g.qty||1,"",1,100))+"</div><div>"+flab("Daily limit per player",numIn("cL",d.limit||1,"",1,10))+"</div></div>"+flab("Price",costIn("cp_",d.cost))
+   +'<p class="mu">Each day the merchant picks a few of these offers, plus a deal and a merchant-only item. Merchant-only items are set in the item editor.</p>')}
+ return cList("offer",AD.data.offers,function(o){return giveInfo(o.give).name+(o.give.qty>1?" ×"+o.give.qty:"")},function(o){return"for "+costTxt(o.cost)+" · up to "+o.limit+" a day"})}
+function adSets(){if(cOpen("set")){var d=AD.cedit.data,bn=d.bonus||{};
+  return cForm(d.id?"Edit set":"New set",flab("Name",'<input id="cN" maxlength="30" value="'+esc(d.name||"")+'">')
+   +'<p class="mu">The bonus for wearing that many pieces of the set (leave a row empty for no bonus). Put items in the set from the item editor.</p>'
+   +[2,3,4,5,6].map(function(n){return flab(n+" pieces",'<div class="row" style="margin-top:0">'+STATK.map(function(k){return numIn("cs"+n+"_"+k,(bn[n]||{})[k]||"",ST[k]+" %",0,50)}).join("")+"</div>")}).join(""))}
+ return cList("set",AD.data.sets,function(x){return esc(x.name)},function(x){return Object.keys(x.bonus).map(function(n){var o=[];for(var k in x.bonus[n])o.push("+"+x.bonus[n][k]+"% "+ST[k]);return n+" pieces: "+o.join(", ")}).join(" · ")+" · "+x.used+" item"+(x.used===1?"":"s")})}
+function cRead(){var $=function(i){return document.getElementById(i)},k=AD.cedit.kind,d={id:AD.cedit.data.id};
+ if(k==="ach"){d.name=$("cN").value;d.desc=$("cD").value;d.rule=$("cR")?$("cR").value:AD.cedit.data.rule;d.n=+$("cT").value;d.reward=+$("cW").value;d.hidden=$("cH").checked}
+ if(k==="quest"){d.kind=$("cK").value;d.type=$("cY").value;d.n=+$("cT").value;d.tc=$("cC").value||null;d.desc=$("cD").value;d.reward=costRead("cr_")}
+ if(k==="offer"){var g=$("cG").value.split(":");d.give={t:g[0],id:g[1],qty:+$("cQ").value};d.limit=+$("cL").value;d.cost=costRead("cp_")}
+ if(k==="set"){d.name=$("cN").value;d.bonus={};[2,3,4,5,6].forEach(function(n){var o={};STATK.forEach(function(s2){var v=+$("cs"+n+"_"+s2).value;if(v)o[s2]=v});if(Object.keys(o).length)d.bonus[n]=o})}
+ return d}
 function toolsHTML(){var kinds=[["coins","Coins"]].concat(Object.keys(CAT.mats).map(function(k){return[k,CAT.mats[k]]}),Object.keys(CAT.cons).map(function(k){return[k,CAT.cons[k].name]}));
  var opt=function(l){return l.map(function(x){return'<option value="'+x[0]+'">'+esc(x[1])+"</option>"}).join("")};
  return'<div class="card"><h2>Testing tools</h2><p class="mu" style="margin-top:0">These only affect your own account. Every use is recorded, and admin accounts are left off the public leaderboard.</p>'
@@ -359,6 +397,8 @@ function render(){var R=document.getElementById("root");
   try{var r=await api(p,{password:$("dzp").value,confirm:w});if(w==="DELETE"){S=null;AU={mode:"login"};tab="home";render()}else{S=r;tab="home";render()}toast(ok)}catch(e){$("dze").textContent=e.message;sfx("error")}};
  if($("dzReset"))$("dzReset").onclick=function(){dz("account/reset","RESET","Your save data was cleared. Welcome back to level 1!")};
  if($("dzDel"))$("dzDel").onclick=function(){dz("account/delete","DELETE","Your account was deleted.")};
+ if($("cCancel"))$("cCancel").onclick=function(){AD.cedit=null;render()};
+ if($("cSave"))$("cSave").onclick=async function(){if(await adPost("admin/content/save",{kind:AD.cedit.kind,data:cRead()},"Saved.")){AD.cedit=null;render()}};
  if($("adNew"))$("adNew").onclick=function(){AD.edit={};render()};
  if($("fCancel"))$("fCancel").onclick=function(){AD.edit=null;render()};
  if($("fSave"))$("fSave").onclick=async function(){var it=itemFromForm();if(await adPost("admin/item/save",{item:it},"Item saved.")){AD.edit=null;render()}};
@@ -407,7 +447,12 @@ function fill(id){var r=S.recipes.filter(function(x){return x.id===id})[0],used=
 document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("a.pl[href^='#/u/']")){e.preventDefault();var h=b.getAttribute("href");if(location.hash===h)route();else location.hash=h;return}
  if(b=e.target.closest("[data-rk]")){e.preventDefault();rk=b.dataset.rk;if(b.dataset.t)tab=b.dataset.t;render();sfx("click");return}
- if(b=e.target.closest("[data-ad]")){AD.sub=b.dataset.ad;AD.edit=AD.redit=null;render();sfx("click");return}
+ if(b=e.target.closest("[data-adc]")){var ck=b.dataset.k,cid=b.dataset.i,ca2=b.dataset.adc,crow=AD.data[{set:"sets",ach:"ach",quest:"quests",offer:"offers"}[ck]].filter(function(x){return x.id===cid})[0];
+  if(ca2==="edit"){AD.cedit={kind:ck,data:JSON.parse(JSON.stringify(crow))};render();window.scrollTo(0,0);return}
+  if(ca2==="off"&&!confirm(crow.base?"Turn this off? You can turn it back on later.":"Delete this for good?"))return;
+  await adPost(ca2==="off"?"admin/content/delete":"admin/content/restore",{kind:ck,id:cid},"Done.");return}
+ if(b=e.target.closest("[data-adn]")){AD.cedit={kind:b.dataset.adn,data:{}};render();return}
+ if(b=e.target.closest("[data-ad]")){AD.sub=b.dataset.ad;AD.edit=AD.redit=AD.cedit=null;render();sfx("click");return}
  if(b=e.target.closest("[data-ade]")){var di=item(b.dataset.ade);AD.edit=Object.assign({},di,{merchantCost:CAT.merchantCosts[di.id]||null});render();window.scrollTo(0,0);return}
  if(b=e.target.closest("[data-pxt]")){AD.tool=b.dataset.pxt;render();return}
  if(b=e.target.closest("[data-adr]")){var ra=b.dataset.adr,rid=b.dataset.i,rr=AD.data.recipes.filter(function(x){return x.id===rid})[0];
