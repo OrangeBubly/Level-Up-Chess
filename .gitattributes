@@ -1,0 +1,3 @@
+# never convert line endings in binary files
+*.wasm binary
+*.png binary
