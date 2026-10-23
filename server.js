@@ -184,6 +184,10 @@ app.post("/api/admin/item/delete", auth, admin, edited(b => core.deleteItem(Stri
 app.post("/api/admin/recipe/save", auth, admin, edited(b => core.saveRecipe(b.recipe || {})));
 app.post("/api/admin/recipe/delete", auth, admin, edited(b => core.deleteRecipe(String(b.id || ""))));
 app.post("/api/admin/recipe/restore", auth, admin, edited(b => core.restoreRecipe(String(b.id || ""))));
+// sets, achievements, quests and merchant offers: kind is set, ach, quest or offer
+app.post("/api/admin/content/save", auth, admin, edited(b => core.saveContent(String(b.kind || ""), b.data || {})));
+app.post("/api/admin/content/delete", auth, admin, edited(b => core.deleteContent(String(b.kind || ""), String(b.id || ""))));
+app.post("/api/admin/content/restore", auth, admin, edited(b => core.restoreContent(String(b.kind || ""), String(b.id || ""))));
 // textures: a PNG (sent as base64), at most 200 KB and 512x512 pixels
 app.post("/api/admin/art", auth, artJson, admin, edited(b => {
   const buf = Buffer.from(String(b.png || ""), "base64");
