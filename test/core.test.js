@@ -365,11 +365,12 @@ test("clans: found for coins, unique name and tag, open join, invite-only reques
   const k = core.view(a).clan.mine; assert.equal(k.name, "Knights of Tempo"); assert.equal(k.tag, "KN"); assert.ok(k.leader);
   assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
   assert.throws(() => core.createClan(b, "knights of tempo", "XY"), e => e.code === "name_taken"); assert.throws(() => core.createClan(b, "Other", "kn"), e => e.code === "tag_taken");
-  assert.equal(core.joinClan(b, k.id).clan, "joined"); assert.throws(() => core.joinClan(b, k.id), e => e.code === "in_clan");
+  assert.equal(core.joinClan(b, k.id).clanAction, "joined"); assert.throws(() => core.joinClan(b, k.id), e => e.code === "in_clan");
   assert.throws(() => core.setClanOpen(b, false), e => e.code === "not_leader");
-  core.setClanOpen(a, false); assert.equal(core.joinClan(c, k.id).clan, "requested");
+  core.setClanOpen(a, false); assert.equal(core.joinClan(c, k.id).clanAction, "requested");
   assert.deepEqual(core.view(c).clan.requested, [k.id]); assert.deepEqual(core.view(a).clan.mine.requests.map(x => x.username), ["carl"]);
   assert.deepEqual(core.view(b).clan.mine.requests, []); // only the leader sees requests
+  assert.deepEqual(core.view(b).clan.requested, []); // always present, even inside a clan (the page reads it)
   core.answerClan(a, "carl", true); assert.equal(core.view(c).clan.mine.members.length, 3);
   assert.equal(core.leaderboard().find(x => x.username === "carl").tag, "KN");
 });

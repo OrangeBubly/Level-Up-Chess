@@ -136,8 +136,9 @@ app.post("/api/sync", auth, async (req, res) => {
   res.json(reply(u.id, core.sync(u.id, await cc.games(u.cc))));
 });
 
-// The player view plus an action's result. Newly unlocked achievements go in `unlocked`, so they don't overwrite the view's `ach` progress.
-const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...core.view(uid), ...rest, unlocked: ach || [] }; };
+// The player view plus an action's result. The view wins any name clash, so a result can never replace part of it
+// (newly unlocked achievements go in `unlocked` instead of overwriting the view's `ach` progress).
+const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...rest, ...core.view(uid), unlocked: ach || [] }; };
 const act = fn => (req, res) => res.json(reply(req.u.id, fn(req.u.id, body(req))));
 app.post("/api/buy", auth, act((u, b) => core.buy(u, String(b.id || ""))));
 app.post("/api/equip", auth, act((u, b) => core.equip(u, Number(b.iid))));
