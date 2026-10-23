@@ -95,7 +95,8 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .ebar span{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:10px;font-weight:800;color:#ef4444;text-align:center;white-space:nowrap}
 .graph{width:100%;max-width:460px;height:90px;border-radius:8px;display:block;cursor:pointer;border:1px solid var(--bd)}
 .mvs{max-height:420px;overflow:auto}.mv{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;padding:2px 0}.mvb{cursor:pointer;padding:2px 6px;border-radius:6px;display:flex;align-items:center;gap:6px}.mvb:hover{background:var(--p2)}.mvb.on{background:rgb(var(--acr) / .22);font-weight:800}
-.mvb i{width:8px;height:8px;border-radius:50%;flex:none}
+.bdg{position:absolute;top:2%;right:2%;z-index:3;width:44%;height:44%;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900;font-size:clamp(9px,2.2vw,13px);line-height:1;letter-spacing:-.5px;border:2px solid rgba(255,255,255,.9);box-shadow:0 1px 4px rgba(0,0,0,.45);font-family:system-ui,sans-serif}
+.mbdg{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font-weight:900;font-size:10px;line-height:1;letter-spacing:-.5px;flex:none;font-style:normal}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
 .mer{margin-bottom:20px}.mer .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}.was{text-decoration:line-through;color:var(--mu);font-weight:400}
 .themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -449,7 +450,12 @@ async function openUser(n){tab="user";PU=null;render();try{PU=await api("u/"+enc
 function route(){var m=/^#\/u\/(.+)$/.exec(location.hash);if(m&&S)openUser(decodeURIComponent(m[1]))}
 /* ---------- game review: Stockfish runs in this browser; the server only lists games, sends moves and decides the XP ---------- */
 var RV={list:null,left:0,cur:null};
-var LBL={best:["Best","#16a34a"],good:["Good","#64748b"],inaccuracy:["Inaccuracy","#ca8a04"],mistake:["Mistake","#ea580c"],blunder:["Blunder","#dc2626"]};
+var LBL={brilliant:["Brilliant","#0891b2","!!"],best:["Best","#16a34a","★"],good:["Good","#64748b",""],inaccuracy:["Inaccuracy","#ca8a04","?!"],mistake:["Mistake","#ea580c","?"],blunder:["Blunder","#dc2626","??"]};
+var VAL={p:1,n:3,b:3,r:5,q:9,k:0};
+// a sacrifice: after the move, the moved piece (not a pawn) can be taken by something cheaper, or taken with no way to take back
+function rvSac(c,i){var m=c.moves[i],v=VAL[m.piece];if(!RV.lib||v<3)return false;try{var b=new RV.lib.Chess(c.fens[i+1]),caps=b.moves({verbose:true}).filter(function(x){return x.to===m.to});
+ return caps.some(function(x){if(VAL[x.piece]<v)return true;var t=new RV.lib.Chess(c.fens[i+1]);t.move(x);return!t.moves({verbose:true}).some(function(y){return y.to===m.to})})}catch(e){return false}}
+function badge(k,cls){var l=LBL[k];return l&&l[2]?'<span class="'+(cls||"bdg")+'" style="background:'+l[1]+'" title="'+l[0]+'">'+l[2]+"</span>":""}
 // the site's own flat piece set, drawn on a 100 x 100 grid; colours come from CSS (.pz.w / .pz.b), the eye and lines are .dt
 var BASE='<path d="M28 78h44a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2H27a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3z"/>';
 var PIECES={
@@ -497,6 +503,7 @@ async function rvAnalyse(){var c=RV.cur,w;try{w=await rvEngine()}catch(e){toast(
 function rvGrade(c){var acc={w:[],b:[]};
  c.moves.forEach(function(m,i){var white=i%2===0,b=winPct(c.ev[i].cp),a=winPct(c.ev[i+1].cp);if(!white){b=100-b;a=100-a}
   var drop=Math.max(0,b-a),uci=m.from+m.to+(m.promotion||""),k=uci===c.ev[i].best?"best":drop>=30?"blunder":drop>=20?"mistake":drop>=10?"inaccuracy":"good";
+  if((k==="best"||drop<2)&&a>=50&&rvSac(c,i))k="brilliant";
   c.cls[i]=k;acc[white?"w":"b"].push(Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*drop)-3.1669)))});
  var avg=function(l){return l.length?Math.round(l.reduce(function(s,x){return s+x},0)/l.length*10)/10:null};c.acc={w:avg(acc.w),b:avg(acc.b)}}
 function rvMine(c,i){return(i%2===0)===(c.g.color==="white")}
@@ -508,19 +515,19 @@ function rvPaint(){if(tab==="review"&&RV.cur&&!RV.cur.done)render()}
 function rvBoard(c){var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
  for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
  var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
-  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1]):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
- if(prev&&prev.best&&c.cls[c.ply-1]&&c.cls[c.ply-1]!=="best"){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
+ if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
  return'<div class="board">'+cells+arrow+"</div>"}
 function rvGraph(c){if(!c.ev.length)return"";var n=c.fens.length-1||1,pts=c.ev.map(function(e,i){return(i/n*100).toFixed(2)+","+(100-winPct(e.cp)).toFixed(2)}).join(" ");
- var marks=c.cls.map(function(k,i){return["mistake","blunder"].indexOf(k)>-1?'<circle cx="'+((i+1)/n*100).toFixed(2)+'" cy="'+(100-winPct(c.ev[i+1].cp)).toFixed(2)+'" r="1.6" fill="'+LBL[k][1]+'"/>':""}).join("");
+ var marks=c.cls.map(function(k,i){return["mistake","blunder","brilliant"].indexOf(k)>-1?'<circle cx="'+((i+1)/n*100).toFixed(2)+'" cy="'+(100-winPct(c.ev[i+1].cp)).toFixed(2)+'" r="1.6" fill="'+LBL[k][1]+'"/>':""}).join("");
  return'<svg class="graph" viewBox="0 0 100 100" preserveAspectRatio="none" id="rvGraph"><rect width="100" height="100" fill="#1f2937"/><polygon points="0,100 '+pts+" "+(c.ev.length-1)/n*100+',100" fill="#e5e7eb"/><line x1="0" y1="50" x2="100" y2="50" stroke="#94a3b8" stroke-width=".4" stroke-dasharray="1.5 1.5"/><line x1="'+(c.ply/n*100)+'" y1="0" x2="'+(c.ply/n*100)+'" y2="100" stroke="var(--red)" stroke-width=".8"/>'+marks+"</svg>"}
 function rvScreen(){var c=RV.cur;if(c.loading)return'<h1>Review</h1><p class="mu">Getting the moves from chess.com…</p>';
  var g=c.g,e=c.ev[c.ply],pct=e?winPct(e.cp):50,flipPct=c.flip?100-pct:pct,ana=c.ev.length,tot=c.fens.length,m=c.ply?c.moves[c.ply-1]:null,k=c.ply?c.cls[c.ply-1]:null,prev=c.ply?c.ev[c.ply-1]:null;
- var note=!c.ply?"Starting position. Step through the game, or jump to your mistakes.":!k?"Analysing…":(Math.ceil(c.ply/2)+(c.ply%2?". ":"… ")+m.san+' is <b style="color:'+LBL[k][1]+'">'+LBL[k][0].toLowerCase()+"</b>"+(k!=="best"&&prev&&prev.best?". The engine preferred "+rvSan(c,c.ply-1,prev.best)+" (green arrow).":"."));
- var list="";for(var i=0;i<c.moves.length;i+=2){list+='<div class="mv"><span class="mu">'+(i/2+1)+".</span>"+[i,i+1].map(function(j){if(j>=c.moves.length)return"<span></span>";var kk=c.cls[j];return'<span class="mvb'+(c.ply===j+1?" on":"")+'" data-rp="'+(j+1)+'">'+esc(c.moves[j].san)+(kk&&kk!=="good"?'<i style="background:'+LBL[kk][1]+'" title="'+LBL[kk][0]+'"></i>':"")+"</span>"}).join("")+"</div>"}
- var todo=rvTodo(c),seenTodo=todo.filter(function(i){return c.seen[i+1]}).length,ready=rvReady(c),side=function(w){var n={best:0,good:0,inaccuracy:0,mistake:0,blunder:0};c.cls.forEach(function(x,i){if((i%2===0)===w&&x)n[x]++});return["inaccuracy","mistake","blunder"].map(function(x){return'<span style="color:'+LBL[x][1]+'">'+n[x]+" "+LBL[x][0].toLowerCase()+(n[x]===1?"":"s")+"</span>"}).join(" · ")};
+ var note=!c.ply?"Starting position. Step through the game, or jump to your mistakes.":!k?"Analysing…":(Math.ceil(c.ply/2)+(c.ply%2?". ":"… ")+m.san+' is <b style="color:'+LBL[k][1]+'">'+LBL[k][0].toLowerCase()+(k==="brilliant"?"!! A sacrifice that works":"")+"</b>"+(["best","brilliant"].indexOf(k)<0&&prev&&prev.best?". The engine preferred "+rvSan(c,c.ply-1,prev.best)+" (green arrow).":"."));
+ var list="";for(var i=0;i<c.moves.length;i+=2){list+='<div class="mv"><span class="mu">'+(i/2+1)+".</span>"+[i,i+1].map(function(j){if(j>=c.moves.length)return"<span></span>";var kk=c.cls[j];return'<span class="mvb'+(c.ply===j+1?" on":"")+'" data-rp="'+(j+1)+'">'+esc(c.moves[j].san)+(kk?badge(kk,"mbdg"):"")+"</span>"}).join("")+"</div>"}
+ var todo=rvTodo(c),seenTodo=todo.filter(function(i){return c.seen[i+1]}).length,ready=rvReady(c),side=function(w){var n={brilliant:0,best:0,good:0,inaccuracy:0,mistake:0,blunder:0};c.cls.forEach(function(x,i){if((i%2===0)===w&&x)n[x]++});return["brilliant","inaccuracy","mistake","blunder"].filter(function(x){return x!=="brilliant"||n[x]}).map(function(x){return'<span style="color:'+LBL[x][1]+'">'+n[x]+" "+LBL[x][0].toLowerCase()+(n[x]===1?"":"s")+"</span>"}).join(" · ")};
  var sum=c.done?'<div class="card" style="margin-top:14px"><h2>Summary</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+(c.acc.w==null?"–":c.acc.w+"%")+'</b><span class="mu">White accuracy</span><div class="mu" style="font-size:12px">'+side(true)+'</div></div><div><b>'+(c.acc.b==null?"–":c.acc.b+"%")+'</b><span class="mu">Black accuracy</span><div class="mu" style="font-size:12px">'+side(false)+"</div></div></div></div>":"";
  var fin=g.reviewed?'<p class="mu">You’ve already reviewed this game.</p>':!c.done?'<p class="mu">Analysing position '+Math.min(ana,tot)+" of "+tot+"…</p>"
   :'<p class="mu">To finish: '+(todo.length===1?"look at your one inaccuracy, mistake or blunder ("+seenTodo+"/1 seen), and ":todo.length?"look at each of your "+todo.length+" inaccuracies, mistakes and blunders ("+seenTodo+"/"+todo.length+" seen), and ":"")+"step to the end of the game"+(c.seen[tot-1]?" ✓":"")+'.</p><button id="rvFinish"'+(ready?"":" disabled")+">Finish review"+(RV.left?" · +"+RV.xp+" XP":"")+"</button>"+(RV.left?"":'<p class="mu">You’ve used today’s '+CAT.reviewsPerDay+" XP reviews; this one is still saved.</p>");
