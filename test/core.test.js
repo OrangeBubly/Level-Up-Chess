@@ -318,3 +318,14 @@ test("Well Travelled: wearing all four Wanderer pieces", () => {
   assert.ok(core.equip(a, last).ach.includes("wanderer"));
   assert.deepEqual(R.bonusOf([{ def: "a5", level: 1 }, { def: "h4", level: 1 }, { def: "b5", level: 1 }, { def: "m4", level: 1 }]).active.map(x => x.pieces), [2, 3, 4]);
 });
+
+test("linked sign-up: the account is created already linked, and a chess.com account can only be used once", () => {
+  const { db, core } = setup();
+  const a = core.createLinkedUser("alice", "s", "h", "alicecc", 77), u = core.user(a);
+  assert.equal(u.cc, "alicecc"); assert.equal(u.cc_player_id, 77); assert.equal(u.watermark, 0); // first sync still only sets a baseline
+  assert.equal(bal(db, a, "coins"), C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward); assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
+  assert.throws(() => core.createLinkedUser("alice", "s", "h", "other", 78), e => e.code === "username_taken");
+  assert.throws(() => core.createLinkedUser("bob", "s", "h", "alicecc", 79), e => e.code === "cc_taken");
+  assert.throws(() => core.createLinkedUser("bob", "s", "h", "renamed", 77), e => e.code === "cc_taken"); // same chess.com account after a rename
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM users").get().n, 1);
+});

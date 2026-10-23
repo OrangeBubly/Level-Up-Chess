@@ -63,13 +63,39 @@ const authLimit = req => { if (!limit("auth:" + req.ip, 20, 15 * 60e3)) throw ne
 app.get("/healthz", (req, res) => { db.prepare("SELECT 1").get(); res.json({ ok: true }); });
 app.get("/api/catalog", (req, res) => res.json(C.catalog()));
 
-app.post("/api/signup", async (req, res) => {
-  authLimit(req);
-  const n = String(body(req).username || "").trim().toLowerCase(), p = String(body(req).password || "");
+// Sign-up is two steps so an account only exists once a chess.com account (which needs a verified email) is proven.
+// Step 1 checks everything and hands back a code plus a signed token; nothing is stored. Step 2 checks the code is in the
+// chess.com profile Location, then creates the account already linked. One chess.com account = one site account.
+function signupFields(req) {
+  const n = String(body(req).username || "").trim().toLowerCase(), p = String(body(req).password || ""), name = String(body(req).cc || "").trim().toLowerCase();
   if (!/^[a-z0-9_]{3,20}$/.test(n)) throw new AppError("bad_username", "Username: 3-20 letters, numbers or underscores.");
   if (p.length < 8 || p.length > 200) throw new AppError("bad_password", "Password must be 8 to 200 characters.");
-  const salt = crypto.randomBytes(16).toString("hex"), h = await hashPw(p, salt);
-  let id; try { id = core.createUser(n, salt, h); } catch (e) { if (/UNIQUE/.test(e.message)) throw new AppError("username_taken", "That username is taken.", 409); throw e; }
+  if (!/^[a-z0-9_-]{3,25}$/.test(name)) throw new AppError("bad_cc", "That doesn’t look like a chess.com username.");
+  if (db.prepare("SELECT 1 FROM users WHERE username=?").get(n)) throw new AppError("username_taken", "That username is taken.", 409);
+  if (db.prepare("SELECT 1 FROM users WHERE cc=?").get(name)) throw new AppError("cc_taken", "That chess.com account is already linked to another account.", 409);
+  return { n, p, name };
+}
+const signSignup = s => sign("signup:" + s);
+app.post("/api/signup/start", async (req, res) => {
+  authLimit(req);
+  const { n, name } = signupFields(req), p = await cc.profile(name);
+  if (!p) throw new AppError("cc_not_found", "No chess.com player with that username.", 404);
+  if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed.");
+  const code = "luc-" + crypto.randomBytes(3).toString("hex");
+  const data = Buffer.from(JSON.stringify({ n, cc: name, code, exp: Date.now() + 30 * 60e3 })).toString("base64url");
+  res.json({ code, token: data + "." + signSignup(data) });
+});
+app.post("/api/signup", async (req, res) => {
+  authLimit(req);
+  const { n, p, name } = signupFields(req), [data, sig] = String(body(req).token || "").split(".");
+  const good = data && sig && signSignup(data), t = good && good.length === sig.length && crypto.timingSafeEqual(Buffer.from(good), Buffer.from(sig)) ? JSON.parse(Buffer.from(data, "base64url").toString()) : null;
+  if (!t || t.n !== n || t.cc !== name) throw new AppError("bad_signup", "Please start sign-up again.");
+  if (Date.now() > t.exp) throw new AppError("signup_expired", "That code expired. Please start sign-up again.");
+  const prof = await cc.profile(name);
+  if (!prof || !String(prof.location || "").toLowerCase().includes(t.code)) throw new AppError("code_missing", "Code not found in your chess.com Location yet. Save it there and try again.");
+  if (String(prof.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed.");
+  if (db.prepare("SELECT 1 FROM users WHERE cc_player_id=?").get(prof.player_id)) throw new AppError("cc_taken", "That chess.com account is already linked to another account.", 409);
+  const salt = crypto.randomBytes(16).toString("hex"), id = core.createLinkedUser(n, salt, await hashPw(p, salt), name, prof.player_id);
   setSession(res, core.user(id)); res.json({ ok: true });
 });
 app.post("/api/login", async (req, res) => {

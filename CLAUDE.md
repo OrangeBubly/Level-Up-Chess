@@ -41,5 +41,5 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - Make small commits with clear messages. Do not rewrite working systems without a strong reason.
 
 ## Roadmap
-Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes and a Profile page.
-Not built yet: email verification for new accounts (needs an email service), public profiles and friends, clans, limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.
+Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, and sign-up that proves a chess.com account before the account exists.
+Not built yet: public profiles and friends, clans, limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.
