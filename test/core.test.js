@@ -393,3 +393,29 @@ test("clan leaderboard: ranked by XP members earned this week", () => {
   core.sync(b, [G("bob", "z1"), G("bob", "z2")]); core.sync(a, [G("alice", "z3")]);
   const board = core.clanBoard(); assert.deepEqual(board.map(x => x.tag), ["BI", "PW"]); assert.ok(board[0].week > board[1].week);
 });
+
+test("admin tools: give through the ledger, validate input, reset only today's limits", () => {
+  let t = 5000; const { db, core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
+  core.adminGive(a, "coins", 5000); core.adminGive(a, "relic", 7); core.adminGive(a, "tonic", 2);
+  assert.equal(bal(db, a, "relic"), 7); assert.equal(bal(db, a, "tonic"), 2);
+  for (const k of ["coins", "relic", "tonic"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM ledger WHERE user_id=? AND reason='admin'").get(a).n, 3);
+  for (const [k, n] of [["xp", 5], ["coins", 0], ["coins", -5], ["coins", 1.5], ["coins", 100001], ["__proto__", 1]]) assert.throws(() => core.adminGive(a, k, n), e => e.code === "bad_kind" || e.code === "bad_amount", k + n);
+  core.adminItem(a, "m3"); assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE user_id=? AND def='m3'").get(a).n, 1);
+  assert.throws(() => core.adminItem(a, "nope"), e => e.code === "bad_item");
+  assert.ok(core.adminWins(a, 50).ach.includes("wins50")); assert.equal(core.user(a).wins, 50); assert.ok(core.user(a).games >= 50);
+  core.setTheme(a, "ocean"); assert.throws(() => core.adminWins(a, -1), e => e.code === "bad_amount");
+  core.adminGive(a, "shard", 500); core.adminGive(a, "essence", 50);
+  const o = core.merchant(a).offers.find(x => x.kind === "pool"); core.buyOffer(a, o.id);
+  db.prepare("INSERT INTO merchant_buys(user_id,period,offer,qty) VALUES(?,?,?,1)").run(a, "d1969-12-31", "old");
+  core.adminResetDay(a);
+  assert.equal(core.merchant(a).offers.find(x => x.id === o.id).left, o.limit);
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM merchant_buys WHERE user_id=?").get(a).n, 1); // older days are kept
+});
+
+test("leaderboard can leave admin accounts off", () => {
+  const { core, mk } = setup(), a = mk("alice", "alice"); mk("bob", "bob");
+  core.sync(a, [G("alice", "zz")]);
+  assert.deepEqual(core.leaderboard().map(x => x.username), ["alice", "bob"]);
+  assert.deepEqual(core.leaderboard(new Set(["alice"])).map(x => x.username), ["bob"]);
+});

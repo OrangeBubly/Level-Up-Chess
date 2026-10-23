@@ -9,7 +9,11 @@ const PROD = process.env.NODE_ENV === "production", PORT = process.env.PORT || 3
 const log = (level, o) => console.log(JSON.stringify({ t: new Date().toISOString(), level, ...o }));
 if (PROD && process.env.CHESSCOM_API) throw new Error("CHESSCOM_API is a testing hook and must not be set in production.");
 
-const DB_FILE = process.env.DB_FILE || path.join(__dirname, "levelup.db");
+// Admins are listed only in the ADMIN_USERS environment variable (comma-separated usernames), never in the database,
+// so nothing on the website can make someone an admin. List only accounts that already exist.
+const ADMINS = new Set(String(process.env.ADMIN_USERS || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean));
+if (ADMINS.size) log("info", { msg: "admin accounts configured", count: ADMINS.size });
+const DB_FILE =process.env.DB_FILE || path.join(__dirname, "levelup.db");
 const db = open(DB_FILE);
 migrate(db, { file: DB_FILE, backupDir: process.env.BACKUP_DIR || path.join(path.dirname(DB_FILE), "backups") });
 const core = createCore(db, { log });
@@ -110,7 +114,7 @@ app.post("/api/logout", (req, res) => {
   const t = readToken(cookie(req, "sid")); if (t) core.bumpSession(t.id); // revokes this and any other session
   res.setHeader("Set-Cookie", "sid=; Max-Age=0; Path=/"); res.json({ ok: true });
 });
-app.get("/api/me", auth, (req, res) => res.json(core.view(req.u.id)));
+app.get("/api/me", auth, (req, res) => res.json(meView(req.u)));
 
 // Chess.com linking: claim a username, then prove it by putting a code in the profile Location.
 app.post("/api/cc", auth, async (req, res) => {
@@ -124,7 +128,7 @@ app.post("/api/cc/verify", auth, async (req, res) => {
   const p = await cc.profile(u.cc_pending);
   if (!p || !String(p.location || "").toLowerCase().includes(u.cc_code)) throw new AppError("code_missing", "Code not found in your chess.com Location yet. Save it there and try again.");
   if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed.");
-  res.json(reply(u.id, core.finishLink(u.id, p.player_id)));
+  res.json(reply(u, core.finishLink(u.id, p.player_id)));
 });
 app.post("/api/sync", auth, async (req, res) => {
   const u = req.u; if (!u.cc) throw new AppError("not_linked", "Verify your chess.com username first.");
@@ -133,13 +137,14 @@ app.post("/api/sync", auth, async (req, res) => {
   if (!p) throw new AppError("cc_not_found", "That chess.com account could not be found.", 404);
   if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed, so it can’t earn rewards.", 403);
   if (p.player_id !== u.cc_player_id) { core.unlink(u.id); throw new AppError("identity_changed", "That username now belongs to a different chess.com account. Please link it again.", 409); }
-  res.json(reply(u.id, core.sync(u.id, await cc.games(u.cc))));
+  res.json(reply(u, core.sync(u.id, await cc.games(u.cc))));
 });
 
 // The player view plus an action's result. The view wins any name clash, so a result can never replace part of it
 // (newly unlocked achievements go in `unlocked` instead of overwriting the view's `ach` progress).
-const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...rest, ...core.view(uid), unlocked: ach || [] }; };
-const act = fn => (req, res) => res.json(reply(req.u.id, fn(req.u.id, body(req))));
+const meView = u => ({ ...core.view(u.id), admin: ADMINS.has(u.username) });
+const reply = (u, r) => { const { ach, ...rest } = r || {}; return { ...rest, ...meView(u), unlocked: ach || [] }; };
+const act = fn => (req, res) => res.json(reply(req.u, fn(req.u.id, body(req))));
 app.post("/api/buy", auth, act((u, b) => core.buy(u, String(b.id || ""))));
 app.post("/api/equip", auth, act((u, b) => core.equip(u, Number(b.iid))));
 app.post("/api/upgrade", auth, act((u, b) => core.upgrade(u, Number(b.iid))));
@@ -155,7 +160,18 @@ app.post("/api/friend", auth, (req, res, next) => { friendLimit(req); next(); },
 app.post("/api/friend/answer", auth, act((u, b) => core.answerFriend(u, String(b.name || ""), b.accept === true)));
 app.post("/api/friend/remove", auth, act((u, b) => core.removeFriend(u, String(b.name || ""))));
 app.post("/api/privacy", auth, act((u, b) => core.setPrivacy(u, String(b.privacy || ""))));
-app.get("/api/u/:name", auth, (req, res) => res.json(core.publicProfile(req.u.id, req.params.name)));
+app.get("/api/u/:name", auth, (req, res) => { const p = core.publicProfile(req.u.id, req.params.name); res.json({ ...p, admin: ADMINS.has(p.username) }); });
+
+// ---- admin testing tools: only for ADMIN_USERS, only on their own account, every use logged ----
+// Anyone else gets the same "not found" as a missing page, so the tools don't advertise themselves.
+function admin(req, res, next) {
+  if (!ADMINS.has(req.u.username)) throw new AppError("not_found", "Not found.", 404);
+  log("warn", { msg: "admin action", user: req.u.username, p: req.path, body: body(req) }); next();
+}
+app.post("/api/admin/give", auth, admin, act((u, b) => core.adminGive(u, String(b.kind || ""), Number(b.n))));
+app.post("/api/admin/item", auth, admin, act((u, b) => core.adminItem(u, String(b.def || ""))));
+app.post("/api/admin/wins", auth, admin, act((u, b) => core.adminWins(u, Number(b.wins))));
+app.post("/api/admin/reset", auth, admin, act(u => core.adminResetDay(u)));
 app.post("/api/clan/create", auth, act((u, b) => core.createClan(u, b.name, b.tag)));
 app.post("/api/clan/join", auth, act((u, b) => core.joinClan(u, Number(b.id))));
 app.post("/api/clan/cancel", auth, act((u, b) => core.cancelClanRequest(u, Number(b.id))));
@@ -181,7 +197,7 @@ app.post("/api/craft/preview", auth, (req, res) => {
 });
 
 let lbCache = { at: 0, rows: [] };
-app.get("/api/leaderboard", (req, res) => { if (Date.now() - lbCache.at > 15e3) lbCache = { at: Date.now(), rows: core.leaderboard() }; res.json(lbCache.rows); });
+app.get("/api/leaderboard", (req, res) => { if (Date.now() - lbCache.at > 15e3) lbCache = { at: Date.now(), rows: core.leaderboard(ADMINS) }; res.json(lbCache.rows); });
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);

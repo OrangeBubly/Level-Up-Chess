@@ -33,7 +33,8 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 
 ## Deployment (Render)
 - Pushing to GitHub redeploys the site. Test locally and commit on a branch first.
-- Environment variable names: `DB_FILE` (on the Render disk, e.g. `/var/data/levelup-v2.db`), `SESSION_SECRET`, `NODE_ENV=production`, `CONTACT_EMAIL`. Never print or commit their values. `*.db`, `backups/` and `.secret` are git-ignored.
+- Environment variable names: `DB_FILE` (on the Render disk, e.g. `/var/data/levelup-v2.db`), `SESSION_SECRET`, `NODE_ENV=production`, `CONTACT_EMAIL`, `ADMIN_USERS` (optional; usernames with the admin testing tools). Never print or commit their values. `*.db`, `backups/` and `.secret` are git-ignored.
+- Admin tools: only for `ADMIN_USERS`, checked in `server.js` on every call, and only on the admin's own account. Never add a way to grant admin from the website or to use admin tools on other players.
 - Run a single instance only (the rate limiter is in memory and the database is one file).
 
 ## Working style

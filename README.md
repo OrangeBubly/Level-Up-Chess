@@ -16,6 +16,7 @@ recipe hints, potions that give every material a use, generated pixel art, synth
 | `SESSION_SECRET` | Long random string that signs login cookies. |
 | `NODE_ENV=production` | Secure cookies, and trusts one proxy hop (Render). |
 | `CONTACT_EMAIL` | Sent to chess.com in the User-Agent, as they request. |
+| `ADMIN_USERS` | Optional. Comma-separated usernames that get the admin testing tools (Profile page) for their own account. List only accounts that already exist. |
 | `TRUST_PROXY` | Optional override for the number of proxy hops. |
 | `BACKUP_DIR` | Optional. Pre-migration backups go here (default: `backups/` next to the database). |
 
