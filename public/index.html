@@ -64,7 +64,10 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgba(255,45,61
 #toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);background:#1f1f28;border:1px solid var(--red);box-shadow:0 0 24px rgba(255,45,61,.5);padding:11px 20px;border-radius:12px;opacity:0;transition:.3s;pointer-events:none;font-weight:700;z-index:40;max-width:90%;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 .pop{position:fixed;font-size:30px;pointer-events:none;animation:up 1.3s ease-out forwards;z-index:40}@keyframes up{to{transform:translate(var(--dx),-240px) rotate(240deg);opacity:0}}
 .auth{max-width:420px;margin:12vh auto;padding:0 16px}
-@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}.nav{flex:1;text-align:center;padding:8px 2px;font-size:11px}main{padding:16px 12px 96px}.g2{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}.bag{grid-template-columns:repeat(5,56px)}}
+.qs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.qh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.q{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--bd)}.q>div{flex:1;min-width:0}.q .bar{margin:6px 0 2px}.q button{flex:none;padding:7px 13px}
+.q.ok{opacity:.55}.q.ready b{color:#fff;text-shadow:0 0 10px rgba(255,45,61,.6)}
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;z-index:5;background:var(--bg);border-top:1px solid var(--bd);border-right:0;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}.logo,.me{display:none}.nav{flex:1;text-align:center;padding:8px 2px;font-size:11px}main{padding:16px 12px 96px}.g2,.qs{grid-template-columns:1fr}.stats,.bn{grid-template-columns:repeat(2,1fr)}.hero{flex-direction:column;text-align:center}.bag{grid-template-columns:repeat(5,56px)}}
 </style></head><body><div id="root"></div><div id="toast"></div><div id="tip"></div>
 <script>
 var S=null,CAT=null,LB=[],tab="home",flt="all",sel=null,pick=null,rsel=null,PV=null,pvT=0,IMG={},A={items:[],sfx:[]},muted=false,grid=[null,null,null,null,null,null,null,null,null];
@@ -130,7 +133,7 @@ async function boot(){try{CAT=CAT||await api("catalog")}catch(e){}try{S=await ap
  fetch("assets/manifest.json").then(function(r){return r.ok?r.json():null}).then(function(j){if(j){A={items:j.items||[],sfx:j.sfx||[]};IMG={};if(S)render()}}).catch(function(){})}
 async function refresh(){try{LB=await api("leaderboard")}catch(e){}}
 async function doPost(p,b,msg,snd){try{var r=await api(p,b);S=r;await refresh();if(r.leveled)sfx("levelup");else sfx(snd||"click");if(msg)toast(typeof msg==="function"?msg(r):msg);
-  if(r.ach&&r.ach.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.ach.map(achName).join(", "))},msg?1800:0);render();return r}catch(e){sfx("error");toast(e.message);return null}}
+  if(r.unlocked&&r.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.unlocked.map(achName).join(", "))},msg?1800:0);render();return r}catch(e){sfx("error");toast(e.message);return null}}
 /* ---------- views ---------- */
 function ccHTML(){
  if(!S.changing&&S.pending)return'<h2>Verify chess.com</h2><p class="mu">Claiming <b>'+esc(S.pending)+'</b>. Paste this code into the <b>Location</b> field of your chess.com profile, save, then press Verify:</p><input readonly value="'+esc(S.code)+'" onclick="this.select()"><div class="row"><button id="vf">Verify</button><button class="g" id="cx">Different username</button></div>';
@@ -140,7 +143,12 @@ function vHome(){var pct=Math.round((S.xp-S.lo)/(S.hi-S.lo)*100),b=S.bonus,bc=""
  Object.keys(S.buffs).forEach(function(k){bf+='<span class="chip">'+CAT.cons[k].name+" · "+S.buffs[k]+" games left</span>"});
  return'<div class="g2"><div class="card hero"><div class="ring" style="--p:'+pct+'"><div><b>'+S.level+'</b><span>LEVEL</span></div></div><div style="flex:1"><h1>'+esc(S.username)+'</h1><div class="mu">'+(S.title?esc(S.title):"No banner equipped")+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="mu">'+S.xp+" / "+S.hi+' XP to next level</div></div></div><div class="card">'+ccHTML()+'<div class="err" id="se"></div></div></div>'
  +'<div class="stats"><div class="stat"><b>🪙 '+S.coins+'</b><span class="mu">Coins</span></div><div class="stat"><b>🔥 '+S.streak+'</b><span class="mu">Win streak</span></div><div class="stat"><b>'+S.wins+" / "+S.games+'</b><span class="mu">Wins / games</span></div><div class="stat"><b>⚡ '+S.best+'</b><span class="mu">Best streak</span></div></div>'
+ +questsHTML()
  +'<div class="card"><h2>Active bonuses from your gear</h2><div class="bn">'+bc+"</div>"+(bf?'<h2 style="margin-top:14px">Active potions</h2>'+bf:"")+"</div>"}
+function left(t){var s=Math.max(0,t-Math.floor(Date.now()/1000)),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?d+"d "+h+"h":h?h+"h "+m+"m":m+"m"}
+function questsHTML(){if(!S.quests)return"";var box=function(t,b){return'<div class="card"><div class="qh"><h2>'+t+'</h2><span class="mu">resets in '+left(b.ends)+"</span></div>"+b.list.map(function(q){var ready=q.cur>=q.n&&!q.claimed;
+  return'<div class="q'+(q.claimed?" ok":ready?" ready":"")+'"><div><b>'+esc(q.desc)+'</b><div class="bar"><i style="width:'+Math.round(q.cur/q.n*100)+'%"></i></div><div class="mu">'+q.cur+" / "+q.n+" · "+costTxt(q.reward)+"</div></div>"+(q.claimed?'<span class="mu">Claimed ✔</span>':'<button data-q="'+q.id+'"'+(ready?"":" disabled")+">Claim</button>")+"</div>"}).join("")+"</div>"};
+ return'<div class="qs">'+box("Daily quests",S.quests.daily)+box("Weekly quests",S.quests.weekly)+"</div>"}
 function bagList(){var o=[];Object.keys(CAT.mats).forEach(function(k){if(S.mats[k]>0)o.push({key:"mat:"+k,t:"mat",id:k,n:S.mats[k],r:k==="shard"?0:k==="essence"?2:4})});
  Object.keys(CAT.cons).forEach(function(k){if(S.cons[k]>0)o.push({key:"cons:"+k,t:"cons",id:k,n:S.cons[k],r:1})});
  S.items.filter(function(i){return!i.slot}).forEach(function(i){var d=item(i.def);o.push({key:"item:"+i.id,t:"item",id:i.def,lv:i.level,r:d.r})});return o}
@@ -194,11 +202,11 @@ function render(){var R=document.getElementById("root");
  if($("vf"))$("vf").onclick=act(function(){return api("cc/verify",{})},"Linked! Hit Sync to set your baseline.");
  if($("cx"))$("cx").onclick=function(){S.changing=true;render()};
  if($("sy"))$("sy").onclick=sync;if($("craftBtn"))$("craftBtn").onclick=craftNow;if($("clearBtn"))$("clearBtn").onclick=function(){grid=grid.map(function(){return null});pvSoon();render()}}
-function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();sfx("click");if(ok)toast(ok);if(S.ach&&S.ach.length){sfx("ach");toast("🏆 Achievement unlocked: "+S.ach.map(achName).join(", "))}}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message;sfx("error")}}}
+function act(f,ok){return async function(){var se=document.getElementById("se");if(se)se.textContent="";try{S=await f();await refresh();render();sfx("click");if(ok)toast(ok);if(S.unlocked&&S.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+S.unlocked.map(achName).join(", "))},ok?1800:0)}catch(e){var s=document.getElementById("se");if(s)s.textContent=e.message;sfx("error")}}}
 async function sync(){var se=document.getElementById("se");se.textContent="Syncing…";var fx=S.items.some(function(i){return i.slot==="aura"});
  try{var r=await api("sync",{});S=r;await refresh();render();
   if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+CAT.mats[k]}).join(", ");toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else toast("No new rated games since last sync.");
-  if(r.ach&&r.ach.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.ach.map(achName).join(", "))},2200)
+  if(r.unlocked&&r.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.unlocked.map(achName).join(", "))},2200)
  }catch(e){se.textContent=e.message;sfx("error")}}
 /* ---------- crafting table interaction ---------- */
 function pvSoon(){clearTimeout(pvT);pvT=setTimeout(async function(){var el=document.getElementById("res");if(gridEmpty()){PV=null}else{try{PV=await api("craft/preview",{grid:grid})}catch(e){PV=null}}if(el&&tab==="craft")el.innerHTML=resHTML();var b=document.getElementById("craftBtn");if(b)b.onclick=craftNow},120)}
@@ -215,6 +223,7 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-t]")){tab=b.dataset.t;render();window.scrollTo(0,0);sfx("click");return}
  if(b=e.target.closest("[data-f]")){flt=b.dataset.f;render();sfx("click");return}
  if(b=e.target.closest("[data-fill]")){fill(b.dataset.fill);return}
+ if(b=e.target.closest("[data-q]")){await doPost("quest",{id:b.dataset.q},function(r){return"📜 Quest complete! +"+costTxt(r.quest.reward)},"buy");return}
  if(b=e.target.closest("[data-rb]")){rsel=b.dataset.rb;render();sfx("click");return}
  if(b=e.target.closest("[data-p]")){var p=b.dataset.p.split(":");pick=p[0]==="mat"?{t:"mat",k:p[1]}:{t:"item",id:+p[1]};sfx("click");render();return}
  if(b=e.target.closest("[data-c]")){place(+b.dataset.c);return}

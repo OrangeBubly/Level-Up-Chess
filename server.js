@@ -98,7 +98,7 @@ app.post("/api/cc/verify", auth, async (req, res) => {
   const p = await cc.profile(u.cc_pending);
   if (!p || !String(p.location || "").toLowerCase().includes(u.cc_code)) throw new AppError("code_missing", "Code not found in your chess.com Location yet. Save it there and try again.");
   if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed.");
-  const r = core.finishLink(u.id, p.player_id); res.json({ ...core.view(u.id), ...r });
+  res.json(reply(u.id, core.finishLink(u.id, p.player_id)));
 });
 app.post("/api/sync", auth, async (req, res) => {
   const u = req.u; if (!u.cc) throw new AppError("not_linked", "Verify your chess.com username first.");
@@ -107,17 +107,19 @@ app.post("/api/sync", auth, async (req, res) => {
   if (!p) throw new AppError("cc_not_found", "That chess.com account could not be found.", 404);
   if (String(p.status || "").startsWith("closed")) throw new AppError("account_closed", "That chess.com account is closed, so it can’t earn rewards.", 403);
   if (p.player_id !== u.cc_player_id) { core.unlink(u.id); throw new AppError("identity_changed", "That username now belongs to a different chess.com account. Please link it again.", 409); }
-  const result = core.sync(u.id, await cc.games(u.cc));
-  res.json({ ...core.view(u.id), ...result });
+  res.json(reply(u.id, core.sync(u.id, await cc.games(u.cc))));
 });
 
-const act = fn => (req, res) => { const r = fn(req.u.id, body(req)) || {}; res.json({ ...core.view(req.u.id), ...r }); };
+// The player view plus an action's result. Newly unlocked achievements go in `unlocked`, so they don't overwrite the view's `ach` progress.
+const reply = (uid, r) => { const { ach, ...rest } = r || {}; return { ...core.view(uid), ...rest, unlocked: ach || [] }; };
+const act = fn => (req, res) => res.json(reply(req.u.id, fn(req.u.id, body(req))));
 app.post("/api/buy", auth, act((u, b) => core.buy(u, String(b.id || ""))));
 app.post("/api/equip", auth, act((u, b) => core.equip(u, Number(b.iid))));
 app.post("/api/upgrade", auth, act((u, b) => core.upgrade(u, Number(b.iid))));
 app.post("/api/dismantle", auth, act((u, b) => core.dismantle(u, Number(b.iid))));
 app.post("/api/craft", auth, act((u, b) => core.craft(u, b.grid)));
 app.post("/api/use", auth, act((u, b) => core.use(u, String(b.kind || ""))));
+app.post("/api/quest", auth, act((u, b) => core.claimQuest(u, String(b.id || ""))));
 app.post("/api/craft/preview", auth, (req, res) => {
   if (!limit("prev:" + req.u.id, 120, 60e3)) throw new AppError("rate_limited", "Slow down a little.", 429);
   res.json(core.preview(req.u.id, body(req).grid));
