@@ -16,7 +16,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `lib/content.js`: all game content as data: items, sets, recipes, potions, achievements.
 - `lib/db.js`: numbered migrations. `lib/chesscom.js`: serial, cached chess.com client.
 - `public/index.html`: the whole frontend (generated pixel art, synthesized sounds, all screens).
-- `public/vendor/`: third-party files served as-is (Stockfish WASM under GPL-3.0, chess.js under BSD-2, the Lichess opening book under CC0); see its README. Keep the licence files with them. `tools/build-openings.js` rebuilds the opening book.
+- `public/vendor/`: third-party files served as-is (Stockfish WASM under GPL-3.0, chess.js under BSD-2, the Lichess opening book and puzzles under CC0, the cburnett chess pieces under GPLv2+); see its README. Keep the licence files with them. `tools/build-openings.js` rebuilds the opening book and `tools/build-puzzles.js` the puzzle set.
 - `test/core.test.js`: the test suite.
 
 ## Rules that must not be broken
@@ -46,5 +46,5 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - Make small commits with clear messages. Do not rewrite working systems without a strong reason.
 
 ## Roadmap
-Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, sign-up that proves a chess.com account before the account exists, public profiles, friends and clans, resource chests, game review (Stockfish in the browser, XP for fully reviewing your own games, book moves and an opening repertoire), automatic syncing while the site is open, and admin database backups.
+Built: daily and weekly quests, the Wandering Merchant (rotating daily shop), merchant-only items, themes, a Profile page, sign-up that proves a chess.com account before the account exists, public profiles, friends and clans, resource chests, game review (Stockfish in the browser, XP for fully reviewing your own games, book moves and an opening repertoire), automatic syncing while the site is open, admin database backups, and a first Learn tab (puzzles and an opening trainer; progress kept in the browser, no rewards yet).
 Not built yet: limited trading, community bosses, events. Details were planned in an earlier audit; keep each new system on the claim, ledger and migration foundations above.
