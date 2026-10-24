@@ -210,6 +210,7 @@ app.get("/api/dismantle/dupes", auth, (req, res) => res.json(core.dupesPreview(r
 app.post("/api/dismantle/dupes", auth, act(u => core.dismantleDupes(u)));
 app.post("/api/merchant", auth, act((u, b) => core.buyOffer(u, String(b.id || ""))));
 app.post("/api/theme", auth, act((u, b) => core.setTheme(u, String(b.theme || ""))));
+app.post("/api/tz", auth, act((u, b) => core.setZone(u, String(b.tz || ""))));
 app.post("/api/mode", auth, act((u, b) => core.setMode(u, String(b.mode || ""))));
 // ---- friends, public profiles and clans ----
 const friendLimit = req => { if (!limit("friend:" + req.u.id, 20, 864e5)) throw new AppError("rate_limited", "That’s a lot of friend requests for one day. Try again tomorrow.", 429); };

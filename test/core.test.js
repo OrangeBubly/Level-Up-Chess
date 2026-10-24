@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -180,6 +180,37 @@ test("achievements: unlock once, pay their reward, and the hidden Giant Slayer n
   assert.equal(core.sync(a, [G("alice", "big", "win", { wr: 1500, br: 1750 })]).ach.includes("first_win"), false);
   assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins")); assert.equal(core.view(a).ach.giant.name, "Giant Slayer");
   const v = core.view(mk("bob", "bob")); assert.deepEqual(v.ach.giant, {}); assert.equal(v.recipes.find(x => x.id === "a3").hint, null);
+});
+
+test("time zones: days start at the player's local midnight, including summer time changes", () => {
+  const h = (d, hr) => Date.UTC(2026, 9, d, hr) / 1000, ny = "America/New_York"; // New York is UTC-4 until 1 Nov 2026, then UTC-5
+  assert.deepEqual(R.periodOf("daily", h(22, 15), ny), { key: "d2026-10-22", start: h(22, 4), end: h(23, 4) });
+  assert.equal(R.periodOf("daily", h(23, 3), ny).key, "d2026-10-22"); // 11pm in New York: still the 22nd there
+  assert.deepEqual(R.periodOf("weekly", h(22, 15), ny), { key: "w2026-10-19", start: h(19, 4), end: h(26, 4) });
+  assert.equal(R.periodOf("weekly", h(30, 12), ny).end, Date.UTC(2026, 10, 2, 5) / 1000); // the week the clocks go back
+  assert.equal(R.periodOf("daily", Date.UTC(2026, 10, 1, 12) / 1000, ny).end - R.periodOf("daily", Date.UTC(2026, 10, 1, 12) / 1000, ny).start, 25 * 3600);
+  assert.deepEqual(R.periodOf("daily", h(22, 20), "Asia/Tokyo"), { key: "d2026-10-23", start: h(22, 15), end: h(23, 15) }); // UTC+9
+  assert.equal(R.periodOf("daily", h(22, 20), "Asia/Kolkata").start, Date.UTC(2026, 9, 22, 18, 30) / 1000); // half-hour zones
+  for (const bad of ["Nowhere/Land", "constructor", "../etc", "", null, "x".repeat(80)]) {
+    assert.equal(R.isZone(bad), false); assert.equal(R.periodOf("daily", h(22, 15), bad).key, "d2026-10-22"); // unknown zones count as UTC
+  }
+});
+
+test("time zones: the first zone is free, then it can change once a week; quests and reviews follow it", () => {
+  let t = Date.UTC(2026, 9, 22, 2) / 1000; // 2am UTC on the 22nd is still the 21st in New York
+  const { core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
+  assert.equal(core.quests(a).daily.key, "d2026-10-22");
+  assert.throws(() => core.setZone(a, "Mars/Base"), e => e.code === "bad_zone");
+  core.setZone(a, "America/New_York"); assert.equal(core.quests(a).daily.key, "d2026-10-21"); assert.equal(core.merchant(a).key, "d2026-10-21");
+  assert.throws(() => core.setZone(a, "Asia/Tokyo"), e => e.code === "too_soon"); core.setZone(a, "America/New_York"); // same zone: fine
+  t += 7 * 86400; core.setZone(a, "Asia/Tokyo"); assert.equal(core.user(a).tz, "Asia/Tokyo");
+  // reviews reset at local midnight, not 24 hours after the last one
+  core.setZone(a, "Asia/Tokyo"); t = Date.UTC(2026, 9, 30, 14) / 1000; // 11pm in Tokyo
+  const games = []; for (let i = 0; i < 4; i++) games.push(G("alice", "r" + i, "win", { t: t - 100 + i }));
+  core.sync(a, games); const list = core.reviewList(a);
+  for (let i = 0; i < C.REVIEWS_PER_DAY; i++) core.completeReview(a, list[i].key);
+  assert.equal(core.reviewsLeft(a), 0);
+  t += 3600; assert.equal(core.reviewsLeft(a), C.REVIEWS_PER_DAY); // midnight in Tokyo: a new day an hour later
 });
 
 test("quest periods: days start at midnight UTC, weeks on Monday", () => {
