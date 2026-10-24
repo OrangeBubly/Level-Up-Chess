@@ -1,4 +1,4 @@
-Third-party files used by the game review screen. They are served as-is and kept separate from the site's own code.
+Third-party files used by the game review screen and the Learn tab. They are served as-is and kept separate from the site's own code.
 
 stockfish/  Stockfish 19 (lite, single-threaded WebAssembly build), from the "stockfish" npm package v19.0.1 by Nathan Rugg.
             Licence: GNU GPL v3, see stockfish/Copying.txt.
@@ -9,3 +9,6 @@ chess/      chess.js v1.4.0 (move rules and PGN reading), from the "chess.js" np
 
 openings/   openings.json, built by tools/build-openings.js from the Lichess opening list (a.tsv to e.tsv).
             Licence: public domain (CC0 1.0). Source: https://github.com/lichess-org/chess-openings
+
+puzzles/    puzzles.json, a starter set for the Learn tab, built by tools/build-puzzles.js from the Lichess puzzle database.
+            Licence: public domain (CC0 1.0). Source: https://database.lichess.org/#puzzles

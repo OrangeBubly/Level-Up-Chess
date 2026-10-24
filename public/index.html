@@ -107,6 +107,8 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
+.pb .bq{cursor:pointer}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
+.bq.tg::before{content:"";position:absolute;left:37%;top:37%;width:26%;height:26%;border-radius:50%;background:rgba(15,23,42,.3);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:3%;border-radius:50%;border:4px solid rgba(15,23,42,.3);z-index:2}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
 /* extra animations: only with <html class="fx"> */
 html.fx body{transition:background-color .3s}
@@ -194,6 +196,7 @@ function mkSprite(t,id){var h=hash(t+id);
  return draw(id==="shield"?"shield":id==="catalyst"?"shard":"potion",CPAL[id],null,h,0)}
 // a texture made in the admin editor wins, then a file from assets/, then the generated pixel art
 var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+ learn:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/><path d="M22 9v6"/>',
  bag:'<path d="M8 6V5a4 4 0 0 1 8 0v1"/><rect x="4" y="6" width="16" height="15" rx="3"/><path d="M8 13h8v4H8z"/>',
  craft:'<path d="M14.5 3.5l6 6-3 3-6-6z"/><path d="M11.5 6.5L3 15l3 3 8.5-8.5"/>',
  shop:'<path d="M3 9l2-5h14l2 5"/><path d="M3 9h18"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/>',
@@ -636,19 +639,109 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
    Steps with click only move on when the spotlighted thing is clicked; the others have a Next button.
    sel: what to spotlight; up: spotlight its nearest parent matching this instead; tab/sub: the page it's on. */
 var TUT={on:false,i:0,asked:false};
+// ---- Learn: puzzles and an opening trainer. A first version: progress is kept in this browser only and earns no XP yet ----
+var LRN={sub:"puz"},LINES=[ // [name, the side you play, the moves]
+ ["Italian Game","w","e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4 cxd4 Bb4+ Bd2 Bxd2+ Nbxd2 d5"],
+ ["Ruy Lopez","w","e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 d6 c3 O-O h3"],
+ ["Queen's Gambit Declined","w","d4 d5 c4 e6 Nc3 Nf6 Bg5 Be7 e3 O-O Nf3 h6 Bh4 b6"],
+ ["London System","w","d4 d5 Bf4 Nf6 e3 e6 Nf3 c5 c3 Nc6 Nbd2 Bd6 Bg3 O-O Bd3"],
+ ["Sicilian Najdorf","b","e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Be3 e5 Nb3 Be6"],
+ ["Caro-Kann Classical","b","e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7"],
+ ["King's Indian Defense","b","d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2 e5 O-O Nc6 d5 Ne7"],
+ ["Scandinavian Defense","b","e4 d5 exd5 Qxd5 Nc3 Qa5 d4 Nf6 Nf3 Bf5 Bc4 e6 Bd2 c6"]];
+function lrnGet(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
+function lrnSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+async function lrnLib(){if(!LRN.lib)LRN.lib=await import("/vendor/chess/chess.js");return LRN.lib}
+function vLearn(){return'<h1>Learn</h1><p class="mu" style="margin:4px 0 8px">Get better at chess a few minutes at a time. This is a first version: your progress is saved in this browser only and doesn’t earn XP yet.</p><div class="tabs ptabs">'
+ +[["puz","🧩 Puzzles"],["open","📖 Openings"]].map(function(x){return'<button class="'+(LRN.sub===x[0]?"on":"")+'" data-lsub="'+x[0]+'">'+x[1]+"</button>"}).join("")+'</div><div id="lrn">'+lrnHTML()+"</div>"}
+function lrnHTML(){return LRN.sub==="puz"?pzHTML():opHTML()}
+function lrnPaint(){var el=document.getElementById("lrn");if(el&&tab==="learn")el.innerHTML=lrnHTML()}
+// a clickable board: click one of your pieces, then where it should go
+function lrnBoard(B){var f="abcdefgh",pos=B.ch.board(),tg={},out="";
+ if(B.sel)B.ch.moves({square:B.sel,verbose:true}).forEach(function(m){tg[m.to]=1});
+ for(var r=0;r<8;r++)for(var c=0;c<8;c++){var rr=B.flip?7-r:r,cc=B.flip?7-c:c,n=f[cc]+(8-rr),p=pos[rr][cc],k="bq "+((rr+cc)%2?"dk":"lt");
+  if(B.last&&(B.last.from===n||B.last.to===n))k+=" hl";if(B.hint&&B.hint.indexOf(n)>-1)k+=" hn";if(B.sel===n)k+=" sel";if(B.bad===n)k+=" bad";if(tg[n])k+=p?" tgx":" tg";
+  out+='<div class="'+k+'" data-lsq="'+n+'">'+(p?'<svg class="pz '+p.color+'" viewBox="0 0 100 100"><use href="#pz-'+p.type+'"/></svg>':"")+"</div>"}
+ return'<div class="bwrap"><div class="board pb">'+out+"</div></div>"}
+function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B||B.lock)return;
+ if(B.sel&&B.sel!==n){var mv=B.ch.moves({square:B.sel,verbose:true}).filter(function(m){return m.to===n});if(mv.length){var from=B.sel;B.sel=null;(LRN.sub==="puz"?pzMove:opMove)(from,n,mv);return}}
+ var p=B.ch.get(n);B.sel=p&&p.color===B.ch.turn()&&B.sel!==n?n:null;lrnPaint()}
+function lrnWrong(B,sq){B.bad=sq;sfx("error");lrnPaint();setTimeout(function(){B.bad=null;lrnPaint()},450)}
+function lrnAct(a){var x=a.split(":");
+ if(x[0]==="hint")pzHint();else if(x[0]==="sol")pzSolve();else if(x[0]==="next"||x[0]==="pzretry"){LRN.pz=null;LRN.pzErr=0;lrnPaint()}
+ else if(x[0]==="op")opStart(+x[1],x[2]);else if(x[0]==="opback"){LRN.op=null;lrnPaint()}else if(x[0]==="opagain")opStart(LRN.op.i,LRN.op.mode)}
+// ---- puzzles, from the Lichess puzzle database (public domain). Your puzzle rating moves like a chess rating: the first try at
+// each puzzle counts, up if you solve it cleanly, down if you miss or take a hint. Next comes the unsolved puzzle nearest your rating.
+function pzStore(){return lrnGet("luc-puz",{r:1000,n:0,done:{}})}
+async function pzStart(){if(LRN.pzBusy)return;LRN.pzBusy=1;
+ try{var lib=await lrnLib();if(!LRN.set)LRN.set=(await fetch("/vendor/puzzles/puzzles.json").then(function(r){return r.json()})).puzzles;
+  var s=pzStore(),left=LRN.set.filter(function(p){return!(p.id in s.done)});if(!left.length){s.done={};lrnSet("luc-puz",s);left=LRN.set}
+  var p=left.sort(function(a,b){return Math.abs(a.rating-s.r)-Math.abs(b.rating-s.r)})[0],ch=new lib.Chess(p.fen);
+  LRN.pz={p:p,i:0,state:"play",msg:"",B:{ch:ch,flip:ch.turn()==="b",last:{from:p.last.slice(0,2),to:p.last.slice(2,4)}}}}
+ catch(e){LRN.pzErr=1}
+ LRN.pzBusy=0;lrnPaint()}
+function pzScore(win){var P=LRN.pz;if(P.scored)return;P.scored=1;var s=pzStore(),e=1/(1+Math.pow(10,(P.p.rating-s.r)/400)),d=Math.round(32*((win?1:0)-e));
+ s.r=Math.max(100,s.r+d);s.done[P.p.id]=win?1:0;if(win)s.n++;lrnSet("luc-puz",s);P.delta=d}
+function pzMove(from,to,cands){var P=LRN.pz,B=P.B,want=P.p.moves[P.i],promo=want.slice(0,4)===from+to&&want[4]||cands[0].promotion&&"q";
+ B.ch.move({from:from,to:to,promotion:promo||undefined});
+ if(from+to+(promo||"")!==want&&!B.ch.isCheckmate()){B.ch.undo();pzScore(false);P.msg="Not that one. Try again, or ask for a hint.";lrnWrong(B,to);return}
+ B.last={from:from,to:to};B.hint=null;P.i++;sfx("click");pzReply()}
+// after a right move the other side answers, until the puzzle is finished
+function pzReply(){var P=LRN.pz,B=P.B;
+ if(P.i>=P.p.moves.length||B.ch.isCheckmate()){if(P.state==="play"){P.state="won";pzScore(true);P.msg=P.delta>0?"Solved! 🎉":"Solved, but it took more than one try.";sfx("discover");if(P.delta>0)burst(["🧩","✨","⭐"])}else P.msg="That’s the solution. On to the next one!";lrnPaint();return}
+ if(P.state==="play")P.msg="Good move! Keep going.";B.lock=true;lrnPaint();
+ setTimeout(function(){if(LRN.pz!==P)return;var r=P.p.moves[P.i];B.ch.move({from:r.slice(0,2),to:r.slice(2,4),promotion:r[4]});B.last={from:r.slice(0,2),to:r.slice(2,4)};P.i++;B.lock=false;sfx("click");
+  if(P.state==="shown")pzSolve();else if(P.i>=P.p.moves.length)pzReply();else lrnPaint()},500)}
+function pzHint(){var P=LRN.pz;if(!P||P.state!=="play"||P.B.lock)return;pzScore(false);var w=P.p.moves[P.i];P.B.hint=P.B.hint?[w.slice(0,2),w.slice(2,4)]:[w.slice(0,2)];P.msg=P.B.hint.length>1?"Move this piece to the marked square.":"Move the marked piece.";lrnPaint()}
+function pzSolve(){var P=LRN.pz;if(!P||P.B.lock||P.state==="won")return;if(P.state==="play"){pzScore(false);P.state="shown"}
+ if(P.i>=P.p.moves.length)return pzReply();
+ var B=P.B,w=P.p.moves[P.i];B.ch.move({from:w.slice(0,2),to:w.slice(2,4),promotion:w[4]});B.last={from:w.slice(0,2),to:w.slice(2,4)};B.hint=null;B.sel=null;P.i++;P.msg="Showing the solution…";pzReply()}
+function pzHTML(){var P=LRN.pz,s=pzStore();if(!P){if(LRN.pzErr)return'<div class="card"><p>Couldn’t load the puzzles.</p><button data-la="pzretry">Try again</button></div>';pzStart();return'<p class="mu">Loading puzzles…</p>'}
+ var play=P.state==="play",btn=function(a,t,g){return'<button class="'+(g?"g":"")+'" data-la="'+a+'">'+t+"</button>"};
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(P.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+(play?(P.B.flip?"Black":"White")+" to move":P.state==="won"?"Solved ✓":"Solution")+"</h2>"
+  +"<p>"+(P.msg||"Find the best move for "+(P.B.flip?"black":"white")+".")+"</p>"
+  +'<p class="mu">Puzzle rating '+P.p.rating+(play?"":" · "+esc(P.p.themes.join(", ")))+"</p>"
+  +'<div class="row">'+(play?btn("hint",P.B.hint?"Show where":"Hint",1)+btn("sol","Show solution",1):"")+btn("next",play?"Skip":"Next puzzle",play)+"</div></div>"
+  +'<div class="card" style="margin-top:14px"><h2>Your puzzles</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+s.r+(P.delta?' <span style="font-size:14px;color:'+(P.delta>0?"#16a34a":"#dc2626")+'">'+(P.delta>0?"+":"")+P.delta+"</span>":"")+'</b><span class="mu">Puzzle rating</span></div><div><b>'+s.n+'</b><span class="mu">Solved</span></div></div>'
+  +'<p class="mu" style="font-size:12px;margin:10px 0 0">Puzzles from the Lichess puzzle database (public domain).</p></div></div></div>'}
+// ---- openings, spaced repetition: learn a line with the moves shown, then practise it from memory. A clean practice
+// pushes the next one further away (1, 3, 7, 14, then 30 days); a mistake brings it back to tomorrow.
+var GAPS=[1,3,7,14,30];
+async function opStart(i,mode){var lib=await lrnLib();LRN.op={i:i,mode:mode,moves:LINES[i][2].split(" "),k:0,miss:0,msg:"",B:{ch:new lib.Chess(),flip:LINES[i][1]==="b"}};opNext()}
+function opMine(O){return(O.k%2===0)===(LINES[O.i][1]==="w")}
+function opNext(){var O=LRN.op,B=O.B;B.hint=null;if(O.k>=O.moves.length)return opDone();
+ if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;sfx("click");opNext()},O.k?500:350);return}
+ if(O.mode==="learn")opShow(O);lrnPaint()}
+function opShow(O){var m=new LRN.lib.Chess(O.B.ch.fen()).move(O.moves[O.k]);O.B.hint=[m.from,m.to]}
+function opMove(from,to,cands){var O=LRN.op,B=O.B,m=B.ch.move({from:from,to:to,promotion:cands[0].promotion&&"q"});
+ if(m.san!==O.moves[O.k]){B.ch.undo();O.miss++;opShow(O);O.msg="Not in this line. The right move is marked.";lrnWrong(B,to);return}
+ B.last={from:from,to:to};O.k++;O.msg="";sfx("click");opNext()}
+function opDone(){var O=LRN.op,L=LINES[O.i],all=lrnGet("luc-reps",{}),e=all[L[0]]||{box:0};O.done=1;
+ if(O.mode==="practice"){e.box=O.miss?0:Math.min(e.box+1,GAPS.length);e.due=Date.now()+GAPS[Math.max(e.box-1,0)]*864e5}else if(!e.due)e.due=Date.now();
+ e.learned=1;all[L[0]]=e;lrnSet("luc-reps",all);if(!O.miss){sfx("discover");burst(["📖","✨","♟️"])}lrnPaint()}
+function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
+ if(!O)return'<div class="card">'+LINES.map(function(L,i){var e=all[L[0]],st=!e?"New":e.due<=now?'<b style="color:#d97706">Due for practice</b>':"Next practice "+new Date(e.due).toLocaleDateString();
+  return'<div class="q"><span class="pchip '+L[1]+'" style="flex:none"></span><div><b>'+esc(L[0])+'</b><div class="mu">You play '+(L[1]==="w"?"white":"black")+" · "+Math.ceil(L[2].split(" ").length/2)+" moves · "+st+'</div></div><button class="'+(e?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(e?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div>'}).join("")+"</div>";
+ var L=LINES[O.i],list="";for(var j=0;j<O.k;j++)list+=(j%2?"":'<span class="mu">'+(j/2+1)+".</span> ")+esc(O.moves[j])+" ";
+ var head=O.done?(O.miss?"Line finished, with "+O.miss+" mistake"+(O.miss>1?"s":"")+".":"Line complete! 🎉")+(O.mode==="practice"?" Next practice "+(function(d){return d===1?"tomorrow":"in "+d+" days"})(GAPS[Math.max((all[L[0]]||{box:0}).box-1,0)])+".":" Now try it from memory with Practise.")
+  :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(L[0])+'</h2><p class="mu">'+(O.mode==="learn"?"Learning":"Practising")+" as "+(L[1]==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+"</p><p>"+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
+  +(O.done&&O.mode==="learn"?'<button data-la="op:'+O.i+':practice">Practise it now</button>':"")+'<button class="g" data-la="opagain">Start again</button><button class="g" data-la="opback">All openings</button></div></div></div></div>'}
 var TSTEPS=[
  {tab:"home",sel:".hero",t:"Welcome to Level Up Chess!",x:"This is you. Every rated game you play on chess.com earns XP here, and XP levels you up."},
  {tab:"home",sel:"#sy",up:".card",t:"Your chess.com games",x:"Your account is linked here. New games sync by themselves while the site is open, paying XP, coins and crafting materials."},
  {tab:"home",sel:".qs",t:"Quests",x:"Daily and weekly quests pay extra coins and materials. Finish one, then press Claim."},
- {tab:"home",click:'.nav[data-t="inv"]',t:"Your gear",x:"Click Inventory to see what you're carrying."},
+ {tab:"home",click:'.nav[data-t="learn"]',t:"Learn",x:"Click Learn."},
+ {tab:"learn",sel:"main .ptabs",t:"Get better at chess",x:"Solve puzzles and practise your openings here, a few minutes a day."},
+ {tab:"learn",click:'.nav[data-t="review"]',t:"Game review",x:"Click Review."},
+ {tab:"review",sel:"main .card",t:"Learn from your games",x:"Go through your games with a chess engine to find your best moves and your mistakes. Each full review earns XP."},
+ {tab:"review",click:'.nav[data-t="inv"]',t:"Your gear",x:"Click Inventory to see what you're carrying."},
  {tab:"inv",sub:"bag",sel:".eqs",up:".mc",t:"Equipment",x:"Equip gear to boost the XP and coins you earn. Wearing pieces from the same set adds a bonus."},
  {tab:"inv",sub:"bag",sel:".bag",up:".mc",t:"Your backpack",x:"Gear, crafting materials, potions and chests live here. Click anything to equip it, open it or use it."},
  {tab:"inv",sub:"bag",click:'[data-isub="craft"]',t:"Crafting",x:"Click Crafting."},
  {tab:"inv",sub:"craft",sel:".cg",up:".mc",t:"The crafting table",x:"Put materials into a shape to craft gear and potions. The shape decides what you make, so experiment!"},
  {tab:"inv",sub:"craft",sel:".rbook",up:".mc",t:"Recipe book",x:"Every pattern you discover is saved here. Hover a recipe for its name and click it to see the pattern again."},
- {tab:"inv",sub:"craft",click:'.nav[data-t="review"]',t:"Game review",x:"Click Review."},
- {tab:"review",sel:"main .card",t:"Learn from your games",x:"Go through your games with a chess engine to find your best moves and your mistakes. Each full review earns XP."},
- {tab:"review",click:'.nav[data-t="shop"]',t:"The shop",x:"Click Shop."},
+ {tab:"inv",sub:"craft",click:'.nav[data-t="shop"]',t:"The shop",x:"Click Shop."},
  {tab:"shop",sel:".mer",t:"The Wandering Merchant",x:"New offers every day, including gear you can't get anywhere else. Starter gear for coins is further down."},
  {tab:"shop",click:'.nav[data-t="ach"]',t:"Achievements",x:"Click Achievements."},
  {tab:"ach",sel:"main .grid",t:"Achievements",x:"Each one pays coins, and some unlock hints for secret recipes."},
@@ -696,7 +789,7 @@ function render(){render0();if(TUT.on)tutPlace();else if(S&&S.tutorial===0&&!TUT
 function render0(){var R=document.getElementById("root");
  if(!S){authView(R);return}
  // [tab, label, short label for the phone bar, icon]
- var N=[["home","Home","Home","home"],["inv","Inventory","Bag","bag"],["review","Review","Review","review"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInvPage,craft:vInvPage,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
+ var N=[["home","Home","Home","home"],["learn","Learn","Learn","learn"],["review","Review","Review","review"],["inv","Inventory","Bag","bag"],["shop","Shop","Shop","shop"],["ach","Achievements","Awards","trophy"],["ranks","Ranks","Ranks","ranks"],["social","Social","Social","social"],["profile","Profile","Me","profile"]].concat(S.admin?[["admin","Admin","Admin","admin"]]:[]),V={learn:vLearn,review:vReview,admin:vAdmin,social:vSocial,user:vUser,home:vHome,inv:vInvPage,craft:vInvPage,shop:vShop,ach:vAch,ranks:vRanks,profile:vProfile};
  if(tab==="craft"){tab="inv";invSub="craft"} // Crafting lives inside Inventory now
  setTheme(S.theme);setMode(S.mode);
  // daily things reset at the player's own midnight: tell the server this browser's time zone (once per visit)
@@ -821,6 +914,9 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-bg]")){rvOpen(null,b.dataset.bg);return}
  if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
  if(b=e.target.closest("[data-go]")){var go=b.dataset.go.split(":");tab=go[0];if(go[1])invSub=go[1];render();window.scrollTo(0,0);sfx("click");return}
+ if(b=e.target.closest("[data-lsq]")){lrnTap(b.dataset.lsq);return}
+ if(b=e.target.closest("[data-lsub]")){LRN.sub=b.dataset.lsub;render();sfx("click");return}
+ if(b=e.target.closest("[data-la]")){lrnAct(b.dataset.la);return}
  if(b=e.target.closest("[data-isub]")){invSub=b.dataset.isub;sel=null;render();sfx("click");return}
  if(b=e.target.closest("[data-if]")){invF=b.dataset.if;sfx("click");render();return}
  if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
