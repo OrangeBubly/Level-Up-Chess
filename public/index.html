@@ -107,7 +107,11 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
-.pb .bq{cursor:pointer}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
+.pb{touch-action:none}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
+.lstat{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 16px}.lstat b{display:block;font-size:19px;margin-top:2px}.lstat .bar{margin:6px 0 0}
+@media(max-width:600px){.lstat{grid-template-columns:1fr 1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.chips span{background:var(--p2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:12px}
+.stars{color:#f59e0b;letter-spacing:1px}.stars i{color:var(--bd);font-style:normal}html.fx .dlt{display:inline-block;animation:bdgPop .45s cubic-bezier(.2,1.8,.4,1)}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
 .bq.tg::before{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(20,40,10,.28);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:2%;border-radius:50%;border:5px solid rgba(20,40,10,.28);z-index:2}
 .ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
@@ -614,7 +618,7 @@ function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n
 // progress redraws while the engine works, at most about once a second
 function rvPaint(){var t=Date.now();if(tab==="review"&&RV.cur&&!RV.cur.done&&t-(RV.painted||0)>900){RV.painted=t;render()}}
 // how far the moved piece travels, in its own widths (a piece is 90% of a square, so one square is 111%)
-function slideBy(c,m){var f="abcdefgh",dx=f.indexOf(m.from[0])-f.indexOf(m.to[0]),dy=(+m.to[1])-(+m.from[1]);if(c.flip){dx=-dx;dy=-dy}return"--fx:"+(dx*111.1).toFixed(1)+"%;--fy:"+(dy*111.1).toFixed(1)+"%"}
+function slideBy(c,m){var f="abcdefgh",dx=f.indexOf(m.from[0])-f.indexOf(m.to[0]),dy=(+m.to[1])-(+m.from[1]);if(c.flip){dx=-dx;dy=-dy}return"--fx:"+(dx*104.17).toFixed(1)+"%;--fy:"+(dy*104.17).toFixed(1)+"%"}
 function rvBoard(c){c.slideNow=c.slideFor===c.ply;c.popNow=c.popFor===c.ply;c.slideFor=c.popFor=null;var fen=c.fens[c.ply].split(" ")[0].split("/"),sq=[],last=c.ply?c.moves[c.ply-1]:null,f="abcdefgh";
  // brilliant, best and blunder moves make the moved piece glow in the label colour
  var gl=c.ply&&["brilliant","best","blunder"].indexOf(c.cls[c.ply-1])>-1?c.cls[c.ply-1]:null;
@@ -672,21 +676,45 @@ var LRN={sub:"puz"};
 function lrnGet(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
 function lrnSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 async function lrnLib(){if(!LRN.lib)LRN.lib=await import("/vendor/chess/chess.js");return LRN.lib}
-function vLearn(){return'<h1>Learn</h1><p class="mu" style="margin:4px 0 8px">Get better at chess a few minutes at a time. This is a first version: your progress is saved in this browser only and doesn’t earn XP yet.</p><div class="tabs ptabs">'
+function vLearn(){return'<h1>Learn</h1><p class="mu" style="margin:4px 0 8px">Get better at chess a few minutes a day: solve puzzles, drill your openings, and keep your streak going. Your progress is saved in this browser and doesn’t earn XP yet.</p><div class="tabs ptabs">'
  +[["puz","🧩 Puzzles"],["open","📖 Openings"]].map(function(x){return'<button class="'+(LRN.sub===x[0]?"on":"")+'" data-lsub="'+x[0]+'">'+x[1]+"</button>"}).join("")+'</div><div id="lrn">'+lrnHTML()+"</div>"}
-function lrnHTML(){return LRN.sub==="puz"?pzHTML():opHTML()}
+function lrnHTML(){return lrnStats()+(LRN.sub==="puz"?pzHTML():opHTML())}
+// ---- the daily goal: LRN_GOAL finished puzzles or opening lines a day. Meeting it on days in a row builds a day streak ----
+var LRN_GOAL=5;
+function dayKey(t){return new Date(t||Date.now()).toLocaleDateString("en-CA")}
+function lrnDay(){var L=lrnGet("luc-learn",{}),t=dayKey();if(L.d!==t){L.d=t;L.n=0}if(L.g!==t&&L.g!==dayKey(Date.now()-864e5))L.s=0;return L}
+function lrnTick(){var L=lrnDay();L.n++;if(L.n===LRN_GOAL){L.s=(L.s||0)+1;L.g=L.d;setTimeout(function(){sfx("levelup");burst(["🎯","🔥","⭐"]);toast("🎯 Daily goal done! "+L.s+"-day streak"+(L.s>1?" 🔥":""))},700)}lrnSet("luc-learn",L)}
+function lrnStats(){var L=lrnDay(),s=pzStore(),n=Math.min(L.n||0,LRN_GOAL);
+ return'<div class="card lstat"><div><span class="mu">Today’s goal</span><b>'+(L.n||0)+" / "+LRN_GOAL+(L.n>=LRN_GOAL?" ✓":"")+'</b><div class="bar"><i style="width:'+n/LRN_GOAL*100+'%"></i></div></div>'
+  +'<div><span class="mu">Day streak</span><b>'+(L.s?"🔥 "+L.s:"–")+'</b></div><div><span class="mu">Puzzles in a row</span><b>'+(s.st?"⚡ "+s.st:"–")+'</b></div><div><span class="mu">Puzzle rating</span><b>'+s.r+"</b></div></div>"}
 function lrnPaint(){var el=document.getElementById("lrn");if(el&&tab==="learn")el.innerHTML=lrnHTML()}
-// a clickable board: click one of your pieces, then where it should go
-function lrnBoard(B,mini){var f="abcdefgh",pos=B.ch.board(),tg={},out="";
+// a playable board: click one of your pieces then where it should go, or drag it there. A new move slides into place,
+// except one you dragged (it is already where you dropped it).
+function lrnBoard(B,mini){var f="abcdefgh",pos=B.ch.board(),tg={},out="",lk=B.last?B.last.from+B.last.to:"",slide=!mini&&lk&&lk!==B.shown&&lk!==B.dragged;
+ if(!mini){B.shown=lk;B.dragged=null}
  if(B.sel)B.ch.moves({square:B.sel,verbose:true}).forEach(function(m){tg[m.to]=1});
  for(var r=0;r<8;r++)for(var c=0;c<8;c++){var rr=B.flip?7-r:r,cc=B.flip?7-c:c,n=f[cc]+(8-rr),p=pos[rr][cc],k="bq "+((rr+cc)%2?"dk":"lt");
   if(B.last&&(B.last.from===n||B.last.to===n))k+=" hl";if(B.hint&&B.hint.indexOf(n)>-1)k+=" hn";if(B.sel===n)k+=" sel";if(B.bad===n)k+=" bad";if(tg[n])k+=p?" tgx":" tg";
-  out+='<div class="'+k+'"'+(mini?"":' data-lsq="'+n+'"')+">"+(mini?"":coords(c,r,n))+(p?'<img class="pz" src="'+pieceSrc(p.color,p.type)+'" alt="" draggable="false">':"")+"</div>"}
+  out+='<div class="'+k+'"'+(mini?"":' data-lsq="'+n+'"')+">"+(mini?"":coords(c,r,n))+(p?'<img class="pz'+(slide&&n===B.last.to?' slide" style="'+slideBy(B,B.last):"")+'" src="'+pieceSrc(p.color,p.type)+'" alt="" draggable="false">':"")+"</div>"}
  return mini?'<div class="board">'+out+"</div>":'<div class="bwrap"><div class="board pb">'+out+"</div></div>"}
 function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B||B.lock)return;
  if(B.sel&&B.sel!==n){var mv=B.ch.moves({square:B.sel,verbose:true}).filter(function(m){return m.to===n});if(mv.length){var from=B.sel;B.sel=null;(LRN.sub==="puz"?pzMove:opMove)(from,n,mv);return}}
  var p=B.ch.get(n);B.sel=p&&p.color===B.ch.turn()&&B.sel!==n?n:null;lrnPaint()}
 function lrnWrong(B,sq){B.bad=sq;sfx("error");lrnPaint();setTimeout(function(){B.bad=null;lrnPaint()},450)}
+function lrnB(){return LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B}
+// dragging: press on one of your pieces, move, and let go over a square. A press without moving is left to the click handler.
+var DRAG=null;
+document.addEventListener("pointerdown",function(e){var sq=e.target.closest(".pb [data-lsq]"),B=lrnB();if(!sq||!B||B.lock||e.button>0)return;var p=B.ch.get(sq.dataset.lsq),img=sq.querySelector(".pz");
+ if(!p||p.color!==B.ch.turn()||!img)return;var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
+document.addEventListener("pointermove",function(e){if(!DRAG)return;if(!DRAG.ghost){if(Math.abs(e.clientX-DRAG.x)+Math.abs(e.clientY-DRAG.y)<6)return;
+  var B=lrnB();if(B.sel!==DRAG.from){B.sel=DRAG.from;lrnPaint();DRAG.img=document.querySelector('.pb [data-lsq="'+DRAG.from+'"] .pz')}
+  DRAG.ghost=DRAG.img.cloneNode();DRAG.ghost.className="pzdrag";DRAG.ghost.style.width=DRAG.ghost.style.height=DRAG.w+"px";document.body.appendChild(DRAG.ghost);DRAG.img.style.opacity=".25"}
+ DRAG.ghost.style.left=e.clientX-DRAG.w/2+"px";DRAG.ghost.style.top=e.clientY-DRAG.w/2+"px";e.preventDefault()});
+document.addEventListener("pointerup",function(e){var D=DRAG;DRAG=null;if(!D||!D.ghost)return;D.ghost.remove();D.img.style.opacity="";LRN.noClick=1;setTimeout(function(){LRN.noClick=0},50);
+ var el=document.elementFromPoint(e.clientX,e.clientY),sq=el&&el.closest(".pb [data-lsq]"),B=lrnB();if(!B)return;
+ if(sq&&sq.dataset.lsq!==D.from){B.sel=D.from;B.dragged=D.from+sq.dataset.lsq;lrnTap(sq.dataset.lsq);if(B.sel===sq.dataset.lsq){B.sel=null;lrnPaint()}}else lrnPaint()});
+// short praise for a right move or a solved puzzle
+function cheer(a){return a[Math.floor(Math.random()*a.length)]}
 function lrnAct(a){var x=a.split(":");
  if(x[0]==="hint")pzHint();else if(x[0]==="sol")pzSolve();else if(x[0]==="next"||x[0]==="pzretry"){LRN.pz=null;LRN.pzErr=0;lrnPaint()}
  else if(x[0]==="op")opStart(+x[1],x[2]);else if(x[0]==="opback"){LRN.op=null;lrnPaint()}else if(x[0]==="opretry"){LRN.repErr=0;lrnPaint()}
@@ -702,15 +730,17 @@ async function pzStart(){if(LRN.pzBusy)return;LRN.pzBusy=1;
  catch(e){LRN.pzErr=1}
  LRN.pzBusy=0;lrnPaint()}
 function pzScore(win){var P=LRN.pz;if(P.scored)return;P.scored=1;var s=pzStore(),e=1/(1+Math.pow(10,(P.p.rating-s.r)/400)),d=Math.round(32*((win?1:0)-e));
- s.r=Math.max(100,s.r+d);s.done[P.p.id]=win?1:0;if(win)s.n++;lrnSet("luc-puz",s);P.delta=d}
+ s.r=Math.max(100,s.r+d);s.done[P.p.id]=win?1:0;if(win)s.n++;s.st=win?(s.st||0)+1:0;s.best=Math.max(s.best||0,s.st);lrnSet("luc-puz",s);P.delta=d;P.streak=s.st}
 function pzMove(from,to,cands){var P=LRN.pz,B=P.B,want=P.p.moves[P.i],promo=want.slice(0,4)===from+to&&want[4]||cands[0].promotion&&"q";
  var mv=B.ch.move({from:from,to:to,promotion:promo||undefined});
  if(from+to+(promo||"")!==want&&!B.ch.isCheckmate()){B.ch.undo();pzScore(false);P.msg="Not that one. Try again, or ask for a hint.";lrnWrong(B,to);return}
  B.last={from:from,to:to};B.hint=null;P.i++;moveSfx(mv);pzReply()}
 // after a right move the other side answers, until the puzzle is finished
 function pzReply(){var P=LRN.pz,B=P.B;
- if(P.i>=P.p.moves.length||B.ch.isCheckmate()){if(P.state==="play"){P.state="won";pzScore(true);P.msg=P.delta>0?"Solved! 🎉":"Solved, but it took more than one try.";sfx("solve");if(P.delta>0)burst(["🧩","✨","⭐"])}else P.msg="That’s the solution. On to the next one!";lrnPaint();return}
- if(P.state==="play")P.msg="Good move! Keep going.";B.lock=true;lrnPaint();
+ if(P.i>=P.p.moves.length||B.ch.isCheckmate()){if(P.state==="play"){P.state="won";pzScore(true);lrnTick();var big=P.streak&&P.streak%5===0;
+   P.msg=P.delta>0?cheer(["Brilliant! 🎉","Great find! 🎉","Nailed it! 🎉","Excellent! 🎉","Solved! 🎉"])+(big?" "+P.streak+" in a row! ⚡":""):"Solved, but it took more than one try.";
+   sfx(big?"ach":"solve");if(P.delta>0)burst(big?["⚡","🔥","⭐","🧩"]:["🧩","✨","⭐"])}else P.msg="That’s the solution. On to the next one!";lrnPaint();return}
+ if(P.state==="play")P.msg=cheer(["Good move!","That’s it!","Nice! Keep going.","Correct! What’s next?"]);B.lock=true;lrnPaint();
  setTimeout(function(){if(LRN.pz!==P)return;var r=P.p.moves[P.i],mv=B.ch.move({from:r.slice(0,2),to:r.slice(2,4),promotion:r[4]});B.last={from:r.slice(0,2),to:r.slice(2,4)};P.i++;B.lock=false;moveSfx(mv);
   if(P.state==="shown")pzSolve();else if(P.i>=P.p.moves.length)pzReply();else lrnPaint()},500)}
 function pzHint(){var P=LRN.pz;if(!P||P.state!=="play"||P.B.lock)return;pzScore(false);var w=P.p.moves[P.i];P.B.hint=P.B.hint?[w.slice(0,2),w.slice(2,4)]:[w.slice(0,2)];P.msg=P.B.hint.length>1?"Move this piece to the marked square.":"Move the marked piece.";lrnPaint()}
@@ -721,19 +751,26 @@ function pzHTML(){var P=LRN.pz,s=pzStore();if(!P){if(LRN.pzErr)return'<div class
  var play=P.state==="play",btn=function(a,t,g){return'<button class="'+(g?"g":"")+'" data-la="'+a+'">'+t+"</button>"};
  return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(P.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+(play?(P.B.flip?"Black":"White")+" to move":P.state==="won"?"Solved ✓":"Solution")+"</h2>"
   +"<p>"+(P.msg||"Find the best move for "+(P.B.flip?"black":"white")+".")+"</p>"
-  +'<p class="mu">Puzzle rating '+P.p.rating+(play?"":" · "+esc(P.p.themes.join(", ")))+"</p>"
-  +'<div class="row">'+(play?btn("hint",P.B.hint?"Show where":"Hint",1)+btn("sol","Show solution",1):"")+btn("next",play?"Skip":"Next puzzle",play)+"</div></div>"
-  +'<div class="card" style="margin-top:14px"><h2>Your puzzles</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+s.r+(P.delta?' <span style="font-size:14px;color:'+(P.delta>0?"#16a34a":"#dc2626")+'">'+(P.delta>0?"+":"")+P.delta+"</span>":"")+'</b><span class="mu">Puzzle rating</span></div><div><b>'+s.n+'</b><span class="mu">Solved</span></div></div>'
-  +'<p class="mu" style="font-size:12px;margin:10px 0 0">Puzzles from the Lichess puzzle database (public domain).</p></div></div></div>'}
+  +'<p class="mu">Puzzle rating '+P.p.rating+(P.delta?' · <b class="dlt" style="color:'+(P.delta>0?"#16a34a":"#dc2626")+'">'+(P.delta>0?"+":"")+P.delta+" for you</b>":"")+"</p>"
+  +(play?"":'<div class="chips">'+P.p.themes.filter(function(t){return THEME_NAMES[t]}).map(function(t){return"<span>"+THEME_NAMES[t]+"</span>"}).join("")+"</div>")
+  +'<div class="row">'+(play?btn("hint",P.B.hint?"Show where":"Hint",1)+btn("sol","Show solution",1):"")+btn("next",play?"Skip":"Next puzzle ›",play)+"</div></div>"
+  +'<div class="card" style="margin-top:14px"><h2>Your puzzles</h2><div class="bn" style="grid-template-columns:1fr 1fr 1fr"><div><b>'+s.n+'</b><span class="mu">Solved</span></div><div><b>'+(s.st||0)+'</b><span class="mu">In a row</span></div><div><b>'+(s.best||0)+'</b><span class="mu">Best run</span></div></div>'
+  +'<p class="mu" style="font-size:12px;margin:10px 0 0">Tip: drag pieces or click them. Puzzles from the Lichess puzzle database (public domain).</p></div></div></div>'}
+// the puzzle themes worth showing after a solve, in plain words (the database has many more tags)
+var THEME_NAMES={mateIn1:"Mate in 1",mateIn2:"Mate in 2",mateIn3:"Mate in 3",mateIn4:"Mate in 4",mate:"Checkmate",fork:"Fork",pin:"Pin",skewer:"Skewer",discoveredAttack:"Discovered attack",doubleCheck:"Double check",
+ sacrifice:"Sacrifice",hangingPiece:"Free piece",trappedPiece:"Trapped piece",deflection:"Deflection",attraction:"Attraction",clearance:"Clearance",interference:"Interference",intermezzo:"In-between move",
+ xRayAttack:"X-ray",zugzwang:"Zugzwang",quietMove:"Quiet move",defensiveMove:"Defensive move",capturingDefender:"Remove the defender",backRankMate:"Back-rank mate",smotheredMate:"Smothered mate",
+ promotion:"Promotion",advancedPawn:"Advanced pawn",kingsideAttack:"Kingside attack",queensideAttack:"Queenside attack",exposedKing:"Exposed king",endgame:"Endgame",opening:"Opening",middlegame:"Middlegame",
+ rookEndgame:"Rook endgame",pawnEndgame:"Pawn endgame",queenEndgame:"Queen endgame",bishopEndgame:"Bishop endgame",knightEndgame:"Knight endgame",equality:"Hold the draw",crushing:"Winning",advantage:"Advantage"};
 // ---- openings: each opening is a repertoire of lines (public/learn/openings.json), one for each common reply by the other side.
-// Learn a line with the moves marked, then practise it from memory. Spaced repetition for every line: a clean practice pushes
+// Learn a line with the moves marked, then practice it from memory. Spaced repetition for every line: a clean practice pushes
 // its next one further away (1, 3, 7, 14, then 30 days); a mistake brings it back to tomorrow.
 var GAPS=[1,3,7,14,30],OP_SHOW=6;
 async function opLoad(){if(LRN.repBusy)return;LRN.repBusy=1;
  try{await lrnLib();LRN.reps=(await fetch("/learn/openings.json").then(function(r){return r.json()})).openings}catch(e){LRN.repErr=1}
  LRN.repBusy=0;lrnPaint()}
 function opKey(o,l){return o.name+" | "+l.name}
-// the next line: Learn takes the first one not learned yet, Practise the first one that is due, both counting on from line `after`
+// the next line: Learn takes the first one not learned yet, Practice the first one that is due, both counting on from line `after`
 function opPick(i,mode,after){var o=LRN.reps[i],all=lrnGet("luc-reps",{}),n=o.lines.length,now=Date.now(),order=[];for(var k=1;k<=n;k++)order.push((after+k+n)%n);
  var hit=order.filter(function(j){var e=all[opKey(o,o.lines[j])];return mode==="learn"?!e:e&&e.due<=now})[0];return hit==null?order[0]:hit}
 async function opStart(i,mode,j){await lrnLib();var o=LRN.reps[i];if(j==null)j=opPick(i,mode,-1);
@@ -750,25 +787,29 @@ function opMove(from,to,cands){var O=LRN.op,B=O.B,m=B.ch.move({from:from,to:to,p
  B.last={from:from,to:to};O.k++;O.msg="";moveSfx(m);opNext()}
 function opDone(){var O=LRN.op,o=LRN.reps[O.i],key=opKey(o,o.lines[O.j]),all=lrnGet("luc-reps",{}),e=all[key]||{box:0};O.done=1;
  if(O.mode==="practice"){e.box=O.miss?0:Math.min(e.box+1,GAPS.length);e.due=Date.now()+GAPS[Math.max(e.box-1,0)]*864e5}else if(!e.due)e.due=Date.now();
- e.learned=1;all[key]=e;lrnSet("luc-reps",all);if(!O.miss){sfx("solve");burst(["📖","✨","♟️"])}lrnPaint()}
+ e.learned=1;all[key]=e;lrnSet("luc-reps",all);lrnTick();if(!O.miss){sfx("solve");burst(["📖","✨","♟️"])}lrnPaint()}
+// mastery: each line earns a star for every clean practice in a row, up to five; an opening's mastery is its share of all stars
+function opStars(e){var n=e?e.box||0:0;return'<span class="stars" title="'+n+' of 5">'+"★★★★★".slice(0,n)+'<i>'+"★★★★★".slice(n)+"</i></span>"}
+function opMastery(o,all){var t=0;o.lines.forEach(function(l){var e=all[opKey(o,l)];t+=e?e.box||0:0});return Math.round(t/(o.lines.length*GAPS.length)*100)}
 function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
  if(!LRN.reps){if(LRN.repErr)return'<div class="card"><p>Couldn’t load the openings.</p><button data-la="opretry">Try again</button></div>';opLoad();return'<p class="mu">Loading openings…</p>'}
  if(!O)return'<div class="ogrid">'+LRN.reps.map(function(o,i){var n=o.lines.length,got=0,due=0;o.lines.forEach(function(l){var e=all[opKey(o,l)];if(e){got++;if(e.due<=now)due++}});
-   return'<div class="card ocard">'+opMini(o)+"<h3>"+esc(o.name)+'</h3><div class="mu">You play '+(o.side==="w"?"white":"black")+" · "+n+" lines<br>"+(got?got+" learned"+(due?' · <b style="color:#d97706">'+due+" due for practice</b>":""):"New")+'</div><div class="row"><button class="'+(got===n?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(got?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div></div>'}).join("")+"</div>";
+   var mp=opMastery(o,all);
+   return'<div class="card ocard">'+opMini(o)+"<h3>"+esc(o.name)+'</h3><div class="mu">You play '+(o.side==="w"?"white":"black")+" · "+n+" lines<br>"+(got?got+" of "+n+" learned"+(due?' · <b style="color:#d97706">'+due+" due</b>":""):"New")+'</div><div class="bar" title="Mastery"><i style="width:'+mp+'%"></i></div><div class="mu" style="font-size:12px">Mastery '+mp+'%</div><div class="row"><button class="'+(got===n?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(got?"":"g")+'" data-la="op:'+i+':practice">Practice</button></div></div>'}).join("")+"</div>";
  var o=LRN.reps[O.i],L=o.lines[O.j],e=all[opKey(o,L)],list="";for(var j=0;j<O.k;j++)list+=(j%2?"":'<span class="mu">'+(j/2+1)+".</span> ")+esc(O.moves[j])+" ";
  var head=O.done?(O.miss?"Line finished, with "+O.miss+" mistake"+(O.miss>1?"s":"")+".":"Line complete! 🎉")+(O.mode==="practice"?" Next practice "+(function(d){return d===1?"tomorrow":"in "+d+" days"})(GAPS[Math.max((e||{box:0}).box-1,0)])+".":"")
   :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");
- var lines=o.lines.map(function(l,j){var x=all[opKey(o,l)],st=!x?"New":x.due<=now?'<b style="color:#d97706">Due</b>':"✓";
+ var lines=o.lines.map(function(l,j){var x=all[opKey(o,l)],st=!x?"New":opStars(x)+(x.due<=now?' <b style="color:#d97706">Due</b>':"");
   return'<div class="q'+(j===O.j?" on":"")+'" style="padding:6px 4px"><div style="flex:1;min-width:0"><b>'+esc(l.name)+'</b><div class="mu" style="font-size:12px">'+st+'</div></div><button class="g" style="flex:none;padding:5px 10px" data-la="opj:'+j+'">'+(j===O.j?"Restart":"Play")+"</button></div>"}).join("");
- return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practising")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+"</p><p>"+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
-  +(O.done?'<button data-la="opnext">Next line</button>'+(O.mode==="learn"?'<button class="g" data-la="opmode">Practise this line</button>':""):"")+'<button class="g" data-la="opback">All openings</button></div></div>'
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practicing")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+'</p><div class="bar"><i style="width:'+Math.round(O.k/O.moves.length*100)+'%"></i></div><p>'+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
+  +(O.done?'<button data-la="opnext">Next line</button>'+(O.mode==="learn"?'<button class="g" data-la="opmode">Practice this line</button>':""):"")+'<button class="g" data-la="opback">All openings</button></div></div>'
   +'<div class="card" style="margin-top:14px"><h2>Lines ('+o.lines.length+')</h2>'+lines+"</div></div></div>"}
 var TSTEPS=[
  {tab:"home",sel:".hero",t:"Welcome to Level Up Chess!",x:"This is you. Every rated game you play on chess.com earns XP here, and XP levels you up."},
  {tab:"home",sel:"#sy",up:".card",t:"Your chess.com games",x:"Your account is linked here. New games sync by themselves while the site is open, paying XP, coins and crafting materials."},
  {tab:"home",sel:".qs",t:"Quests",x:"Daily and weekly quests pay extra coins and materials. Finish one, then press Claim."},
  {tab:"home",click:'.nav[data-t="learn"]',t:"Learn",x:"Click Learn."},
- {tab:"learn",sel:"main .ptabs",t:"Get better at chess",x:"Solve puzzles and practise your openings here, a few minutes a day."},
+ {tab:"learn",sel:"main .ptabs",t:"Get better at chess",x:"Solve puzzles and practice your openings here, a few minutes a day."},
  {tab:"learn",click:'.nav[data-t="review"]',t:"Game review",x:"Click Review."},
  {tab:"review",sel:"main .card",t:"Learn from your games",x:"Go through your games with a chess engine to find your best moves and your mistakes. Each full review earns XP."},
  {tab:"review",click:'.nav[data-t="inv"]',t:"Your gear",x:"Click Inventory to see what you're carrying."},
@@ -950,7 +991,7 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-bg]")){rvOpen(null,b.dataset.bg);return}
  if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
  if(b=e.target.closest("[data-go]")){var go=b.dataset.go.split(":");tab=go[0];if(go[1])invSub=go[1];render();window.scrollTo(0,0);sfx("click");return}
- if(b=e.target.closest("[data-lsq]")){lrnTap(b.dataset.lsq);return}
+ if(b=e.target.closest("[data-lsq]")){if(!LRN.noClick)lrnTap(b.dataset.lsq);return}
  if(b=e.target.closest("[data-lsub]")){LRN.sub=b.dataset.lsub;render();sfx("tab");return}
  if(b=e.target.closest("[data-la]")){lrnAct(b.dataset.la);return}
  if(b=e.target.closest("[data-isub]")){invSub=b.dataset.isub;sel=null;render();sfx("tab");return}
