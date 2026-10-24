@@ -113,7 +113,7 @@ a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.chips span{background:var(--p2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:12px}
 .stars{color:#f59e0b;letter-spacing:1px}.stars i{color:var(--bd);font-style:normal}html.fx .dlt{display:inline-block;animation:bdgPop .45s cubic-bezier(.2,1.8,.4,1)}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
 .bq.tg::before{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(20,40,10,.28);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:2%;border-radius:50%;border:5px solid rgba(20,40,10,.28);z-index:2}
-.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}.why{background:var(--p2);border-left:3px solid var(--bd);border-radius:6px;padding:8px 10px;margin:0 0 8px;font-size:14px}.why.next{border-left-color:#22c55e}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
 /* extra animations: only with <html class="fx"> */
 html.fx body{transition:background-color .3s}
@@ -778,9 +778,12 @@ function opKey(o,l){return o.name+" | "+l.name}
 function opPick(i,mode,after){var o=LRN.reps[i],all=lrnGet("luc-reps",{}),n=o.lines.length,now=Date.now(),order=[];for(var k=1;k<=n;k++)order.push((after+k+n)%n);
  var hit=order.filter(function(j){var e=all[opKey(o,o.lines[j])];return mode==="learn"?!e:e&&e.due<=now})[0];return hit==null?order[0]:hit}
 async function opStart(i,mode,j){await lrnLib();var o=LRN.reps[i];if(j==null)j=opPick(i,mode,-1);
- LRN.op={i:i,j:j,mode:mode,moves:o.lines[j].moves.split(" "),k:0,miss:0,msg:"",B:{ch:new LRN.lib.Chess(),flip:o.side==="b"}};opNext()}
+ LRN.op={i:i,j:j,mode:mode,moves:o.lines[j].moves.map(function(x){return x[0]}),k:0,miss:0,msg:"",B:{ch:new LRN.lib.Chess(),flip:o.side==="b"}};opNext()}
 // the card picture: the first OP_SHOW moves of the opening's first line, from the side you play
-function opMini(o){var ch=new LRN.lib.Chess(),m=null;o.lines[0].moves.split(" ").slice(0,OP_SHOW).forEach(function(x){m=ch.move(x)});return lrnBoard({ch:ch,flip:o.side==="b",last:m&&{from:m.from,to:m.to}},1)}
+function opMini(o){var ch=new LRN.lib.Chess(),m=null;o.lines[0].moves.slice(0,OP_SHOW).forEach(function(x){m=ch.move(x[0])});return lrnBoard({ch:ch,flip:o.side==="b",last:m&&{from:m.from,to:m.to}},1)}
+// why a move is played: each why is written once in openings.json, on the first line that reaches that move
+function opWhy(O,k){var o=LRN.reps[O.i];if(!o.why){o.why={};o.lines.forEach(function(l){var p=[];l.moves.forEach(function(x){p.push(x[0]);if(x[1])o.why[p.join(" ")]=x[1]})})}return o.why[O.moves.slice(0,k+1).join(" ")]||""}
+function opLabel(O,k){return(Math.floor(k/2)+1)+(k%2?"… ":". ")+O.moves[k]}
 function opMine(O){return(O.k%2===0)===(LRN.reps[O.i].side==="w")}
 function opNext(){var O=LRN.op,B=O.B;B.hint=null;if(O.k>=O.moves.length)return opDone();
  if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;moveSfx(m);opNext()},O.k?500:350);return}
@@ -805,7 +808,9 @@ function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
   :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");
  var lines=o.lines.map(function(l,j){var x=all[opKey(o,l)],st=!x?"New":opStars(x)+(x.due<=now?' <b style="color:#d97706">Due</b>':"");
   return'<div class="q'+(j===O.j?" on":"")+'" style="padding:6px 4px"><div style="flex:1;min-width:0"><b>'+esc(l.name)+'</b><div class="mu" style="font-size:12px">'+st+'</div></div><button class="g" style="flex:none;padding:5px 10px" data-la="opj:'+j+'">'+(j===O.j?"Restart":"Play")+"</button></div>"}).join("");
- return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practicing")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+'</p><div class="bar"><i style="width:'+Math.round(O.k/O.moves.length*100)+'%"></i></div><p>'+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practicing")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+'</p><div class="bar"><i style="width:'+Math.round(O.k/O.moves.length*100)+'%"></i></div><p>'+head+'</p>'
+  +(O.k?'<div class="why"><b>'+esc(opLabel(O,O.k-1))+"</b> "+esc(opWhy(O,O.k-1))+"</div>":"")
+  +(O.mode==="learn"&&!O.done&&opMine(O)?'<div class="why next"><b>Your move: '+esc(opLabel(O,O.k))+"</b> "+esc(opWhy(O,O.k))+"</div>":"")+'<p style="min-height:1.4em">'+list+'</p><div class="row">'
   +(O.done?'<button data-la="opnext">Next line</button>'+(O.mode==="learn"?'<button class="g" data-la="opmode">Practice this line</button>':""):"")+'<button class="g" data-la="opback">All openings</button></div></div>'
   +'<div class="card" style="margin-top:14px"><h2>Lines ('+o.lines.length+')</h2>'+lines+"</div></div></div>"}
 var TSTEPS=[

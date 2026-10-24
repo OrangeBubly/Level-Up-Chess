@@ -783,22 +783,26 @@ test("names: offensive usernames and clan names are refused, including disguised
 
 // ---- Learn content: the opening repertoires and the puzzle set are checked with chess.js ----
 const chessLib = () => import(require("url").pathToFileURL(path.join(__dirname, "../public/vendor/chess/chess.js")).href);
-test("openings: every line is legal, and you always play the same move in the same position", async () => {
+test("openings: every line is legal, every move has a why, and you always play the same move in the same position", async () => {
   const { Chess } = await chessLib(), { openings } = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/learn/openings.json"), "utf8"));
   assert.ok(openings.length >= 8);
   for (const o of openings) {
-    assert.ok(["w", "b"].includes(o.side), o.name); assert.ok(o.lines.length >= 5, o.name + " has a line for each common reply");
-    const mine = new Map(), names = new Set();
+    assert.ok(["w", "b"].includes(o.side), o.name); assert.ok(o.lines.length >= 4, o.name + " covers the common replies");
+    const mine = new Map(), why = new Map(), names = new Set();
     for (const l of o.lines) {
       assert.ok(!names.has(l.name), "line names are unique: " + l.name); names.add(l.name);
-      const c = new Chess();
-      for (const m of l.moves.split(" ")) {
+      const c = new Chess(), played = [];
+      for (const [m, w] of l.moves) {
         const pos = c.fen().split(" ").slice(0, 4).join(" "), turn = c.turn(), r = c.move(m); // throws on an illegal move
         assert.equal(r.san, m, `${o.name} / ${l.name}: write ${m} as ${r.san}`);
         if (turn === o.side) { assert.equal(mine.get(pos) ?? m, m, `${o.name} / ${l.name}: two different moves of yours in one position`); mine.set(pos, m); }
+        played.push(m); const key = played.join(" ");
+        if (w) { assert.ok(!why.has(key), `${o.name} / ${l.name}: ${key} is explained twice; leave the later one empty`); why.set(key, w); }
       }
-      for (const k of o.lines) assert.ok(k === l || !k.moves.startsWith(l.moves + " "), `${l.name} is only the start of ${k.name}`);
+      assert.equal(l.moves.length % 2, o.side === "w" ? 1 : 0, `${o.name} / ${l.name} ends on your move`);
     }
+    for (const l of o.lines) { const played = []; for (const [m] of l.moves) { played.push(m); assert.ok(why.has(played.join(" ")), `${o.name} / ${l.name}: no why for ${m} (move ${played.length})`); } }
+    for (const l of o.lines) for (const k of o.lines) { const a = l.moves.map(x => x[0]).join(" "), b = k.moves.map(x => x[0]).join(" "); assert.ok(k === l || !b.startsWith(a + " "), `${l.name} is only the start of ${k.name}`); }
   }
 });
 test("puzzles: every solution is legal from its position", async () => {

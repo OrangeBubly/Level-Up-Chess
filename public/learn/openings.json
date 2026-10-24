@@ -1,87 +1,466 @@
 {
-  "about": "Opening repertoires for the Learn tab. side is the colour you play. Every line starts from the first move. In any position where it is your move, all lines of one opening must play the same move (a test checks this, and that every move is legal).",
+  "about": "Opening repertoires for the Learn tab. side is the colour you play. Each line is a list of [move, why] pairs from the first move. A why is written once: when several lines share the same first moves, later lines leave those whys empty (\"\") and the trainer shows the first one. Tests check that every move is legal, that every move has a why, and that you always answer the same position with the same move.",
   "openings": [
     { "name": "Italian Game", "side": "w", "lines": [
-      { "name": "Giuoco Piano, main line", "moves": "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4 cxd4 Bb4+ Bd2 Bxd2+ Nbxd2 d5 exd5 Nxd5 Qb3" },
-      { "name": "Giuoco Piano, 6...Bb6", "moves": "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4 cxd4 Bb6 d5 Ne7 e5 Ng4 d6" },
-      { "name": "Giuoco Piano, 5...d6", "moves": "e4 e5 Nf3 Nc6 Bc4 Bc5 c3 d6 d4 exd4 cxd4 Bb6 Nc3 Nf6 O-O" },
-      { "name": "Two Knights Defense", "moves": "e4 e5 Nf3 Nc6 Bc4 Nf6 d4 exd4 O-O Nxe4 Re1 d5 Bxd5 Qxd5 Nc3 Qa5 Nxe4" },
-      { "name": "Hungarian Defense", "moves": "e4 e5 Nf3 Nc6 Bc4 Be7 d4 d6 d5 Nb8 Bd3 Nf6 c4" },
-      { "name": "Philidor Defense (2...d6)", "moves": "e4 e5 Nf3 d6 d4 exd4 Nxd4 Nf6 Nc3 Be7 Bc4 O-O O-O" },
-      { "name": "Petrov Defense (2...Nf6)", "moves": "e4 e5 Nf3 Nf6 Nxe5 d6 Nf3 Nxe4 d4 d5 Bd3 Nc6 O-O Be7 c4" }
+      { "name": "Giuoco Piano", "moves": [
+        ["e4", "Take the centre and open lines for your queen and light-squared bishop."],
+        ["e5", "Black claims an equal share of the centre."],
+        ["Nf3", "Develop a knight towards the centre and attack the e5 pawn."],
+        ["Nc6", "Black defends e5 while developing a piece."],
+        ["Bc4", "The Italian bishop aims at f7, the weakest square near Black's king."],
+        ["Bc5", "Black's bishop mirrors yours and aims at your f2."],
+        ["c3", "Prepare d4 to build a big pawn centre."],
+        ["Nf6", "Black develops and attacks your e4 pawn before d4 comes."],
+        ["d4", "Strike now: d4 hits e5 and the bishop on c5 is in the way."],
+        ["exd4", "Black takes rather than let you push them back."],
+        ["cxd4", "Recapture with the c-pawn to keep two strong pawns on d4 and e4."],
+        ["Bb4+", "The attacked bishop escapes with check."],
+        ["Bd2", "Block with a developing move. A bishop trade keeps your strong centre."]
+      ]},
+      { "name": "Giuoco Piano, 4...d6", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bc4", ""], ["Bc5", ""], ["c3", ""],
+        ["d6", "A solid choice: Black supports e5 instead of attacking e4."],
+        ["d4", "Take the centre anyway. Black's pieces are a little passive."],
+        ["exd4", "Black releases the tension."],
+        ["cxd4", "Again, keep two pawns side by side in the centre."],
+        ["Bb6", "The bishop steps back, still aiming at f2."],
+        ["Nc3", "Develop and defend e4. You have the centre and easy development."]
+      ]},
+      { "name": "Two Knights Defense", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bc4", ""],
+        ["Nf6", "The Two Knights: Black counter-attacks your e4 pawn straight away."],
+        ["d4", "Open the centre while Black's king is still in the middle."],
+        ["exd4", "Black takes the pawn."],
+        ["O-O", "Castle first. If Black grabs e4, your rook comes to e1 with an attack."],
+        ["Nxe4", "Black takes e4, but the knight now sits on the open e-file."],
+        ["Re1", "The rook attacks the knight along the open file."],
+        ["d5", "Black defends the knight with a pawn."],
+        ["Bxd5", "Take! If the queen recaptures, Nc3 hits the queen and the e4 knight, and you win your material back with a big lead in development."]
+      ]},
+      { "name": "Hungarian Defense", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bc4", ""],
+        ["Be7", "The Hungarian: a quiet, defensive bishop move."],
+        ["d4", "Use the free time to take the centre."],
+        ["d6", "Black holds on to e5."],
+        ["d5", "Gain space and push the c6 knight away."],
+        ["Nb8", "The knight retreats to reroute later."],
+        ["Bd3", "Protect e4 and keep your bishop safe. You have more space."]
+      ]},
+      { "name": "Philidor Defense (2...d6)", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""],
+        ["d6", "The Philidor: Black defends e5 with a pawn instead of a knight."],
+        ["d4", "Challenge e5 at once. Black's position is a bit cramped."],
+        ["exd4", "Black gives up the centre."],
+        ["Nxd4", "Recapture with the knight, which stands well in the centre."],
+        ["Nf6", "Black develops and attacks e4."],
+        ["Nc3", "Defend e4 with a developing move."],
+        ["Be7", "Black prepares to castle."],
+        ["Bc4", "Put the bishop on its best diagonal, aiming at f7, then castle."]
+      ]},
+      { "name": "Petrov Defense (2...Nf6)", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""],
+        ["Nf6", "The Petrov: Black ignores your threat and attacks e4 instead."],
+        ["Nxe5", "Take the pawn. Black wins it back, but you keep the initiative."],
+        ["d6", "Black kicks the knight first. Taking on e4 at once would run into Qe2."],
+        ["Nf3", "Retreat to the knight's best square."],
+        ["Nxe4", "Now Black wins the pawn back."],
+        ["d4", "Take the centre."],
+        ["d5", "Black supports the knight on e4."],
+        ["Bd3", "Develop and challenge that knight at once."]
+      ]}
     ]},
     { "name": "Ruy Lopez", "side": "w", "lines": [
-      { "name": "Closed Ruy Lopez", "moves": "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 d6 c3 O-O h3" },
-      { "name": "Marshall Attack", "moves": "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 O-O c3 d5 exd5 Nxd5 Nxe5 Nxe5 Rxe5 c6 d4" },
-      { "name": "Open Ruy Lopez", "moves": "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Nxe4 d4 b5 Bb3 d5 dxe5 Be6 c3" },
-      { "name": "Modern Steinitz (4...d6)", "moves": "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 d6 c3 Bd7 d4 Nf6 O-O Be7 Re1" },
-      { "name": "Berlin Defense", "moves": "e4 e5 Nf3 Nc6 Bb5 Nf6 O-O Nxe4 d4 Nd6 Bxc6 dxc6 dxe5 Nf5 Qxd8+ Kxd8 Nc3" },
-      { "name": "Steinitz Defense (3...d6)", "moves": "e4 e5 Nf3 Nc6 Bb5 d6 d4 Bd7 Nc3 Nf6 O-O Be7 Re1 exd4 Nxd4 O-O" },
-      { "name": "Schliemann Gambit (3...f5)", "moves": "e4 e5 Nf3 Nc6 Bb5 f5 Nc3 fxe4 Nxe4 d5 Nxe5 dxe4 Nxc6 Qg5 Qe2 Nf6 f4" }
+      { "name": "Closed Ruy Lopez", "moves": [
+        ["e4", "Take the centre and open lines for your queen and bishop."],
+        ["e5", "Black claims an equal share of the centre."],
+        ["Nf3", "Develop and attack e5."],
+        ["Nc6", "Black defends e5 with a knight."],
+        ["Bb5", "The Ruy Lopez: pressure the knight that defends e5."],
+        ["a6", "The Morphy Defense: Black asks the bishop what it wants."],
+        ["Ba4", "Keep the bishop and the pressure. Taking on c6 now doesn't win a pawn yet."],
+        ["Nf6", "Black develops and attacks e4."],
+        ["O-O", "Castle. e4 isn't really hanging: you can win it back with Re1."],
+        ["Be7", "Black prepares to castle."],
+        ["Re1", "Defend e4. Now Bxc6 followed by Nxe5 is a real threat."],
+        ["b5", "Black chases your bishop to end that threat."],
+        ["Bb3", "Retreat to a great diagonal, still aiming at f7."]
+      ]},
+      { "name": "Open Ruy Lopez", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bb5", ""], ["a6", ""], ["Ba4", ""], ["Nf6", ""], ["O-O", ""],
+        ["Nxe4", "The Open Ruy Lopez: Black grabs the pawn."],
+        ["d4", "Open the centre while Black's king is still uncastled. You'll win the pawn back with good play."]
+      ]},
+      { "name": "Berlin Defense", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bb5", ""],
+        ["Nf6", "The Berlin: Black counter-attacks e4 at once."],
+        ["O-O", "Castle and let Black take e4. You get it back with a lead in development."],
+        ["Nxe4", "Black takes the pawn."],
+        ["d4", "Open lines towards Black's king, still in the centre."],
+        ["Nd6", "The knight hits your bishop and gets out of the way."],
+        ["Bxc6", "Trade the bishop before it gets chased."],
+        ["dxc6", "Black recaptures towards the centre, freeing the bishops."],
+        ["dxe5", "Push the knight back. The queens usually come off next: the famous Berlin endgame."]
+      ]},
+      { "name": "Steinitz Defense (3...d6)", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bb5", ""],
+        ["d6", "The Steinitz: solid, but passive."],
+        ["d4", "Strike at e5. The c6 knight is pinned to Black's king, so it can't really defend."],
+        ["Bd7", "Black breaks the pin."],
+        ["Nc3", "Develop and add pressure. Black will soon have to give up the centre."]
+      ]},
+      { "name": "Classical Defense (3...Bc5)", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bb5", ""],
+        ["Bc5", "The Classical: the bishop takes its active diagonal."],
+        ["c3", "Prepare d4, hitting the bishop and building a centre."],
+        ["Nf6", "Black develops and attacks e4."],
+        ["O-O", "Castle. If Black takes e4, Re1 or Qe2 wins it back with the initiative."]
+      ]},
+      { "name": "Schliemann Gambit (3...f5)", "moves": [
+        ["e4", ""], ["e5", ""], ["Nf3", ""], ["Nc6", ""], ["Bb5", ""],
+        ["f5", "The Schliemann: a sharp counter-attack on e4."],
+        ["Nc3", "Develop and defend e4 calmly."],
+        ["fxe4", "Black takes anyway."],
+        ["Nxe4", "Recapture. The knight is very active."],
+        ["d5", "Black kicks the knight and grabs the centre."],
+        ["Nxe5", "Take e5! The c6 knight is pinned by your bishop, so it can't take back."]
+      ]}
     ]},
     { "name": "Queen's Gambit", "side": "w", "lines": [
-      { "name": "Queen's Gambit Declined", "moves": "d4 d5 c4 e6 Nc3 Nf6 Bg5 Be7 e3 O-O Nf3 h6 Bh4 b6 cxd5" },
-      { "name": "QGD, 4...Nbd7", "moves": "d4 d5 c4 e6 Nc3 Nf6 Bg5 Nbd7 e3 c6 Nf3 Qa5 Nd2" },
-      { "name": "Queen's Gambit Accepted", "moves": "d4 d5 c4 dxc4 Nf3 Nf6 e3 e6 Bxc4 c5 O-O a6 dxc5" },
-      { "name": "Slav Defense", "moves": "d4 d5 c4 c6 Nf3 Nf6 Nc3 dxc4 a4 Bf5 e3 e6 Bxc4 Bb4 O-O" },
-      { "name": "Semi-Slav", "moves": "d4 d5 c4 c6 Nf3 Nf6 Nc3 e6 e3 Nbd7 Bd3 dxc4 Bxc4 b5 Bd3" },
-      { "name": "Albin Countergambit", "moves": "d4 d5 c4 e5 dxe5 d4 Nf3 Nc6 g3 Be6 Nbd2 Qd7 Bg2" },
-      { "name": "Chigorin Defense", "moves": "d4 d5 c4 Nc6 Nf3 Bg4 cxd5 Bxf3 gxf3 Qxd5 e3 e5 Nc3 Bb4 Bd2" },
-      { "name": "Baltic Defense (2...Bf5)", "moves": "d4 d5 c4 Bf5 cxd5 Bxb1 Qa4+ c6 Rxb1 Qxd5 Nf3" }
+      { "name": "Queen's Gambit Declined", "moves": [
+        ["d4", "Take the centre. This pawn is protected by your queen."],
+        ["d5", "Black meets you in the centre."],
+        ["c4", "The Queen's Gambit: offer a pawn to pull Black's d-pawn away from the centre."],
+        ["e6", "Declined: Black supports d5 and keeps a strong centre."],
+        ["Nc3", "Develop and add pressure on d5."],
+        ["Nf6", "Black develops and defends d5 again."],
+        ["Bg5", "Pin the knight, one of d5's defenders."],
+        ["Be7", "Black breaks the pin."],
+        ["e3", "Open a path for your other bishop and support d4."],
+        ["O-O", "Black castles to safety."],
+        ["Nf3", "Develop the last knight. You castle next."]
+      ]},
+      { "name": "Queen's Gambit Accepted", "moves": [
+        ["d4", ""], ["d5", ""], ["c4", ""],
+        ["dxc4", "Accepted: Black takes the pawn and gives up the centre for now."],
+        ["Nf3", "Develop and stop ...e5. There's no rush to win the pawn back."],
+        ["Nf6", "Black develops."],
+        ["e3", "Open your bishop's diagonal towards c4."],
+        ["e6", "Black opens a path for the other bishop."],
+        ["Bxc4", "Win the pawn back with a well-placed bishop and a strong centre."]
+      ]},
+      { "name": "Slav Defense", "moves": [
+        ["d4", ""], ["d5", ""], ["c4", ""],
+        ["c6", "The Slav: Black supports d5 without blocking the c8 bishop."],
+        ["Nf3", "Develop the knight first."],
+        ["Nf6", "Black develops and defends d5."],
+        ["Nc3", "Develop and add pressure on d5."],
+        ["dxc4", "Now Black takes, hoping to hold the pawn with ...b5."],
+        ["a4", "Stop ...b5, so Black can't hold c4. You win it back soon."]
+      ]},
+      { "name": "Semi-Slav", "moves": [
+        ["d4", ""], ["d5", ""], ["c4", ""], ["c6", ""], ["Nf3", ""], ["Nf6", ""], ["Nc3", ""],
+        ["e6", "The Semi-Slav: a solid wall of pawns on c6, d5 and e6."],
+        ["e3", "Support d4 and get ready to develop your bishop to d3."]
+      ]},
+      { "name": "Albin Countergambit", "moves": [
+        ["d4", ""], ["d5", ""], ["c4", ""],
+        ["e5", "The Albin: a sharp pawn sacrifice."],
+        ["dxe5", "Take the pawn."],
+        ["d4", "Black's pawn on d4 cramps you."],
+        ["Nf3", "Develop and defend e5. Careful: e3 here walks into a famous trap."],
+        ["Nc6", "Black attacks e5 again."],
+        ["g3", "Fianchetto: your bishop on g2 will hit Black's queenside."]
+      ]},
+      { "name": "Chigorin Defense", "moves": [
+        ["d4", ""], ["d5", ""], ["c4", ""],
+        ["Nc6", "The Chigorin: Black fights for the centre with pieces."],
+        ["Nf3", "Develop and stop ...e5."],
+        ["Bg4", "Black pins the knight that controls e5."],
+        ["cxd5", "Take on d5 to grab the centre."],
+        ["Bxf3", "Black removes the knight first."],
+        ["gxf3", "Recapture towards the centre. You keep both bishops."],
+        ["Qxd5", "Black wins the pawn back."],
+        ["e3", "Defend d4 and free your light-squared bishop."]
+      ]}
     ]},
     { "name": "London System", "side": "w", "lines": [
-      { "name": "Against ...d5 and ...e6", "moves": "d4 d5 Bf4 Nf6 e3 e6 Nf3 c5 c3 Nc6 Nbd2 Bd6 Bg3 O-O Bd3" },
-      { "name": "Against an early ...c5", "moves": "d4 d5 Bf4 c5 e3 Nc6 c3 Nf6 Nd2 e6 Ngf3 Bd6 Bg3 O-O Bd3" },
-      { "name": "Against ...Bf5", "moves": "d4 d5 Bf4 Bf5 e3 e6 c4 Bb4+ Nc3 Nf6 Qb3 Nc6 Nf3" },
-      { "name": "Against the King's Indian setup", "moves": "d4 Nf6 Bf4 g6 e3 Bg7 Nf3 O-O Be2 d6 h3 Nbd7 O-O" },
-      { "name": "Against ...e6 and ...b6", "moves": "d4 Nf6 Bf4 e6 e3 b6 Nf3 Bb7 h3 Be7 Bd3 c5 c3 O-O Nbd2" },
-      { "name": "Against ...c5 and ...Qb6", "moves": "d4 Nf6 Bf4 c5 e3 Qb6 Nc3 e6 Nf3 d5 a3 Nc6 Be2" },
-      { "name": "Against the Dutch (1...f5)", "moves": "d4 f5 Bf4 Nf6 e3 e6 Nf3 Be7 h3 O-O Bd3 d6 c4" }
+      { "name": "Against ...d5 and ...e6", "moves": [
+        ["d4", "Take the centre."],
+        ["d5", "Black meets you in the centre."],
+        ["Bf4", "The London: develop this bishop before e3 locks it in."],
+        ["Nf6", "Black develops."],
+        ["e3", "Support d4 and free your other bishop."],
+        ["e6", "Black frees the f8 bishop."],
+        ["Nf3", "Develop and control e5."],
+        ["c5", "Black attacks your d4 pawn."],
+        ["c3", "Support d4 with a pawn: the London's solid pyramid."],
+        ["Nc6", "More pressure on d4."],
+        ["Nbd2", "Develop the last knight. It supports e4 and keeps c3 for the pawn."]
+      ]},
+      { "name": "Against an early ...c5", "moves": [
+        ["d4", ""], ["d5", ""], ["Bf4", ""],
+        ["c5", "Black hits the centre at once, hoping for ...Qb6 against b2."],
+        ["e3", "Calmly support d4 and free your bishop."],
+        ["Nc6", "More pressure on d4."],
+        ["c3", "Hold d4 with a pawn. Now b2 can be guarded by Qb3."],
+        ["Nf6", "Black develops."],
+        ["Nd2", "Develop, keeping f3 for the other knight."]
+      ]},
+      { "name": "Against ...Bf5", "moves": [
+        ["d4", ""], ["d5", ""], ["Bf4", ""],
+        ["Bf5", "Black copies you."],
+        ["e3", "Support d4 and free your bishop."],
+        ["e6", "Black does the same."],
+        ["c4", "Hit d5. Qb3 can follow, attacking b7 now that Black's bishop has left c8."]
+      ]},
+      { "name": "Against the King's Indian setup", "moves": [
+        ["d4", ""],
+        ["Nf6", "Black develops and stops e4."],
+        ["Bf4", "The London setup works against almost anything."],
+        ["g6", "Black plans ...Bg7."],
+        ["e3", "Support d4 and free your bishop."],
+        ["Bg7", "Black's bishop eyes the long diagonal."],
+        ["Nf3", "Develop and control e5."],
+        ["O-O", "Black castles."],
+        ["Be2", "Develop quietly and get ready to castle."],
+        ["d6", "Black prepares ...e5."],
+        ["h3", "Make a retreat square on h2 for your bishop, so ...e5 or ...Nh5 can't harass it."]
+      ]},
+      { "name": "Against ...e6 and ...b6", "moves": [
+        ["d4", ""], ["Nf6", ""], ["Bf4", ""],
+        ["e6", "Black plans a flexible setup."],
+        ["e3", "Support d4 and free your bishop."],
+        ["b6", "Black prepares ...Bb7 to control e4."],
+        ["Nf3", "Develop and control e5."],
+        ["Bb7", "Black's bishop eyes e4."],
+        ["h3", "Make a retreat square for your bishop and stop ...Nh5 or ...Ng4."]
+      ]},
+      { "name": "Against the Dutch (1...f5)", "moves": [
+        ["d4", ""],
+        ["f5", "The Dutch: Black controls e4 but loosens their king a little."],
+        ["Bf4", "Your London bishop still comes out first."],
+        ["Nf6", "Black develops and controls e4."],
+        ["e3", "Support d4."],
+        ["e6", "Black frees the f8 bishop."],
+        ["Nf3", "Develop and stop ...e5."]
+      ]}
     ]},
     { "name": "Sicilian Najdorf", "side": "b", "lines": [
-      { "name": "English Attack (6.Be3)", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Be3 e5 Nb3 Be6 f3 Be7 Qd2 O-O O-O-O Nbd7" },
-      { "name": "6.Bg5", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Bg5 e6 f4 Be7 Qf3 Qc7 O-O-O Nbd7" },
-      { "name": "6.Be2", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Be2 e5 Nb3 Be7 O-O O-O" },
-      { "name": "6.Bc4", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Bc4 e6 Bb3 b5 O-O Be7" },
-      { "name": "6.f3", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 f3 e5 Nb3 Be6 Be3 Be7" },
-      { "name": "6.h3", "moves": "e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 h3 e5 Nde2 h5 g3 Be6" },
-      { "name": "Moscow Variation (3.Bb5+)", "moves": "e4 c5 Nf3 d6 Bb5+ Bd7 Bxd7+ Qxd7 O-O Nc6 c3 Nf6 Re1 e6 d4 cxd4 cxd4 d5 e5 Ne4" },
-      { "name": "Alapin (2.c3)", "moves": "e4 c5 c3 Nf6 e5 Nd5 d4 cxd4 Nf3 Nc6 cxd4 d6 Bc4 Nb6 Bb5 dxe5 Nxe5 Bd7" },
-      { "name": "Closed Sicilian (2.Nc3)", "moves": "e4 c5 Nc3 d6 g3 Nc6 Bg2 g6 d3 Bg7 f4 e6 Nf3 Nge7 O-O O-O" },
-      { "name": "Grand Prix Attack", "moves": "e4 c5 Nc3 d6 f4 Nc6 Nf3 g6 Bb5 Bd7 O-O Bg7 d3 a6 Bxc6 Bxc6" },
-      { "name": "Smith-Morra Gambit", "moves": "e4 c5 d4 cxd4 c3 dxc3 Nxc3 Nc6 Nf3 d6 Bc4 e6 O-O Nf6 Qe2 Be7 Rd1 e5" }
+      { "name": "English Attack (6.Be3)", "moves": [
+        ["e4", "White takes the centre."],
+        ["c5", "The Sicilian: fight for d4 from the side and get an unbalanced game."],
+        ["Nf3", "White develops and prepares d4."],
+        ["d6", "Control e5 and open a path for your c8 bishop."],
+        ["d4", "White opens the centre."],
+        ["cxd4", "Trade your c-pawn for White's centre pawn. You'll have two centre pawns against one."],
+        ["Nxd4", "White recaptures with the knight."],
+        ["Nf6", "Develop and attack e4."],
+        ["Nc3", "White defends e4."],
+        ["a6", "The Najdorf: control b5 and prepare ...e5 or ...b5."],
+        ["Be3", "The English Attack: White plans f3, Qd2 and long castling."],
+        ["e5", "Kick the knight out of the centre and grab space."],
+        ["Nb3", "White's knight retreats."],
+        ["Be6", "Develop the bishop to a strong square, preparing ...d5 later."]
+      ]},
+      { "name": "6.Bg5", "moves": [
+        ["e4", ""], ["c5", ""], ["Nf3", ""], ["d6", ""], ["d4", ""], ["cxd4", ""], ["Nxd4", ""], ["Nf6", ""], ["Nc3", ""], ["a6", ""],
+        ["Bg5", "White pins your knight, planning f4 and a fast attack."],
+        ["e6", "Keep the knight protected and control d5 and f5."]
+      ]},
+      { "name": "6.Be2", "moves": [
+        ["e4", ""], ["c5", ""], ["Nf3", ""], ["d6", ""], ["d4", ""], ["cxd4", ""], ["Nxd4", ""], ["Nf6", ""], ["Nc3", ""], ["a6", ""],
+        ["Be2", "A calm move: White prepares to castle short."],
+        ["e5", "Against a quiet setup, gain space and chase the knight."]
+      ]},
+      { "name": "Moscow Variation (3.Bb5+)", "moves": [
+        ["e4", ""], ["c5", ""], ["Nf3", ""], ["d6", ""],
+        ["Bb5+", "The Moscow: White avoids the main lines with a check."],
+        ["Bd7", "Block with the bishop and offer a trade."],
+        ["Bxd7+", "White trades."],
+        ["Qxd7", "Recapture with the queen, so your knight can still go to c6."]
+      ]},
+      { "name": "Alapin (2.c3)", "moves": [
+        ["e4", ""], ["c5", ""],
+        ["c3", "The Alapin: White prepares d4 to build a full pawn centre."],
+        ["Nf6", "Attack e4 at once, before d4 comes."],
+        ["e5", "White pushes the knight away."],
+        ["Nd5", "The knight finds a great central square."],
+        ["d4", "White builds the centre."],
+        ["cxd4", "Trade to weaken White's centre."]
+      ]},
+      { "name": "Closed Sicilian (2.Nc3)", "moves": [
+        ["e4", ""], ["c5", ""],
+        ["Nc3", "The Closed Sicilian: White develops and avoids d4."],
+        ["d6", "Control e5 and keep your options open."],
+        ["g3", "White prepares to fianchetto."],
+        ["Nc6", "Develop and watch d4."],
+        ["Bg2", "White's bishop eyes the long diagonal."],
+        ["g6", "Mirror White: your bishop on g7 will fight for the long diagonal."]
+      ]},
+      { "name": "Smith-Morra Gambit", "moves": [
+        ["e4", ""], ["c5", ""],
+        ["d4", "White offers a pawn early."],
+        ["cxd4", "Take it: White's centre pawn is gone."],
+        ["c3", "The Smith-Morra: a second pawn for fast development."],
+        ["dxc3", "Accept. An extra pawn is worth it if you develop carefully."],
+        ["Nxc3", "White develops with open lines."],
+        ["Nc6", "Develop and control d4 and e5. Next come ...d6, ...e6 and ...Nf6."]
+      ]}
     ]},
     { "name": "Caro-Kann Defense", "side": "b", "lines": [
-      { "name": "Classical (4...Bf5)", "moves": "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7 Bd3 Bxd3 Qxd3 e6" },
-      { "name": "Classical, 6.N1e2", "moves": "e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 N1e2 Nf6 Nf4 e5 dxe5 Qxd1+ Kxd1 Nd5" },
-      { "name": "Advance Variation", "moves": "e4 c6 d4 d5 e5 Bf5 Nf3 e6 Be2 c5 Be3 Nd7 O-O Ne7 c4" },
-      { "name": "Advance, 4.Nc3", "moves": "e4 c6 d4 d5 e5 Bf5 Nc3 e6 g4 Bg6 Nge2 c5 h4 h5 Nf4 Bh7" },
-      { "name": "Exchange Variation", "moves": "e4 c6 d4 d5 exd5 cxd5 Bd3 Nc6 c3 Nf6 Bf4 Bg4 Qb3 Qd7 Nd2 e6" },
-      { "name": "Panov Attack", "moves": "e4 c6 d4 d5 exd5 cxd5 c4 Nf6 Nc3 e6 Nf3 Be7 cxd5 Nxd5 Bd3 Nc6 O-O O-O" },
-      { "name": "Two Knights (2.Nc3 and 3.Nf3)", "moves": "e4 c6 Nc3 d5 Nf3 Bg4 h3 Bxf3 Qxf3 e6 d4 Nf6 Bd3 dxe4 Nxe4 Qxd4 c3 Qd8" },
-      { "name": "Fantasy Variation (3.f3)", "moves": "e4 c6 d4 d5 f3 dxe4 fxe4 e5 Nf3 exd4 Bc4 Nf6 O-O Be7" },
-      { "name": "2.d3 (King's Indian Attack)", "moves": "e4 c6 d3 d5 Nd2 e5 Ngf3 Bd6 g3 Nf6 Bg2 O-O O-O" }
+      { "name": "Classical (4...Bf5)", "moves": [
+        ["e4", "White takes the centre."],
+        ["c6", "The Caro-Kann: prepare ...d5 so you can challenge e4 with a pawn behind it."],
+        ["d4", "White builds a big centre."],
+        ["d5", "Strike at e4, with the c6 pawn backing up d5."],
+        ["Nc3", "White defends e4 with a knight."],
+        ["dxe4", "Take: it removes White's e-pawn and frees your c8 bishop."],
+        ["Nxe4", "White recaptures."],
+        ["Bf5", "Develop the bishop outside your pawn chain, hitting the knight."],
+        ["Ng3", "White attacks your bishop."],
+        ["Bg6", "Retreat and stay on the good diagonal."],
+        ["h4", "White threatens h5 to trap your bishop."],
+        ["h6", "Give your bishop a safe square on h7."]
+      ]},
+      { "name": "Advance Variation", "moves": [
+        ["e4", ""], ["c6", ""], ["d4", ""], ["d5", ""],
+        ["e5", "The Advance: White grabs space."],
+        ["Bf5", "Get your bishop out before ...e6 locks it in."],
+        ["Nf3", "White develops."],
+        ["e6", "Now close the chain and prepare ...c5 to attack White's centre."]
+      ]},
+      { "name": "Exchange Variation", "moves": [
+        ["e4", ""], ["c6", ""], ["d4", ""], ["d5", ""],
+        ["exd5", "The Exchange: White opens the position."],
+        ["cxd5", "Recapture with the c-pawn to keep a pawn in the centre."],
+        ["Bd3", "White's bishop aims at h7."],
+        ["Nc6", "Develop and pressure d4."]
+      ]},
+      { "name": "Panov Attack", "moves": [
+        ["e4", ""], ["c6", ""], ["d4", ""], ["d5", ""], ["exd5", ""], ["cxd5", ""],
+        ["c4", "The Panov: White attacks d5 and plays for the initiative."],
+        ["Nf6", "Defend d5 and develop."],
+        ["Nc3", "White adds pressure on d5."],
+        ["e6", "Support d5 with a pawn and free your f8 bishop."]
+      ]},
+      { "name": "Two Knights (2.Nc3)", "moves": [
+        ["e4", ""], ["c6", ""],
+        ["Nc3", "White develops and defends e4."],
+        ["d5", "Challenge the centre as usual."],
+        ["Nf3", "The Two Knights: White develops both knights first."],
+        ["Bg4", "Pin the knight. You're happy to trade the bishop for it."]
+      ]},
+      { "name": "Fantasy Variation (3.f3)", "moves": [
+        ["e4", ""], ["c6", ""], ["d4", ""], ["d5", ""],
+        ["f3", "The Fantasy: White supports e4 with a pawn."],
+        ["dxe4", "Take and open the position."],
+        ["fxe4", "White recaptures and has a big centre."],
+        ["e5", "Strike back at once. White's centre is shaky without the f-pawn."]
+      ]}
     ]},
     { "name": "King's Indian Defense", "side": "b", "lines": [
-      { "name": "Classical", "moves": "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2 e5 O-O Nc6 d5 Ne7 Ne1 Nd7" },
-      { "name": "Classical, 7.d5 (Petrosian)", "moves": "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2 e5 d5 a5 Bg5 h6 Bh4 Na6" },
-      { "name": "Sämisch Variation", "moves": "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 f3 O-O Be3 e5 d5 Nh5 Qd2 f5" },
-      { "name": "Four Pawns Attack", "moves": "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 f4 O-O Nf3 c5 d5 e6 Be2 exd5 cxd5 Re8" },
-      { "name": "Averbakh Variation", "moves": "d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Be2 O-O Bg5 c5 d5 h6 Be3 e6" },
-      { "name": "Fianchetto Variation", "moves": "d4 Nf6 c4 g6 Nf3 Bg7 g3 O-O Bg2 d6 O-O Nbd7 Nc3 e5 e4 c6 h3" },
-      { "name": "Against the London (2.Bf4)", "moves": "d4 Nf6 Bf4 g6 e3 Bg7 Nf3 O-O Be2 d6 h3 c5 c3 Nc6 O-O" },
-      { "name": "Against 2.Nf3 and 3.e3", "moves": "d4 Nf6 Nf3 g6 e3 Bg7 Bd3 O-O O-O d6 c3 Nbd7" },
-      { "name": "Against the Trompowsky (2.Bg5)", "moves": "d4 Nf6 Bg5 Ne4 Bf4 c5 f3 Qa5+ c3 Nf6 d5 Qb6" }
+      { "name": "Classical", "moves": [
+        ["d4", "White takes the centre."],
+        ["Nf6", "Develop and stop e4 for now."],
+        ["c4", "White grabs more space."],
+        ["g6", "The King's Indian: let White build a centre, then attack it."],
+        ["Nc3", "White prepares e4."],
+        ["Bg7", "Your bishop on the long diagonal will hit White's centre."],
+        ["e4", "White builds a big pawn centre."],
+        ["d6", "Stop e5 and prepare your own ...e5."],
+        ["Nf3", "White develops."],
+        ["O-O", "Castle first, so your king is safe before the centre opens."],
+        ["Be2", "The Classical: White prepares to castle."],
+        ["e5", "Strike at the centre: the key King's Indian move."]
+      ]},
+      { "name": "Sämisch Variation", "moves": [
+        ["d4", ""], ["Nf6", ""], ["c4", ""], ["g6", ""], ["Nc3", ""], ["Bg7", ""], ["e4", ""], ["d6", ""],
+        ["f3", "The Sämisch: White supports e4 and may attack with g4 and h4."],
+        ["O-O", "Castle anyway. You'll hit back in the centre with ...e5 or ...c5."]
+      ]},
+      { "name": "Four Pawns Attack", "moves": [
+        ["d4", ""], ["Nf6", ""], ["c4", ""], ["g6", ""], ["Nc3", ""], ["Bg7", ""], ["e4", ""], ["d6", ""],
+        ["f4", "The Four Pawns: a huge centre, but it can become a target."],
+        ["O-O", "Castle quickly."],
+        ["Nf3", "White develops."],
+        ["c5", "Attack the centre from the side before White can push e5."]
+      ]},
+      { "name": "Fianchetto Variation", "moves": [
+        ["d4", ""], ["Nf6", ""], ["c4", ""], ["g6", ""],
+        ["Nf3", "White develops the king's knight first."],
+        ["Bg7", "Your bishop goes to the long diagonal."],
+        ["g3", "The Fianchetto: White's bishop will face yours."],
+        ["O-O", "Castle."],
+        ["Bg2", "White's bishop takes the long diagonal."],
+        ["d6", "Prepare ...e5, the usual plan."]
+      ]},
+      { "name": "Against the London (2.Bf4)", "moves": [
+        ["d4", ""], ["Nf6", ""],
+        ["Bf4", "The London: White's bishop comes out early."],
+        ["g6", "Stick to your King's Indian setup."],
+        ["e3", "White supports d4."],
+        ["Bg7", "Your bishop goes to the long diagonal."],
+        ["Nf3", "White develops."],
+        ["O-O", "Castle. Later, ...d6 and ...c5 or ...e5 challenge the centre."]
+      ]},
+      { "name": "Against the Trompowsky (2.Bg5)", "moves": [
+        ["d4", ""], ["Nf6", ""],
+        ["Bg5", "The Trompowsky: White threatens Bxf6 to double your pawns."],
+        ["Ne4", "Step away and hit the bishop, keeping your pawns healthy."],
+        ["Bf4", "White's bishop retreats."],
+        ["c5", "Strike at d4. White's b2 pawn can become a target."]
+      ]}
     ]},
     { "name": "Scandinavian Defense", "side": "b", "lines": [
-      { "name": "Main line (3.Nc3 Qa5)", "moves": "e4 d5 exd5 Qxd5 Nc3 Qa5 d4 Nf6 Nf3 Bf5 Bc4 e6 Bd2 c6" },
-      { "name": "3.Nc3 Qa5 4.Nf3", "moves": "e4 d5 exd5 Qxd5 Nc3 Qa5 Nf3 Nf6 d4 Bf5 Bd2 c6 Bc4 e6" },
-      { "name": "3.Nc3 Qa5 4.Bc4", "moves": "e4 d5 exd5 Qxd5 Nc3 Qa5 Bc4 Nf6 d3 c6 Bd2 Bf5 Nge2 e6" },
-      { "name": "3.Nf3", "moves": "e4 d5 exd5 Qxd5 Nf3 Nf6 d4 Bf5 c4 Qa5+ Nc3 e6" },
-      { "name": "3.d4", "moves": "e4 d5 exd5 Qxd5 d4 Nf6 Nf3 Bf5 c4 Qa5+ Nc3 e6" },
-      { "name": "Advance (2.e5)", "moves": "e4 d5 e5 Bf5 d4 e6 Nf3 c5 c3 Nc6 Be2 Qb6 O-O" },
-      { "name": "2.Nc3", "moves": "e4 d5 Nc3 d4 Nce2 e5 Ng3 Be6 Nf3 Nd7" },
-      { "name": "Blackmar-Diemer Gambit (2.d4)", "moves": "e4 d5 d4 dxe4 Nc3 Nf6 f3 exf3 Nxf3 Bg4 h3 Bxf3 Qxf3 c6 Be3 e6" }
+      { "name": "Main line (3.Nc3 Qa5)", "moves": [
+        ["e4", "White takes the centre."],
+        ["d5", "The Scandinavian: challenge e4 straight away."],
+        ["exd5", "White takes."],
+        ["Qxd5", "Win the pawn back with your queen."],
+        ["Nc3", "White develops and attacks your queen."],
+        ["Qa5", "A safe square where the queen pins the c3 knight."],
+        ["d4", "White takes the centre."],
+        ["Nf6", "Develop and guard your kingside."],
+        ["Nf3", "White develops."],
+        ["Bf5", "Develop the bishop outside your pawns before ...e6 and ...c6."]
+      ]},
+      { "name": "3.Nc3 Qa5 4.Nf3", "moves": [
+        ["e4", ""], ["d5", ""], ["exd5", ""], ["Qxd5", ""], ["Nc3", ""], ["Qa5", ""],
+        ["Nf3", "White develops the knight first."],
+        ["Nf6", "Develop, then ...Bf5 or ...Bg4."]
+      ]},
+      { "name": "3.Nf3", "moves": [
+        ["e4", ""], ["d5", ""], ["exd5", ""], ["Qxd5", ""],
+        ["Nf3", "White develops instead of chasing your queen."],
+        ["Nf6", "Develop calmly."],
+        ["d4", "White takes the centre."],
+        ["Bf5", "Develop the bishop outside your pawns."]
+      ]},
+      { "name": "Advance (2.e5)", "moves": [
+        ["e4", ""], ["d5", ""],
+        ["e5", "White avoids the exchange and grabs space."],
+        ["Bf5", "Get the bishop out before ...e6 locks it in."],
+        ["d4", "White supports e5."],
+        ["e6", "Build a solid chain and prepare ...c5."]
+      ]},
+      { "name": "2.Nc3", "moves": [
+        ["e4", ""], ["d5", ""],
+        ["Nc3", "White defends e4 instead of taking."],
+        ["d4", "Gain space by kicking the knight."],
+        ["Nce2", "The knight retreats."],
+        ["e5", "Support d4 and claim the centre."]
+      ]},
+      { "name": "Blackmar-Diemer Gambit (2.d4)", "moves": [
+        ["e4", ""], ["d5", ""],
+        ["d4", "The Blackmar-Diemer: White offers a pawn."],
+        ["dxe4", "Take it."],
+        ["Nc3", "White develops and attacks e4."],
+        ["Nf6", "Defend the pawn while developing."],
+        ["f3", "White offers it for fast development and an open f-file."],
+        ["exf3", "Accept: the most testing reply."],
+        ["Nxf3", "White recaptures with a lead in development."],
+        ["Bg4", "Develop and pin the knight to slow White's attack."]
+      ]}
     ]}
   ]
 }
