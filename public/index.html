@@ -107,13 +107,13 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
-.pb{touch-action:none}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
+.pb{touch-action:none;user-select:none;-webkit-user-select:none}body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
 .lstat{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 16px}.lstat b{display:block;font-size:19px;margin-top:2px}.lstat .bar{margin:6px 0 0}
 @media(max-width:600px){.lstat{grid-template-columns:1fr 1fr}}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.chips span{background:var(--p2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:12px}
 .stars{color:#f59e0b;letter-spacing:1px}.stars i{color:var(--bd);font-style:normal}html.fx .dlt{display:inline-block;animation:bdgPop .45s cubic-bezier(.2,1.8,.4,1)}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
 .bq.tg::before{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(20,40,10,.28);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:2%;border-radius:50%;border:5px solid rgba(20,40,10,.28);z-index:2}
-.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}.why{background:var(--p2);border-left:3px solid var(--bd);border-radius:6px;padding:8px 10px;margin:0 0 8px;font-size:14px}.why.next{border-left-color:#22c55e}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
 /* extra animations: only with <html class="fx"> */
 html.fx body{transition:background-color .3s}
@@ -221,8 +221,12 @@ function icoSrc(t,id){var k=t+":"+id,a=artId(t,id);return CAT&&CAT.art&&CAT.art[
 function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
 /* ---------- sounds: made in the browser with the Web Audio API (no sound files), or your own files from assets/sfx ---------- */
 var AC=null,OUT=null,NOISE=null;
-function ac(){if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
- if(AC.state==="suspended")AC.resume();return AC}
+// The browser keeps page audio off until the player clicks or presses a key. A sound asked for before that (say, the
+// auto-sync chime while the page loads) would wait and then burst out at some later click, so it is dropped instead.
+// Sounds are also skipped while the tab is hidden.
+function ac(){var ua=navigator.userActivation;if(document.hidden)return null;
+ if(!AC){if(ua&&!ua.hasBeenActive)return null;var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
+ if(AC.state!=="running"){if(ua&&!ua.isActive)return null;AC.resume()}return AC}
 // one note: o = {f: pitch, f2: pitch to glide to, d: length, at: delay, v: volume, a: attack, type: wave shape}
 function note(o){var a=ac();if(!a)return;var t=a.currentTime+(o.at||0),osc=a.createOscillator(),g=a.createGain();osc.type=o.type||"sine";osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.d);
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(o.v||.1,t+(o.a||.004));g.gain.exponentialRampToValueAtTime(.0001,t+o.d);osc.connect(g);g.connect(OUT);osc.start(t);osc.stop(t+o.d+.02)}
@@ -705,14 +709,15 @@ function lrnB(){return LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B}
 // dragging: press on one of your pieces, move, and let go over a square. A press without moving is left to the click handler.
 var DRAG=null;
 document.addEventListener("pointerdown",function(e){var sq=e.target.closest(".pb [data-lsq]"),B=lrnB();if(!sq||!B||B.lock||e.button>0)return;var p=B.ch.get(sq.dataset.lsq),img=sq.querySelector(".pz");
- if(!p||p.color!==B.ch.turn()||!img)return;var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
+ if(!p||p.color!==B.ch.turn()||!img)return;e.preventDefault();var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
 document.addEventListener("pointermove",function(e){if(!DRAG)return;if(!DRAG.ghost){if(Math.abs(e.clientX-DRAG.x)+Math.abs(e.clientY-DRAG.y)<6)return;
   var B=lrnB();if(B.sel!==DRAG.from){B.sel=DRAG.from;lrnPaint();DRAG.img=document.querySelector('.pb [data-lsq="'+DRAG.from+'"] .pz')}
-  DRAG.ghost=DRAG.img.cloneNode();DRAG.ghost.className="pzdrag";DRAG.ghost.style.width=DRAG.ghost.style.height=DRAG.w+"px";document.body.appendChild(DRAG.ghost);DRAG.img.style.opacity=".25"}
+  DRAG.ghost=DRAG.img.cloneNode();DRAG.ghost.className="pzdrag";DRAG.ghost.style.width=DRAG.ghost.style.height=DRAG.w+"px";document.body.appendChild(DRAG.ghost);DRAG.img.style.opacity=".25";document.body.classList.add("dragging");var gs=window.getSelection&&window.getSelection();if(gs)gs.removeAllRanges()}
  DRAG.ghost.style.left=e.clientX-DRAG.w/2+"px";DRAG.ghost.style.top=e.clientY-DRAG.w/2+"px";e.preventDefault()});
-document.addEventListener("pointerup",function(e){var D=DRAG;DRAG=null;if(!D||!D.ghost)return;D.ghost.remove();D.img.style.opacity="";LRN.noClick=1;setTimeout(function(){LRN.noClick=0},50);
+document.addEventListener("pointerup",function(e){var D=DRAG;DRAG=null;document.body.classList.remove("dragging");if(!D||!D.ghost)return;D.ghost.remove();D.img.style.opacity="";LRN.noClick=1;setTimeout(function(){LRN.noClick=0},50);
  var el=document.elementFromPoint(e.clientX,e.clientY),sq=el&&el.closest(".pb [data-lsq]"),B=lrnB();if(!B)return;
  if(sq&&sq.dataset.lsq!==D.from){B.sel=D.from;B.dragged=D.from+sq.dataset.lsq;lrnTap(sq.dataset.lsq);if(B.sel===sq.dataset.lsq){B.sel=null;lrnPaint()}}else lrnPaint()});
+document.addEventListener("pointercancel",function(){document.body.classList.remove("dragging");if(DRAG&&DRAG.ghost){DRAG.ghost.remove();DRAG.img.style.opacity=""}DRAG=null});
 // short praise for a right move or a solved puzzle
 function cheer(a){return a[Math.floor(Math.random()*a.length)]}
 function lrnAct(a){var x=a.split(":");
@@ -774,9 +779,12 @@ function opKey(o,l){return o.name+" | "+l.name}
 function opPick(i,mode,after){var o=LRN.reps[i],all=lrnGet("luc-reps",{}),n=o.lines.length,now=Date.now(),order=[];for(var k=1;k<=n;k++)order.push((after+k+n)%n);
  var hit=order.filter(function(j){var e=all[opKey(o,o.lines[j])];return mode==="learn"?!e:e&&e.due<=now})[0];return hit==null?order[0]:hit}
 async function opStart(i,mode,j){await lrnLib();var o=LRN.reps[i];if(j==null)j=opPick(i,mode,-1);
- LRN.op={i:i,j:j,mode:mode,moves:o.lines[j].moves.split(" "),k:0,miss:0,msg:"",B:{ch:new LRN.lib.Chess(),flip:o.side==="b"}};opNext()}
+ LRN.op={i:i,j:j,mode:mode,moves:o.lines[j].moves.map(function(x){return x[0]}),k:0,miss:0,msg:"",B:{ch:new LRN.lib.Chess(),flip:o.side==="b"}};opNext()}
 // the card picture: the first OP_SHOW moves of the opening's first line, from the side you play
-function opMini(o){var ch=new LRN.lib.Chess(),m=null;o.lines[0].moves.split(" ").slice(0,OP_SHOW).forEach(function(x){m=ch.move(x)});return lrnBoard({ch:ch,flip:o.side==="b",last:m&&{from:m.from,to:m.to}},1)}
+function opMini(o){var ch=new LRN.lib.Chess(),m=null;o.lines[0].moves.slice(0,OP_SHOW).forEach(function(x){m=ch.move(x[0])});return lrnBoard({ch:ch,flip:o.side==="b",last:m&&{from:m.from,to:m.to}},1)}
+// why a move is played: each why is written once in openings.json, on the first line that reaches that move
+function opWhy(O,k){var o=LRN.reps[O.i];if(!o.why){o.why={};o.lines.forEach(function(l){var p=[];l.moves.forEach(function(x){p.push(x[0]);if(x[1])o.why[p.join(" ")]=x[1]})})}return o.why[O.moves.slice(0,k+1).join(" ")]||""}
+function opLabel(O,k){return(Math.floor(k/2)+1)+(k%2?"… ":". ")+O.moves[k]}
 function opMine(O){return(O.k%2===0)===(LRN.reps[O.i].side==="w")}
 function opNext(){var O=LRN.op,B=O.B;B.hint=null;if(O.k>=O.moves.length)return opDone();
  if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;moveSfx(m);opNext()},O.k?500:350);return}
@@ -801,7 +809,9 @@ function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
   :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");
  var lines=o.lines.map(function(l,j){var x=all[opKey(o,l)],st=!x?"New":opStars(x)+(x.due<=now?' <b style="color:#d97706">Due</b>':"");
   return'<div class="q'+(j===O.j?" on":"")+'" style="padding:6px 4px"><div style="flex:1;min-width:0"><b>'+esc(l.name)+'</b><div class="mu" style="font-size:12px">'+st+'</div></div><button class="g" style="flex:none;padding:5px 10px" data-la="opj:'+j+'">'+(j===O.j?"Restart":"Play")+"</button></div>"}).join("");
- return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practicing")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+'</p><div class="bar"><i style="width:'+Math.round(O.k/O.moves.length*100)+'%"></i></div><p>'+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practicing")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+'</p><div class="bar"><i style="width:'+Math.round(O.k/O.moves.length*100)+'%"></i></div><p>'+head+'</p>'
+  +(O.k?'<div class="why"><b>'+esc(opLabel(O,O.k-1))+"</b> "+esc(opWhy(O,O.k-1))+"</div>":"")
+  +(O.mode==="learn"&&!O.done&&opMine(O)?'<div class="why next"><b>Your move: '+esc(opLabel(O,O.k))+"</b> "+esc(opWhy(O,O.k))+"</div>":"")+'<p style="min-height:1.4em">'+list+'</p><div class="row">'
   +(O.done?'<button data-la="opnext">Next line</button>'+(O.mode==="learn"?'<button class="g" data-la="opmode">Practice this line</button>':""):"")+'<button class="g" data-la="opback">All openings</button></div></div>'
   +'<div class="card" style="margin-top:14px"><h2>Lines ('+o.lines.length+')</h2>'+lines+"</div></div></div>"}
 var TSTEPS=[
