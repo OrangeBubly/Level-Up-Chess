@@ -107,7 +107,7 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
-.pb{touch-action:none}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
+.pb{touch-action:none;user-select:none;-webkit-user-select:none}body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
 .lstat{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 16px}.lstat b{display:block;font-size:19px;margin-top:2px}.lstat .bar{margin:6px 0 0}
 @media(max-width:600px){.lstat{grid-template-columns:1fr 1fr}}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.chips span{background:var(--p2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:12px}
@@ -709,14 +709,15 @@ function lrnB(){return LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B}
 // dragging: press on one of your pieces, move, and let go over a square. A press without moving is left to the click handler.
 var DRAG=null;
 document.addEventListener("pointerdown",function(e){var sq=e.target.closest(".pb [data-lsq]"),B=lrnB();if(!sq||!B||B.lock||e.button>0)return;var p=B.ch.get(sq.dataset.lsq),img=sq.querySelector(".pz");
- if(!p||p.color!==B.ch.turn()||!img)return;var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
+ if(!p||p.color!==B.ch.turn()||!img)return;e.preventDefault();var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
 document.addEventListener("pointermove",function(e){if(!DRAG)return;if(!DRAG.ghost){if(Math.abs(e.clientX-DRAG.x)+Math.abs(e.clientY-DRAG.y)<6)return;
   var B=lrnB();if(B.sel!==DRAG.from){B.sel=DRAG.from;lrnPaint();DRAG.img=document.querySelector('.pb [data-lsq="'+DRAG.from+'"] .pz')}
-  DRAG.ghost=DRAG.img.cloneNode();DRAG.ghost.className="pzdrag";DRAG.ghost.style.width=DRAG.ghost.style.height=DRAG.w+"px";document.body.appendChild(DRAG.ghost);DRAG.img.style.opacity=".25"}
+  DRAG.ghost=DRAG.img.cloneNode();DRAG.ghost.className="pzdrag";DRAG.ghost.style.width=DRAG.ghost.style.height=DRAG.w+"px";document.body.appendChild(DRAG.ghost);DRAG.img.style.opacity=".25";document.body.classList.add("dragging");var gs=window.getSelection&&window.getSelection();if(gs)gs.removeAllRanges()}
  DRAG.ghost.style.left=e.clientX-DRAG.w/2+"px";DRAG.ghost.style.top=e.clientY-DRAG.w/2+"px";e.preventDefault()});
-document.addEventListener("pointerup",function(e){var D=DRAG;DRAG=null;if(!D||!D.ghost)return;D.ghost.remove();D.img.style.opacity="";LRN.noClick=1;setTimeout(function(){LRN.noClick=0},50);
+document.addEventListener("pointerup",function(e){var D=DRAG;DRAG=null;document.body.classList.remove("dragging");if(!D||!D.ghost)return;D.ghost.remove();D.img.style.opacity="";LRN.noClick=1;setTimeout(function(){LRN.noClick=0},50);
  var el=document.elementFromPoint(e.clientX,e.clientY),sq=el&&el.closest(".pb [data-lsq]"),B=lrnB();if(!B)return;
  if(sq&&sq.dataset.lsq!==D.from){B.sel=D.from;B.dragged=D.from+sq.dataset.lsq;lrnTap(sq.dataset.lsq);if(B.sel===sq.dataset.lsq){B.sel=null;lrnPaint()}}else lrnPaint()});
+document.addEventListener("pointercancel",function(){document.body.classList.remove("dragging");if(DRAG&&DRAG.ghost){DRAG.ghost.remove();DRAG.img.style.opacity=""}DRAG=null});
 // short praise for a right move or a solved puzzle
 function cheer(a){return a[Math.floor(Math.random()*a.length)]}
 function lrnAct(a){var x=a.split(":");
