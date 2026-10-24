@@ -53,7 +53,7 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgb(var(--acr)
 .sl.sil .px{filter:brightness(0) opacity(.55)}.sl.big{width:72px;height:72px}.sl.big .px{width:48px;height:48px}
 .bag{display:grid;grid-template-columns:repeat(6,56px);gap:4px;justify-content:start}
 .eqs{display:grid;grid-template-columns:repeat(2,56px);gap:4px 10px}.eqs div{display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--mu);letter-spacing:1px}
-.cg{display:grid;grid-template-columns:repeat(3,70px);gap:4px}.cg .sl{width:70px;height:70px}.cg .px{width:46px;height:46px}
+.cg{display:grid;grid-template-columns:repeat(3,70px);gap:4px}.cg .sl{width:70px;height:70px}.cg .px{width:46px;height:46px}.cg.mini{grid-template-columns:repeat(3,56px);margin:10px 0}.cg.mini .sl{width:56px;height:56px}.cg.mini .px{width:36px;height:36px}
 .craftrow{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .arrow{font-size:30px;color:var(--red);text-shadow:0 0 12px var(--red)}
 .resbox{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:150px}
@@ -346,6 +346,8 @@ function hiss(o){var a=ac();if(!a)return;if(!NOISE){NOISE=a.createBuffer(1,a.sam
 function knock(at,p,v){p=p||1;v=v||1;hiss({at:at,f:1500*p,q:3,d:.05,v:.55*v});note({at:at,f:190*p,f2:110*p,d:.1,v:.4*v});note({at:at,f:560*p,f2:380*p,d:.04,v:.1*v,type:"triangle"})}
 // a soft bell: a sine with two quieter overtones
 function bell(at,f,d,v){d=d||.5;v=v||.06;note({at:at,f:f,d:d,v:v});note({at:at,f:f*2.01,d:d*.6,v:v*.35});note({at:at,f:f*3.98,d:d*.3,v:v*.12})}
+// coins clinking: short bright pings at slightly random pitches and times
+function clinks(n){for(var i=0;i<n;i++){var at=i*.055+Math.random()*.02,f=2300+Math.random()*900;note({at:at,f:f,d:.09,v:.05});note({at:at,f:f*1.52,d:.06,v:.022})}}
 function chime(fs,gap,d,v,at){fs.forEach(function(f,i){bell((at||0)+i*gap,f,d,v)})}
 var SFX={
  move:function(){knock(0)},
@@ -361,7 +363,15 @@ var SFX={
  reward:function(){bell(0,1319,.2,.06);bell(.075,1760,.3,.06);chime([1047,1319,1568],70,.45,.05,.2)},
  notify:function(){bell(0,988,.35,.05);bell(.13,1319,.5,.05)},
  craft:function(){knock(0,.7,1.2);knock(.15,.75,1.2);knock(.3,.8,1.3);chime([784,1175],90,.6,.06,.45)},
- chest:function(){hiss({f:320,ft:"lowpass",q:4,d:.3,v:.2});hiss({at:.22,f:6000,ft:"highpass",d:.35,v:.08});chime([1047,1319,1568,2093],65,.55,.045,.22)},
+ // a chest: the lid creaks open and thumps back, then the loot shimmers
+ chest:function(){hiss({f:260,ft:"lowpass",q:6,d:.28,v:.22});note({f:150,f2:95,d:.26,v:.04,type:"sawtooth"});knock(.26,.62,1.5);
+  hiss({at:.3,f:2200,q:.7,d:.45,v:.06});chime([523,659,784,1047,1319],55,.5,.045,.32)},
+ // taking from a chest: coins clink (more for a big stack), resources pop out, with a sparkle for better quality
+ coins:function(){clinks(4)},coinpile:function(){clinks(8);hiss({at:.42,f:700,ft:"lowpass",d:.12,v:.12})},
+ take1:function(){knock(0,1.3,.5);note({f:330,f2:700,d:.12,v:.09,type:"triangle"})},
+ take2:function(){SFX.take1();bell(.09,1568,.4,.045)},
+ take3:function(){SFX.take1();hiss({at:.08,f:3000,q:.8,d:.3,v:.05});chime([1568,2093,2637],60,.5,.045,.08)},
+ chestdone:function(){chime([784,988,1175,1568],80,.6,.05);bell(.34,1568,.9,.04);bell(.34,784,.9,.04)},
  discover:function(){hiss({f:6500,ft:"highpass",d:.3,v:.07});chime([659,880,1175,1568],85,.6,.05)},
  solve:function(){chime([784,1047,1319],75,.5,.06)},
  levelup:function(){chime([523,659,784,1047],95,.5,.06);bell(.42,1568,1,.05);bell(.42,784,1,.05)},
@@ -468,7 +478,7 @@ function gridEmpty(){return grid.every(function(c){return!c})}
 function cellHTML(i){var c=grid[i],h="",r=0,q=0;if(c){if(c.t==="mat"){h=ico("mat",c.k);q=c.q||1}else{var x=inst(c.id);if(x){h=ico("item",x.def);r=item(x.def).r;q=x.quality>1?x.quality:0}}}return slotHTML({attr:'data-c="'+i+'"',html:h,r:c?r:null,q:q})}
 function resHTML(){if(!PV||!PV.match)return slotHTML({cls:"big",attr:'id="rslot"',html:'<span class="mu">?</span>'})+'<span class="mu">'+(gridEmpty()?"Pick an ingredient below, then click a table square.":"Nothing happens with this arrangement.")+"</span>";
  var o=PV.out,inf=outInfo([o.type,o.id]);return slotHTML({cls:"big",r:inf.r,attr:'id="rslot"',html:ico(o.type,o.id),n:o.qty,q:o.quality||0})+"<b>"+inf.name+"</b>"+(o.quality?'<span class="mu">Quality '+starTxt(o.quality)+" (the average of what’s on the table)</span>":"")+(PV.known?"":'<span class="chip">New recipe!</span>')+'<span class="mu '+(PV.can?"":"bad")+'">Uses '+costTxt(PV.cost)+'</span><button id="craftBtn"'+(PV.can?"":" disabled")+">Craft</button>"}
-function miniPattern(r){var t="";for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x],tok=ch==="."?null:r.key[ch];t+=slotHTML({attr:"",html:tok?(CAT.mats[tok]?ico("mat",tok):ico("item",tok)):""})}return'<div class="cg" style="grid-template-columns:repeat(3,56px)">'+t+"</div>"}
+function miniPattern(r){var t="";for(var y=0;y<3;y++)for(var x=0;x<3;x++){var ch=((r.rows[y]||"")+"...")[x],tok=ch==="."?null:r.key[ch];t+=slotHTML({attr:"",html:tok?(CAT.mats[tok]?ico("mat",tok):ico("item",tok)):""})}return'<div class="cg mini">'+t+"</div>"}
 function vCraft(){var pk=bagList(true).filter(function(e){return e.t==="item"&&!e.lock});var mats=bagList().filter(function(e){return e.t==="mat"});
  var known=S.recipes.filter(function(r){return r.known}),unk=S.recipes.filter(function(r){return!r.known});
  var kb=known.length?'<div class="rbook">'+known.map(function(r){var o=outInfo(r.out);return slotHTML({attr:'data-rb="'+r.id+'"',tip:"rcp:"+r.id,r:o.r,html:ico(r.out[0],r.out[1]),n:r.times,on:rsel===r.id})}).join("")+"</div>":'<p class="mu">Nothing discovered yet. Experiment on the table!</p>';
@@ -1140,7 +1150,8 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-bg]")){rvOpen(null,b.dataset.bg);return}
  if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
  if(b=e.target.closest("[data-go]")){var go=b.dataset.go.split(":");tab=go[0];if(go[1])invSub=go[1];render();window.scrollTo(0,0);sfx("click");return}
- if(b=e.target.closest("[data-ck]")){var pr=await doPost("chest/pick",{slot:+b.dataset.ck},null,"buy");if(pr&&!pr.draw.picks){LASTDRAW=pr.draw;sfx("reward");burst(["✨","🎁","🪙"]);render()}return}
+ if(b=e.target.closest("[data-ck]")){var cs=(S.chestDraw||{slots:[]}).slots[+b.dataset.ck]||{},snd=cs.id==="coins"?(cs.n>=100?"coinpile":"coins"):"take"+(cs.q||1);
+  var pr=await doPost("chest/pick",{slot:+b.dataset.ck},null,snd);if(pr&&!pr.draw.picks){LASTDRAW=pr.draw;setTimeout(function(){sfx("chestdone")},350);burst(["✨","🎁","🪙"]);render()}return}
  if(b=e.target.closest("#chestClose")){LASTDRAW=null;render();sfx("click");return}
  if(b=e.target.closest("[data-lsq]")){if(!LRN.noClick)lrnTap(b.dataset.lsq);return}
  if(b=e.target.closest("[data-lsub]")){LRN.sub=b.dataset.lsub;render();sfx("tab");return}
