@@ -44,7 +44,7 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgb(var(--acr)
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.row>*{flex:1}
 .err{color:var(--red3);font-size:13px;min-height:18px;margin-top:6px}
 .chip{display:inline-block;padding:2px 9px;margin:3px 4px 0 0;border-radius:99px;font-size:12px;font-weight:700;background:rgb(var(--acr) / .13);border:1px solid rgb(var(--acr) / .4);color:var(--red3)}
-.px{width:36px;height:36px;image-rendering:pixelated;display:block;filter:drop-shadow(0 0 3px var(--rc,transparent))}
+.px{width:36px;height:36px;image-rendering:pixelated;display:block;filter:drop-shadow(0 0 3px var(--rc,transparent))}.px.gen{image-rendering:auto}
 .sl{--rc:var(--c0);width:56px;height:56px;background:var(--sl);border:3px solid;border-color:var(--lo) var(--hi2) var(--hi2) var(--lo);display:grid;place-items:center;position:relative;cursor:pointer;flex:none}
 .sl:hover{background:var(--slh)}.sl.on{outline:2px solid var(--red);box-shadow:0 0 14px var(--red);z-index:1}
 .sl.rar{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 55%,transparent)}.sl.on.rar{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--rc) 55%,transparent),0 0 14px var(--red)}
@@ -76,8 +76,8 @@ input:focus{outline:0;border-color:var(--red);box-shadow:0 0 12px rgb(var(--acr)
 a.pl{color:inherit;text-decoration:none;border-bottom:1px dotted var(--mu)}a.pl:hover{color:var(--red);border-color:var(--red)}
 select{width:100%;padding:10px 12px;margin:5px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
 .rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:560px;margin:8px 0}.rgrid select{margin:0}
-.pxed{display:grid;grid-template-columns:repeat(16,1fr);width:min(100%,384px);aspect-ratio:1;margin:10px 0;border:1px solid var(--bd);touch-action:none;user-select:none;cursor:crosshair;
- background:repeating-conic-gradient(rgba(128,128,128,.28) 0 25%,transparent 0 50%) 0 0/24px 24px}.pxed i{display:block;box-shadow:inset 0 0 0 .5px rgba(128,128,128,.25)}
+.pxed{display:grid;grid-template-columns:repeat(32,1fr);width:min(100%,416px);aspect-ratio:1;margin:10px 0;border:1px solid var(--bd);touch-action:none;user-select:none;cursor:crosshair;
+ background:repeating-conic-gradient(rgba(128,128,128,.28) 0 25%,transparent 0 50%) 0 0/26px 26px}.pxed i{display:block;box-shadow:inset 0 0 0 .5px rgba(128,128,128,.25)}
 .ic{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-4px}
 .nav{display:flex;align-items:center;gap:11px}.nav .ns{display:none}.nav.on .ic{color:var(--red);filter:drop-shadow(0 0 6px rgb(var(--acr) / .6))}
 .sl .lk{position:absolute;right:2px;top:1px;color:#ffe29a;line-height:0}.sl .lk .ic{width:12px;height:12px;stroke-width:2.4;filter:drop-shadow(1px 1px 0 #000)}
@@ -107,7 +107,7 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 15px;background:var(--red);color:var(--on);box-shadow:0 0 16px rgb(var(--acr) / .45)}
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
-.pb{touch-action:none;user-select:none;-webkit-user-select:none}body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
+.lnav{max-width:460px;margin-top:8px;align-items:center}.lnav button{flex:none;padding:5px 14px}.lnav button:disabled{opacity:.35}.lnav .mu{font-size:12px}.pb.past{filter:saturate(.75) brightness(.92)}.pb{touch-action:none;user-select:none;-webkit-user-select:none}body.dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}.pb .bq{cursor:pointer}.pzdrag{position:fixed;z-index:60;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));transform:scale(1.08)}
 .lstat{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;padding:12px 16px}.lstat b{display:block;font-size:19px;margin-top:2px}.lstat .bar{margin:6px 0 0}
 @media(max-width:600px){.lstat{grid-template-columns:1fr 1fr}}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.chips span{background:var(--p2);border:1px solid var(--bd);border-radius:20px;padding:3px 10px;font-size:12px}
@@ -162,43 +162,132 @@ function setFx(on){FX=on;document.documentElement.classList.toggle("fx",on);try{
 document.documentElement.classList.toggle("fx",FX);
 function setMode(m){m=m==="light"?"light":"dark";document.documentElement.dataset.mode=m;try{localStorage.setItem("luc-mode",m)}catch(e){}}
 try{var lt=localStorage.getItem("luc-theme")||"dark";document.documentElement.dataset.theme=lt==="light"?"dark":lt;document.documentElement.dataset.mode=localStorage.getItem("luc-mode")||(lt==="light"?"light":"dark")}catch(e){}
-/* ---------- generated pixel art (16x16). o outline, a base, b light, c dark, g gold, w white ---------- */
-var TPL={
-sword:["..............oo",".............oba","............obba","...........obbao","..........obbao.",".........obbao..","..o.....obbao...","..oo...obbao....","...oo.obbao.....","....oobbao......",".....obao.......","....ogoo........","...ogoo.o.......","..ogo...........",".oo............."],
-spear:["..........oo....",".........obbo...","........obbao...",".......ooboo....","......obo.......",".....obo........","....obo.........","...obo..........","..ogo...........",".ogo............",".oo............."],
-armor:["................","...oo......oo...","..obbo....obbo..","..obaao..oaabo..","..obaaoooooaabo.","..obaaaaaaaaabo.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...oaaaaaaaaaao.","...ocaaaaaaaaco.","...occaaaaaacco.","....occaaaacco..","....ooccaaccoo..",".....ooooooooo.."],
-helmet:["................",".....oooooo.....","...ooabbbbaoo...","..oabbbbbbbbao..","..oabbaaaabbao..",".oabbaaaaaabbao.",".oabaaaaaaaabao.",".oaaaaaaaaaaaao.",".oaaoooooooaaao.",".oaao......oaao.",".ocao......oaco.",".occo......occo.",".oooo......oooo."],
-boots:["................","....ooooo.......","...oabbao.......","...oabbao.......","...oabbao.......","...oabbao.......","...oabbaooooo...","...oabbaaaaaaoo.","...oabbaaaaaaaao","...oaabbaaaaaaao","...occccccccccco","...ooooooooooooo"],
-ring:["......ogwo......",".....ogggo......","....oobbboo.....","...obbo.obbo....","...obo...obo....","...obo...obo....","...obbo.obbo....","....obbbbbo.....",".....oooo......."],
-amulet:["...o........o...","...ob......bo...","....ob....bo....",".....ob..bo.....","......obbo......",".....ooggoo.....","....ogwggggo....","....ogggggco....","....oggggcco....",".....oggcco.....","......oooo......"],
-aura:[".......o........","......oao.......",".....oabao......","....oabbbao.....","...oabbwbbao....","...oabwwwbao....","..oabbwwwbbao...","..oabbbwbbbao...","..oaabbbbbaao...","...oaaabbaaao...","....ocaaaaco....",".....oocccoo...."],
-scroll:["..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".oboooooooooabo.",".obaaaaaaaaaabo.",".oboooooooooabo.",".obaaaaaaaaaabo.",".obbbbbbbbbbbbo.","..oooooooooooo.."],
-shard:[".......oo.......","......obbo......",".....obbwbo.....","....obbbabo.....","....obbabco.....","...obbbaabco....","...obbaabbco....","..obbaabbbcco...","..obaabbbbcco...","...oaabbbcco....","....ooaaccoo....","......oooo......"],
-relic:["....oooooooo....","...obbbbbbbbo...","..obbaaaaaabbo..","..obaaagggaabo..","..obaaggaggaabo.","..obaaagggaaabo.","..obaaaggaaaabo.","..obaagaggaaabo.","..obaaaaaaaaabo.","..ocaaaaaaaaaco.","..occcccccccccc.","...oooooooooooo."],
-potion:["......oooo......","......obbo.......",".......oo.......","......obbo......",".....ocbbco.....","....oaaaaaao....","...oaabwaaaao...","...oaabaaaaaao..","...oaaaaaaaaco..","...oaaaaaaaacco.","....occaaaacco..",".....ooooooo...."],
-shield:["..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".obaabbbbbbaabo.",".obaabaaaabaabo.",".obaabaaaabaabo.","..obaabaabaabo..","..obaaabbaaaabo.","...obaaaaaaabo..","....obaaaaabo...",".....obaaabo....","......oooo......"]};
-var EMB={p:["...##...","..####..","...##...","..####..","...##...","..####..",".######.",".######."],n:["..##....",".#####..","###.###.","..#.###.","...####.","..#####.",".#######",".#######"],b:["...##...","..####..",".##.###.","..####..","...##...","..####..",".######.",".######."],r:["#.#.#.#.","#######.",".#####..",".#####..",".#####..",".#####..","#######.","#######."],q:["#.#.#.#.","#######.",".#####..","..###...","..###...",".#####..","#######.","#######."],k:["...#....",".#####..","...#....",".#####..","..###...","..###...",".#####..","#######."]};
-var EM={"♞":"n","♝":"b","♜":"r","♛":"q","♚":"k","♟":"p"},SLT={weapon:"sword",armor:"armor",helmet:"helmet",boots:"boots",ring:"ring",amulet:"amulet",aura:"aura",title:"scroll"},TM={w1:"spear",w2:"spear"};
-var PAL=[["#1b1d24","#8d93a3","#c7ccd8","#565b6b"],["#0b2014","#3ddc84","#b6f5cf","#1f8a52"],["#0a1a2e","#3da9ff","#b7dfff","#1f65a8"],["#1a0c2e","#b44dff","#ddb4ff","#6a2aa3"],["#2a1c05","#ffb020","#ffe29a","#b3720b"],["#2a0509","#ff2d3d","#ffa3aa","#a01120"]];
-var MPAL={shard:["#10151f","#7f8fa6","#cfd9e8","#3f4a5e"],essence:["#2a0a00","#ff7a1a","#ffd08a","#b3380a"],relic:["#1a0b2a","#8e5bd6","#e0c8ff","#4b2a8a"]};
-var CPAL={shield:["#0a1a2e","#5a6b85","#aab8d0","#2c3750"],tonic:PAL[1],draught:PAL[4],brew:PAL[5],catalyst:["#2a1c05","#ffd24a","#fff3b0","#b3720b"]};
 function hash(s){var h=7;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h}
-function draw(tpl,pal,emb,seed,rar){var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d"),rows=TPL[tpl],cols={o:pal[0],a:pal[1],b:pal[2],c:pal[3],g:"#ffd24a",w:"#ffffff"},body=[];
- for(var y=0;y<16;y++){var row=((rows[y]||"")+"................").slice(0,16);for(var i=0;i<16;i++){var ch=row[i];if(ch!=="."){x.fillStyle=cols[ch];x.fillRect(i,y,1,1);if(ch==="a")body.push([i,y])}}}
- if(emb){var m=EMB[emb];x.fillStyle=pal[0];for(var r=0;r<8;r++)for(var q=0;q<8;q++)if(m[r][q]==="#")x.fillRect(4+q,4+r,1,1)}
- if(rar>=2&&body.length)for(var k=0;k<(rar>=4?3:1);k++){var p=body[(seed>>(k*4))%body.length];x.fillStyle=k%2?"#ffffff":"#ffd24a";x.fillRect(p[0],p[1],1,1)}
- return c.toDataURL()}
-TPL.chest=["................","................","..oooooooooooo..",".obbbbbbbbbbbbo.",".obaaaaaaaaaabo.",".oaaaaaaaaaaaao.",".ooooooggoooooo.",".ocaaaagwgaaaco.",".ocaaaaggaaaaco.",".ocaaaaaaaaaaco.",".occaaaaaaaacco.",".oooooooooooooo."];
-// a 4-colour sprite palette (outline, base, light, shadow) from one colour
-function palOf(hex){var n=parseInt(String(hex||"#888888").slice(1),16),c=[n>>16&255,n>>8&255,n&255],f=function(m,w){return"#"+c.map(function(v){return("0"+Math.round(w?v+(255-v)*m:v*m).toString(16)).slice(-2)}).join("")};return[f(.18),hex,f(.55,1),f(.6)]}
 function matR(k){return(CAT.matInfo&&CAT.matInfo[k]||{}).r||0}
 function chestOf(id){return(CAT.chests||[]).filter(function(c){return c.id===id})[0]}
 function chestR(c){return c.chance>=20?1:c.chance>=8?2:c.chance>=3?3:4}
-function mkSprite(t,id){var h=hash(t+id);
- if(t==="chest"){var ch=chestOf(id);return draw("chest",palOf(ch?ch.color:"#a0692e"),null,h,0)}
- if(t==="item"){var d=item(id);return draw(TM[id]||SLT[d.slot],PAL[d.r],(d.slot==="armor"||d.slot==="aura"||d.slot==="amulet")?EM[d.g.charAt(0)]:null,h,d.r)}
- if(t==="mat")return draw(id==="essence"?"aura":id==="relic"?"relic":"shard",MPAL[id]||palOf((CAT.matInfo[id]||{}).color),null,h,0);
- return draw(id==="shield"?"shield":id==="catalyst"?"shard":"potion",CPAL[id],null,h,0)}
+/* ---------- item art: 32x32 pixel sprites built from simple shapes, then shaded and outlined the same way every time ----------
+   A sprite is a list of layers drawn in order. A layer is a union of shapes (Pg polygon, Rc rectangle, El ellipse, Et turned
+   ellipse, Ln thick line), optionally clipped (clip) or cut (cut), in one colour ramp [outline, shadow, base, light, highlight].
+   Light comes from the top left: pixels on an upper or left edge get the light tones, lower or right edges the shadow.
+   Each layer is outlined in its own darkest tone, where it touches an earlier layer too, so parts stay readable. */
+var SZ=32;
+function Pg(p){return function(x,y){for(var i=0,j=p.length-1,c=false;i<p.length;j=i++){var a=p[i],b=p[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c}}
+function Rc(x0,y0,w,h){return function(x,y){return x>=x0&&x<x0+w&&y>=y0&&y<y0+h}}
+function El(cx,cy,rx,ry){return function(x,y){var a=(x-cx)/rx,b=(y-cy)/(ry||rx);return a*a+b*b<=1}}
+function Et(cx,cy,ra,rb,deg){var c=Math.cos(deg*Math.PI/180),s=Math.sin(deg*Math.PI/180);return function(x,y){var u=((x-cx)*c+(y-cy)*s)/ra,v=(-(x-cx)*s+(y-cy)*c)/rb;return u*u+v*v<=1}}
+function Ln(x1,y1,x2,y2,w){return function(x,y){var dx=x2-x1,dy=y2-y1,t=Math.max(0,Math.min(1,((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy||1))),ex=x1+t*dx-x,ey=y1+t*dy-y;return ex*ex+ey*ey<=w*w/4}}
+// a 5-tone ramp from one colour
+function ramp(hex){var n=parseInt(String(hex||"#888888").slice(1),16),c=[n>>16&255,n>>8&255,n&255],m=function(k,w){return"#"+c.map(function(v){return("0"+Math.round(w?v+(255-v)*k:v*k).toString(16)).slice(-2)}).join("")};return[m(.2),m(.62),hex,m(.4,1),m(.78,1)]}
+// rarity ramps: common, uncommon, rare, epic, legendary, mythic; and fixed materials
+var RR=[["#1a1c26","#4b5164","#7d8598","#b4bccb","#e8edf5"],["#0b2416","#1e7a45","#36b86a","#86e3a8","#dcffe8"],["#0b1834","#1f5cb0","#3d8fea","#93c8ff","#e4f2ff"],
+ ["#1e0b34","#6a28aa","#9c50e2","#cc9bff","#f3e6ff"],["#2c1904","#a8620a","#eaa01e","#ffd56e","#fff7d6"],["#2c0509","#9c0f22","#e22b3e","#ff8c97","#ffe3e6"]];
+var MT={steel:["#16161e","#555b6c","#8a91a3","#c3c9d5","#f1f4f9"],gold:["#2c1904","#a8650c","#e6ac2c","#ffe07c","#fff8da"],wood:["#1f1208","#5c3417","#8a5528","#b8803f","#e3b878"],
+ leather:["#1e120b","#5a3420","#86522f","#b07848","#d9a676"],paper:["#2a2216","#a8936a","#d9c9a0","#f0e6c8","#fffaf0"],glass:["#1a2632","#7d98ad","#c3dbea","#e6f4fc","#ffffff"],
+ dark:["#09080d","#16141c","#24212c","#3a3644","#5a5566"],fire:["#2a0a00","#c2410c","#f97316","#fdba74","#fff1d6"],flame:["#3a1a00","#e08a00","#ffc53a","#ffe58a","#fffbe6"]};
+// metal by rarity (steel until rare, then the rarity colour), accents always in the rarity colour, trim gold from epic up
+function Mt(r){return r<=2?MT.steel:RR[r]}function Tr(r){return r>=3?MT.gold:MT.steel}
+// small raised emblems, 7x7
+var GLY={p:["..###..","..###..","...#...","..###..","..###..",".#####.","#######"],r:["#.#.#.#","#######",".#####.",".#####.",".#####.","#######","#######"],
+ n:["...##..","..####.",".#####.","##.###.","...###.","..####.","#######"],b:["...#...","..###..",".##.##.",".#####.","..###..",".#####.","#######"],
+ q:["#.#.#.#","#######",".#####.","..###..","..###..",".#####.","#######"],k:["...#...","..###..","...#...",".#####.","..###..",".#####.","#######"],
+ s:["...#...","...#...","..###..","#######","..###..","...#...","...#..."],o:["..###..",".#...#.","#..#..#","#.###.#","#..#..#",".#...#.","..###.."],d:["...#...","..###..",".#####.","#######",".#####.","..###..","...#..."]};
+var GKEY={"♟":"p","♜":"r","♞":"n","♝":"b","♛":"q","♚":"k","✦":"s","✧":"s","◎":"o","❖":"d"};
+function paint(layers,spark){var N=SZ*SZ,own=new Array(N),col=new Array(N);
+ layers.forEach(function(Ly,li){var m=new Array(N),inn=function(x,y){return x>=0&&y>=0&&x<SZ&&y<SZ&&m[y*SZ+x]},any=function(a,x,y){return!!a&&a.some(function(f){return f(x,y)})},x,y,i;
+  for(y=0;y<SZ;y++)for(x=0;x<SZ;x++){var cx=x+.5,cy=y+.5;m[y*SZ+x]=any(Ly.s,cx,cy)&&(!Ly.clip||any(Ly.clip,cx,cy))&&!any(Ly.cut,cx,cy)}
+  // where this part meets an earlier one, draw a separating line in its darkest tone
+  if(li&&Ly.sep!==false)for(y=0;y<SZ;y++)for(x=0;x<SZ;x++){i=y*SZ+x;if(!m[i]&&own[i]!=null&&(inn(x-1,y)||inn(x+1,y)||inn(x,y-1)||inn(x,y+1)))col[i]=Ly.r[0]}
+  for(y=0;y<SZ;y++)for(x=0;x<SZ;x++){i=y*SZ+x;if(!m[i])continue;var o=function(a,b){return inn(a,b)?0:1},
+   sc=o(x,y-1)+o(x-1,y)-o(x,y+1)-o(x+1,y)+.5*(o(x,y-2)+o(x-2,y)-o(x,y+2)-o(x+2,y)),k=Ly.flat!=null?Ly.flat:sc>=2?4:sc>=1?3:sc<=-1?1:2;own[i]=li;col[i]=Ly.r[k]}
+  // details drawn inside the part: lines and dots in one tone of its ramp, and engraved emblems
+  (Ly.d||[]).forEach(function(d){var f=d.l?Ln(d.l[0],d.l[1],d.l[2],d.l[3],d.w||1):null;
+   if(f)for(y=0;y<SZ;y++)for(x=0;x<SZ;x++){i=y*SZ+x;if(m[i]&&f(x+.5,y+.5))col[i]=Ly.r[d.i]}
+   (d.p||[]).forEach(function(p){i=p[1]*SZ+p[0];if(m[i])col[i]=Ly.r[d.i]});
+   if(d.g&&GLY[d.g])GLY[d.g].forEach(function(row,gy){for(var gx=0;gx<7;gx++)if(row[gx]==="#"){var a=(d.y+gy)*SZ+d.x+gx,b=a+SZ;if(m[a])col[a]=Ly.r[d.i||4];
+    if((gy===6||GLY[d.g][gy+1][gx]!=="#")&&m[b])col[b]=Ly.r[1]}})})});
+ // the outer outline, in the darkest tone of whatever it surrounds
+ var out=col.slice();for(var y=0;y<SZ;y++)for(var x=0;x<SZ;x++){var i=y*SZ+x;if(own[i]!=null)continue;
+  var nb=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]].filter(function(p){return p[0]>=0&&p[1]>=0&&p[0]<SZ&&p[1]<SZ&&own[p[1]*SZ+p[0]]!=null})[0];if(nb)out[i]=layers[own[nb[1]*SZ+nb[0]]].r[0]}
+ // legendary and mythic items twinkle: small four-point sparkles in empty corners
+ if(spark)[[4,4],[27,5],[26,27]].forEach(function(p,n){if(n===2&&spark.length<2)return;[[0,0,4],[0,-1,3],[0,1,3],[-1,0,3],[1,0,3]].forEach(function(o){var i=(p[1]+o[1])*SZ+p[0]+o[0];if(out[i]==null)out[i]=spark[o[2]===4?0:1]})});
+ var c=document.createElement("canvas");c.width=c.height=SZ;var x2=c.getContext("2d");out.forEach(function(v,i){if(v){x2.fillStyle=v;x2.fillRect(i%SZ,Math.floor(i/SZ),1,1)}});
+ // hand back a 4x copy, so the picture scales down smoothly to any size instead of stretching pixels unevenly
+ var big=document.createElement("canvas");big.width=big.height=SZ*4;var bx=big.getContext("2d");bx.imageSmoothingEnabled=false;bx.drawImage(c,0,0,SZ*4,SZ*4);return big.toDataURL()}
+// ---- the designs. r is the rarity (0 to 5), a the accent ramp ----
+var ART={
+ sword:function(r,a,o){o=o||{};var blade=o.curve?Pg([[9,21],[13,15],[18,10],[23,6],[28,3.5],[26.5,8],[22,12],[17,17],[12,24]]):o.big?Pg([[8,20],[23,5],[28.5,3],[27,9],[12,24]]):Pg([[9,20],[24,5],[28,4],[27,8],[12,23]]);
+  var g=o.big?Ln(5,16,14,25,3.6):Ln(7,18,14,25,3);
+  return[{r:Mt(r),s:[blade],d:[{l:o.curve?[11,22,26,6]:[10.5,21.5,26,6],i:4}]},{r:MT.leather,s:[Ln(5.5,26.5,10,22,3)],d:[{l:[6.5,25.5,7.5,24.5],i:1}]},{r:Tr(r),s:[g]},{r:Tr(r),s:[El(4.6,27.4,2.3)]}]
+   .concat(r>=2?[{r:a,s:[El(10.5,21.5,1.7)]}]:[]).concat(o.big?[{r:a,s:[El(5,16,1.6),El(14,25,1.6)]}]:[])},
+ dagger:function(r,a){return[{r:Mt(r),s:[Pg([[12,17],[22,8],[27,4.5],[24.5,10],[15,20]])],d:[{l:[14,18.5,25,7],i:4}]},{r:MT.leather,s:[Ln(7.5,24.5,11,21,2.8)]},{r:Tr(r),s:[Ln(9,16,15.5,22.5,2.6)]},{r:Tr(r),s:[El(6.5,25.5,2)]},{r:a,s:[El(12.3,19.3,1.5)]}]},
+ pike:function(r,a){return[{r:MT.wood,s:[Ln(5,27,21,11,2.4)],d:[{l:[8,24,10,22],i:1,w:2.4},{l:[12,20,14,18],i:1,w:2.4}]},{r:Mt(r),s:[Pg([[18.5,11.5],[22,6.5],[28.5,2.5],[25.5,9.5],[20.5,13.5]])],d:[{l:[20.5,11.5,27,4],i:4}]},
+  {r:r?a:Tr(r),s:[El(19.6,12.4,1.9)]},{r:Mt(r),s:[El(5,27,2)]}]},
+ lance:function(r,a){var cone=Pg([[28.5,3.5],[12.5,13.5],[18.5,19.5]]);return[{r:Mt(r),s:[cone],d:[{l:[16,15,27,5],i:4}]},{r:a,s:[Pg([[17,8],[19,10],[13,16],[11,14]]),Pg([[22,3.5],[24,5.5],[20,9.5],[18,7.5]])],clip:[cone]},
+  {r:MT.leather,s:[Ln(5,27,12,20,2.8)]},{r:Mt(r),s:[Et(13.5,19,6,2,45)]},{r:Tr(r),s:[El(4.5,27.5,1.9)]}]},
+ book:function(r,a,o){return[{r:MT.paper,s:[Rc(9,25,16,3)],d:[{l:[10,26,24,26],i:1}]},{r:a,s:[Rc(7,4,18,22)],d:[{g:o.g,x:13,y:10}]},{r:a,s:[Rc(7,4,3,22)],flat:1,sep:false},
+  {r:MT.gold,s:[Pg([[22,4],[25,4],[25,7]]),Pg([[22,26],[25,26],[25,23]])]},{r:RR[5],s:[Pg([[19,25],[22,25],[22,30],[20.5,28.5],[19,30]])]}]},
+ armor:function(r,a,o){var body=Pg([[8,9],[12,7],[14,9],[18,9],[20,7],[24,9],[25,14],[23,16],[23,26],[16,28.5],[9,26],[9,16],[7,14]]);
+  return[{r:Mt(r),s:[body],d:[{g:o.g,x:12,y:12}]},{r:Mt(r),s:[El(8.5,11,4.2,3.6),El(23.5,11,4.2,3.6)]},{r:MT.leather,s:[Rc(9,22,14,2.6)],clip:[body]},{r:Tr(r),s:[Rc(14.5,21.5,3,3.6)]}].concat(r>=1?[{r:a,s:[El(16,9.8,1.5)]}]:[])},
+ cloak:function(r,a){return[{r:a,s:[Pg([[16,3],[21,5],[24,12],[27,27.5],[16,29.5],[5,27.5],[8,12],[11,5]])],d:[{l:[12,19,10,28],i:1},{l:[20,19,22,28],i:1},{l:[16,21,16,29],i:1}]},
+  {r:MT.dark,s:[El(16,11,4.6,5.2)],flat:1},{r:MT.gold,s:[El(16,17.5,1.7)]}]},
+ helm:function(r,a,o){var dome=[El(16,14,10,9.5),Rc(6,14,20,11.5)],cut=[Rc(0,25.5,32,7)];
+  return(o.plume?[{r:a,s:[Pg([[14,6],[17,1.5],[24,0.5],[29,4],[26,8],[20,6.5]])],d:[{l:[18,3,26,4],i:3}]}]:[])
+   .concat([{r:Mt(r),s:dome,cut:cut,d:[{l:[9,16.5,23,16.5],i:0,w:1.8},{p:[[12,20],[14,20],[18,20],[20,20],[13,22],[19,22]],i:1}]},].concat(r?[{r:a,s:[Ln(16,5,16,13.5,2)],clip:dome}]:[]))},
+ crown:function(r,a){var pts=Pg([[6,19],[6,9.5],[10.5,14.5],[13,6.5],[16,12.5],[19,6.5],[21.5,14.5],[26,9.5],[26,19]]);
+  return[{r:MT.gold,s:[pts],d:[{l:[16,13,16,18],i:3}]},{r:MT.gold,s:[El(6,8.6,1.7),El(13,5.6,1.7),El(19,5.6,1.7),El(26,8.6,1.7)]},{r:MT.gold,s:[Rc(5.5,19,21,6.5)],d:[{l:[6,20,26,20],i:4}]},
+   {r:a,s:[El(11,22.2,1.7),El(16,22.2,2.1),El(21,22.2,1.7)]}]},
+ monocle:function(r,a){return[{r:MT.glass,s:[El(13,15,6.2)],d:[{p:[[10,11],[11,11],[10,12]],i:4}]},{r:MT.gold,s:[El(13,15,8.4)],cut:[El(13,15,6.2)]},{r:MT.gold,s:[Ln(19,21,22,25,1.4),Ln(22,25,26,27,1.4),Ln(26,27,29,25.5,1.4)],flat:3},{r:a,s:[El(20,8,1.6)]}]},
+ boot:function(r,a,o){var leg=[Rc(9,5,8.5,14),Pg([[9,17],[17.5,17],[21,19],[27,20.5],[29.5,23],[29.5,27],[9,27]])],mt=o.leather?MT.leather:Mt(r);
+  var d=o.leather?[{p:[[11,7],[13,8],[11,9],[13,10],[11,11],[13,12],[11,13],[13,14]],i:4}]:[{l:[9,10.5,17.5,10.5],i:1},{l:[9,14.5,17.5,14.5],i:1},{l:[21,19.5,21,27],i:1}];
+  return[{r:mt,s:leg,d:d},{r:MT.dark,s:[Rc(8.5,27,21.5,2.6),Rc(8.5,27,5,3.4)]},{r:o.leather?MT.leather:a,s:[Rc(8,3.5,10.5,3.6)],cut:o.rook?[Rc(10,3,2,1.6),Rc(13.25,3,2,1.6),Rc(16.5,3,2,1.6)]:null}]
+   .concat(o.wing?[{r:a,s:[Pg([[17,8],[24,4.5],[22,10],[18,12]])]}]:[])},
+ ring:function(r,a,o){var band=Tr(r);return[{r:band,s:[El(16,20,9,8)],cut:[El(16,20,6.2,5.2)]}].concat(o.signet?[{r:band,s:[Rc(10.5,6,11,7.5)]},{r:a,s:[Rc(12.5,8,7,3.5)]}]:
+  [{r:band,s:[El(16,10,5.2,4.4)]},{r:a,s:o.square?[Rc(12.5,6.5,7,6)]:[El(16,9.6,3.6,3.1)],d:[{p:[[14,8],[15,8],[14,9]],i:4}]}])},
+ amulet:function(r,a,o){var chain={r:MT.gold,s:[Ln(7,3,10,10,1.3),Ln(10,10,13.5,14,1.3),Ln(25,3,22,10,1.3),Ln(22,10,18.5,14,1.3)],flat:3};
+  if(o.compass)return[chain,{r:MT.steel,s:[El(16,21,8)]},{r:MT.paper,s:[El(16,21,6)]},{r:RR[5],s:[Pg([[16,15.5],[17.4,21],[14.6,21]])]},{r:MT.dark,s:[Pg([[17.4,21],[16,26.5],[14.6,21]])]}];
+  var gem=o.heart?Pg([[16,29],[9,21],[9,17],[11.5,14.5],[14,14.5],[16,17],[18,14.5],[20.5,14.5],[23,17],[23,21]]):o.star?Pg([[16,13],[18,19.5],[24.5,21.5],[18,23.5],[16,30],[14,23.5],[7.5,21.5],[14,19.5]]):El(16,21.5,5,6);
+  return[chain].concat(o.heart||o.star?[]:[{r:MT.gold,s:[El(16,21.5,7,8)]}]).concat([{r:a,s:[gem],d:[{p:[[13,18],[14,18],[13,19]],i:4}]},{r:MT.gold,s:[El(16,14.5,1.8)]}])},
+ flame:function(){return[{r:MT.fire,s:[Pg([[16,2],[20,8],[25,12],[26.5,19],[23,25.5],[16,29.5],[9,25.5],[5.5,19],[8,12],[11,14],[12,8]])]},{r:MT.flame,s:[Pg([[16,10],[19.5,15],[21.5,20.5],[19,25.5],[16,27.5],[13,25.5],[10.5,20.5],[13,16]])],sep:false},{r:MT.flame,s:[El(16,23,2.5,3.2)],flat:4,sep:false}]},
+ moon:function(){return[{r:RR[5],s:[El(15,17,11)],cut:[El(21,12,9)],d:[{p:[[8,20],[9,23],[11,26]],i:1}]},{r:RR[5],s:[Rc(24,22,1,1),Rc(27,8,1,1)],flat:4,sep:false},{r:MT.gold,s:[Pg([[25,13],[26,15],[28,16],[26,17],[25,19],[24,17],[22,16],[24,15]])]}]},
+ star:function(r,a){return[{r:a,s:[Pg([[16,2],[18.5,13.5],[30,16],[18.5,18.5],[16,30],[13.5,18.5],[2,16],[13.5,13.5]])],d:[{l:[16,4,16,28],i:3},{l:[4,16,28,16],i:3}]},{r:a,s:[El(16,16,3.2)],flat:4,sep:false},
+  {r:MT.flame,s:[Pg([[6,4],[7,7],[10,8],[7,9],[6,12],[5,9],[2,8],[5,7]]),Pg([[26,22],[27,25],[30,26],[27,27],[26,30],[25,27],[22,26],[25,25]])],flat:3}]},
+ lantern:function(){return[{r:MT.steel,s:[El(16,4.5,3.6)],cut:[El(16,4.5,2)]},{r:MT.flame,s:[Rc(11,10,10,13.5)],flat:3},{r:MT.fire,s:[El(16,17.5,2.4,3.6)],sep:false},
+  {r:MT.dark,s:[Rc(11,10,1.5,13.5),Rc(19.5,10,1.5,13.5),Rc(15.25,10,1.5,4)],sep:false},{r:MT.steel,s:[Pg([[9.5,10.5],[22.5,10.5],[19.5,6.5],[12.5,6.5]])]},{r:MT.steel,s:[Rc(9.5,23,13,3.2)]}]},
+ orb:function(r,a){return[{r:a,s:[El(16,16,10)],d:[{l:[10,12,20,10],i:3,w:1.5},{l:[12,22,22,19],i:1,w:1.5}]},{r:a,s:[El(13,12,2.5)],flat:4,sep:false}]},
+ banner:function(r,a){return[{r:MT.paper,s:[Rc(7,8,18,16)],d:[{l:[10,12,22,12],i:1},{l:[10,15,20,15],i:1},{l:[10,18,22,18],i:1}]},{r:MT.paper,s:[Rc(3.5,7,4.5,18),El(5.75,7,2.25,1.5),El(5.75,25,2.25,1.5)]},
+  {r:MT.paper,s:[Rc(24,7,4.5,18),El(26.25,7,2.25,1.5),El(26.25,25,2.25,1.5)]},{r:a,s:[Pg([[18,23],[20,29],[21.5,26.5],[23.5,29],[23,23]])]},{r:a,s:[El(20.5,21.5,3)]}]},
+ crystal:function(r,a){return[{r:a,s:[Pg([[7.5,27],[7,17],[10,12],[13,17],[13,27]])]},{r:a,s:[Pg([[19,27],[19,16],[23,10],[26,16],[25.5,27]])]},
+  {r:a,s:[Pg([[11,28.5],[11,12],[16,3],[21,12],[21,28.5]])],d:[{l:[16,4,16,28],i:3},{l:[17,5,20,12],i:4}]}]},
+ essence:function(r,a){return[{r:a,s:[El(16,19,9),Pg([[11,13],[16,2],[21,13]])],d:[{l:[12,23,20,24],i:1,w:1.5}]},{r:a,s:[El(13.5,15.5,3)],flat:4,sep:false}]},
+ relic:function(r,a){return[{r:a,s:[Rc(7,11,18,17),El(16,11,9,7)],d:[{g:"k",x:12,y:13}]},{r:MT.gold,s:[Rc(6.5,26,19,3)]}]},
+ gem:function(r,a){return[{r:a,s:[Pg([[8,12],[12,7],[20,7],[24,12]])],d:[{l:[12,7,14,12],i:4},{l:[20,7,18,12],i:3}]},{r:a,s:[Pg([[8,12],[24,12],[16,28]])],d:[{l:[14,12,16,27],i:3},{l:[18,12,16,27],i:1}]}]},
+ shield:function(r,a){var face=Pg([[7,6],[25,6],[25,15],[16,27.5],[7,15]]);return[{r:MT.gold,s:[Pg([[5,4],[27,4],[27,15.5],[16,30],[5,15.5]])]},{r:a,s:[face],d:[{g:"r",x:13,y:11}]}]},
+ potion:function(r,a,o){var glass,liq,cork;
+  if(o.shape==="tall"){glass=[Rc(9,12,14,17),Pg([[9,13],[13,8.5],[19,8.5],[23,13]]),Rc(13,4,6,6)];liq=[Rc(9,16,14,13)];cork=Rc(12.5,1.5,7,4)}
+  else if(o.shape==="cone"){glass=[Pg([[13,5],[19,5],[19,12],[26.5,28],[5.5,28],[13,12]])];liq=[Pg([[9.5,19],[22.5,19],[26.5,28],[5.5,28]])];cork=Rc(12.5,1.5,7,4.5)}
+  else{glass=[El(16,20,9),Rc(13,6,6,8)];liq=[El(16,20,9)];cork=Rc(12.5,2.5,7,4.5)}
+  return[{r:MT.glass,s:glass,d:[{p:[[11,15],[11,16],[12,14]],i:4}]},{r:a,s:liq,clip:o.shape?glass:[Rc(0,17,32,15)],sep:false,d:[{l:[8,o.shape==="cone"?20:o.shape?17:18,24,o.shape==="cone"?20:o.shape?17:18],i:4}]},{r:MT.wood,s:[cork]}]},
+ chest:function(r,a,o){var lid=[El(16,12,11,5.5),Rc(5,12,22,4.5)],body=[Rc(5,16.5,22,11.5)],band=o.band;
+  return[{r:a,s:lid,clip:[Rc(0,0,32,16.5)],d:[{l:[6,13,26,13],i:3}]},{r:a,s:body,d:[{l:[6,21,26,21],i:1}]},{r:band,s:[Rc(8,6,3,22),Rc(21,6,3,22)],clip:lid.concat(body)},{r:MT.gold,s:[Rc(14,14.5,4,5)],d:[{p:[[15,16],[16,16],[15,17],[16,17]],i:0}]}]}};
+// which design an item gets: by its id or name for the special ones, then by slot and emblem, so admin-made items get a fitting picture too
+function artFor(d){var g=GKEY[String(d.g||"").replace(/[\uFE0E\uFE0F]/g,"")]||null,n=String(d.name||"").toLowerCase(),r=d.r||0,a=RR[r],s=d.slot;
+ if(s==="weapon")return/book/.test(n)?ART.book(r,a,{g:g||"k"}):/dagger|knife/.test(n)?ART.dagger(r,a):g==="p"||/pike|spear/.test(n)?ART.pike(r,a):g==="n"||/lance/.test(n)?ART.lance(r,a):ART.sword(r,a,{curve:g==="b",big:g==="q"||g==="k"});
+ if(s==="armor")return/cloak|robe|cape/.test(n)?ART.cloak(r,a):ART.armor(r,a,{g:g&&"prnbqk".indexOf(g)>-1?g:"s"});
+ if(s==="helmet")return/monocle/.test(n)?ART.monocle(r,a):g==="q"||/crown/.test(n)?ART.crown(r,a):ART.helm(r,a,{plume:g==="n"});
+ if(s==="boots")return ART.boot(r,a,{leather:d.set==="wanderer"||/travel/.test(n),wing:g==="n",rook:g==="r"});
+ if(s==="ring")return ART.ring(r,a,{signet:/signet/.test(n),square:hash(d.id)%2===1});
+ if(s==="amulet")return ART.amulet(r,a,{compass:/compass/.test(n),heart:/heart/.test(n)||d.g==="❖",star:!/heart|compass/.test(n)&&(d.g==="✦"||d.g==="✧")});
+ if(s==="aura")return/ember|fire|flame/.test(n)||d.g==="🔥"?ART.flame():/moon/.test(n)||d.g==="🌑"?ART.moon():/lantern/.test(n)?ART.lantern():d.g==="✧"||/aurora|star/.test(n)?ART.star(r,a):ART.orb(r,a);
+ return ART.banner(r,a)}
+var MATS={shard:"#8d9ab0",essence:"#ff7a1a",relic:"#8e5bd6"},CONS={shield:["shield","#5a7bb0"],tonic:["potion","#36c26e"],draught:["tall","#f4b52a"],brew:["cone","#e2364a"],catalyst:["gem","#f2c230"]};
+function mkSprite(t,id){var L0;
+ if(t==="chest"){var ch=chestOf(id),cr=ch?chestR(ch):1;L0=ART.chest(cr,ramp(ch&&ch.color||"#a0692e"),{band:cr>=3?MT.gold:MT.steel})}
+ else if(t==="item"){var d=item(id);L0=artFor(d);return paint(L0,d.r>=4?[RR[d.r][4],RR[d.r][3]]:null)}
+ else if(t==="mat"){var c=MATS[id]||(CAT.matInfo[id]||{}).color||"#8d9ab0";L0=id==="essence"?ART.essence(0,ramp(c)):id==="relic"?ART.relic(0,ramp(c)):ART.crystal(0,ramp(c))}
+ else{var cs=CONS[id]||["potion","#9c50e2"];L0=cs[0]==="shield"?ART.shield(0,ramp(cs[1])):cs[0]==="gem"?ART.gem(0,ramp(cs[1])):ART.potion(0,ramp(cs[1]),{shape:cs[0]==="tall"?"tall":cs[0]==="cone"?"cone":null})}
+ return paint(L0)}
+
 // a texture made in the admin editor wins, then a file from assets/, then the generated pixel art
 var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
  learn:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/><path d="M22 9v6"/>',
@@ -218,7 +307,7 @@ var ICONS={home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10
 function ICON(n){return'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+(ICONS[n]||"")+"</svg>"}
 function artId(t,id){return t==="chest"?"chest_"+id:id}
 function icoSrc(t,id){var k=t+":"+id,a=artId(t,id);return CAT&&CAT.art&&CAT.art[a]?"/art/"+a+".png?v="+CAT.art[a]:A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)))}
-function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
+function ico(t,id){var src=icoSrc(t,id);return'<img class="px'+(src.indexOf("data:")===0?" gen":"")+'" src="'+src+'" alt="">'}
 /* ---------- sounds: made in the browser with the Web Audio API (no sound files), or your own files from assets/sfx ---------- */
 var AC=null,OUT=null,NOISE=null;
 // The browser keeps page audio off until the player clicks or presses a key. A sound asked for before that (say, the
@@ -419,17 +508,18 @@ function recipeFromForm(){var $=function(i){return document.getElementById(i)},o
 function adArt(){var things=CAT.items.map(function(i){return["item:"+i.id,i.name]}).concat(Object.keys(CAT.mats).map(function(k){return["mat:"+k,CAT.mats[k]+" (material)"]}),Object.keys(CAT.cons).map(function(k){return["cons:"+k,CAT.cons[k].name+" (potion)"]}),(CAT.chests||[]).map(function(c){return["chest:"+c.id,c.name+" (chest)"]}));
  if(!AD.art)AD.art=things[0][0];var p=AD.art.split(":"),t=p[0],id=p[1],has=CAT.art&&CAT.art[artId(t,id)],cells="";
  if(AD.pxFor!==AD.art)loadPixels(t,id);
- if(AD.px)for(var i=0;i<256;i++)cells+='<i data-pxi="'+i+'" style="background:'+(AD.px[i]||"transparent")+'"></i>';
+ if(AD.px)for(var i=0;i<PXN*PXN;i++)cells+='<i data-pxi="'+i+'" style="background:'+(AD.px[i]||"transparent")+'"></i>';
  return'<div class="wrap"><div class="card" style="flex:1 1 280px"><h2>Choose</h2>'+fsel("artSel",things,AD.art)+'<div style="display:flex;gap:14px;align-items:center;margin-top:12px">'+slotHTML({cls:"big",attr:"",html:ico(t,id)})+'<span class="mu">'+(has?"Using a custom texture.":"Using the generated art.")+"</span></div>"
  +'<h2 style="margin-top:18px">Upload a picture</h2><p class="mu" style="margin-top:0">A PNG up to 200 KB and 512 × 512 pixels. Square pixel art looks best.</p><input type="file" id="artFile" accept="image/png">'
  +(has?'<div class="row"><button class="g" id="artClear">Go back to the generated art</button></div>':"")+"</div>"
- +'<div class="card" style="flex:2 1 340px"><h2>Or paint it (16 × 16)</h2><div class="row" style="align-items:center;margin-top:0"><input type="color" id="pxCol" value="'+AD.col+'" style="flex:none;width:52px;height:40px;padding:2px;margin:0">'
+ +'<div class="card" style="flex:2 1 340px"><h2>Or paint it (32 × 32)</h2><div class="row" style="align-items:center;margin-top:0"><input type="color" id="pxCol" value="'+AD.col+'" style="flex:none;width:52px;height:40px;padding:2px;margin:0">'
  +[["paint","Paint"],["erase","Erase"],["pick","Pick a colour"]].map(function(x){return'<button class="'+(AD.tool===x[0]?"":"g")+'" data-pxt="'+x[0]+'" style="flex:none">'+x[1]+"</button>"}).join("")+'<button class="g" id="pxClear" style="flex:none">Clear</button></div>'
  +'<div class="pxed" id="pxed">'+(AD.px?cells:'<span class="mu">Loading…</span>')+'</div><div class="row"><button id="pxSave">Save painting</button><button class="g" id="pxReload">Start over from the current picture</button></div></div></div>'}
-// reads the current picture into the 16x16 painter (transparent pixels stay empty)
-function loadPixels(t,id){var key=t+":"+id;AD.pxFor=key;AD.px=null;var img=new Image();img.onload=function(){if(AD.pxFor!==key)return;var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");x.imageSmoothingEnabled=false;x.drawImage(img,0,0,16,16);
-  var d=x.getImageData(0,0,16,16).data,px=[];for(var i=0;i<256;i++){var a=d[i*4+3];px.push(a<128?null:"#"+[d[i*4],d[i*4+1],d[i*4+2]].map(function(v){return("0"+v.toString(16)).slice(-2)}).join(""))}AD.px=px;if(tab==="admin"&&AD.sub==="art")render()};img.src=icoSrc(t,id)}
-function savePixels(){var c=document.createElement("canvas");c.width=c.height=16;var x=c.getContext("2d");AD.px.forEach(function(col,i){if(col){x.fillStyle=col;x.fillRect(i%16,Math.floor(i/16),1,1)}});
+// reads the current picture into the PXN x PXN painter (transparent pixels stay empty)
+var PXN=32;
+function loadPixels(t,id){var key=t+":"+id;AD.pxFor=key;AD.px=null;var img=new Image();img.onload=function(){if(AD.pxFor!==key)return;var c=document.createElement("canvas");c.width=c.height=PXN;var x=c.getContext("2d");x.imageSmoothingEnabled=false;x.drawImage(img,0,0,PXN,PXN);
+  var d=x.getImageData(0,0,PXN,PXN).data,px=[];for(var i=0;i<PXN*PXN;i++){var a=d[i*4+3];px.push(a<128?null:"#"+[d[i*4],d[i*4+1],d[i*4+2]].map(function(v){return("0"+v.toString(16)).slice(-2)}).join(""))}AD.px=px;if(tab==="admin"&&AD.sub==="art")render()};img.src=icoSrc(t,id)}
+function savePixels(){var c=document.createElement("canvas");c.width=c.height=PXN;var x=c.getContext("2d");AD.px.forEach(function(col,i){if(col){x.fillStyle=col;x.fillRect(i%PXN,Math.floor(i/PXN),1,1)}});
  var p=AD.art.split(":"),id=artId(p[0],p[1]);adPost("admin/art",{id:id,png:c.toDataURL("image/png").split(",")[1]},"Texture saved.").then(function(r){if(r)AD.pxFor=null})}
 function pxAt(e){var el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.dataset&&el.dataset.pxi!=null?el:null}
 function pxApply(el){var i=+el.dataset.pxi;if(AD.tool==="pick"){if(AD.px[i]){AD.col=AD.px[i];AD.tool="paint";render()}return}AD.px[i]=AD.tool==="erase"?null:AD.col;el.style.background=AD.px[i]||"transparent"}
@@ -694,21 +784,30 @@ function lrnStats(){var L=lrnDay(),s=pzStore(),n=Math.min(L.n||0,LRN_GOAL);
 function lrnPaint(){var el=document.getElementById("lrn");if(el&&tab==="learn")el.innerHTML=lrnHTML()}
 // a playable board: click one of your pieces then where it should go, or drag it there. A new move slides into place,
 // except one you dragged (it is already where you dropped it).
-function lrnBoard(B,mini){var f="abcdefgh",pos=B.ch.board(),tg={},out="",lk=B.last?B.last.from+B.last.to:"",slide=!mini&&lk&&lk!==B.shown&&lk!==B.dragged;
+// an earlier position of a board: the start (a puzzle's position, or the opening position) plus the first B.view moves
+function lrnAt(B){var h=B.ch.history({verbose:true}),c=B.start?new LRN.lib.Chess(B.start):new LRN.lib.Chess();for(var i=0;i<B.view;i++)c.move(h[i].san);
+ return{ch:c,last:B.view?{from:h[B.view-1].from,to:h[B.view-1].to}:B.first}}
+function lrnBoard(B,mini){var V=!mini&&B.view!=null?lrnAt(B):null,pos=(V||B).ch.board(),last=(V||B).last,f="abcdefgh",tg={},out="",lk=last?last.from+last.to:"",slide=!mini&&lk&&lk!==B.shown&&lk!==B.dragged;
  if(!mini){B.shown=lk;B.dragged=null}
- if(B.sel)B.ch.moves({square:B.sel,verbose:true}).forEach(function(m){tg[m.to]=1});
+ if(B.sel&&!V)B.ch.moves({square:B.sel,verbose:true}).forEach(function(m){tg[m.to]=1});
  for(var r=0;r<8;r++)for(var c=0;c<8;c++){var rr=B.flip?7-r:r,cc=B.flip?7-c:c,n=f[cc]+(8-rr),p=pos[rr][cc],k="bq "+((rr+cc)%2?"dk":"lt");
-  if(B.last&&(B.last.from===n||B.last.to===n))k+=" hl";if(B.hint&&B.hint.indexOf(n)>-1)k+=" hn";if(B.sel===n)k+=" sel";if(B.bad===n)k+=" bad";if(tg[n])k+=p?" tgx":" tg";
+  if(last&&(last.from===n||last.to===n))k+=" hl";if(!V&&B.hint&&B.hint.indexOf(n)>-1)k+=" hn";if(!V&&B.sel===n)k+=" sel";if(B.bad===n)k+=" bad";if(tg[n])k+=p?" tgx":" tg";
   out+='<div class="'+k+'"'+(mini?"":' data-lsq="'+n+'"')+">"+(mini?"":coords(c,r,n))+(p?'<img class="pz'+(slide&&n===B.last.to?' slide" style="'+slideBy(B,B.last):"")+'" src="'+pieceSrc(p.color,p.type)+'" alt="" draggable="false">':"")+"</div>"}
- return mini?'<div class="board">'+out+"</div>":'<div class="bwrap"><div class="board pb">'+out+"</div></div>"}
-function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B||B.lock)return;
+ if(mini)return'<div class="board">'+out+"</div>";var n=B.ch.history().length;
+ return'<div class="bwrap"><div class="board pb'+(V?" past":"")+'">'+out+'</div></div><div class="row lnav"><button class="g" data-la="vback"'+(n&&B.view!==0?"":" disabled")+'>◀</button><button class="g" data-la="vfwd"'+(V?"":" disabled")+'>▶</button><span class="mu">'+(V?"Looking back at move "+B.view+" of "+n+". Press → or click the board to return.":"Use ← → to step through the moves.")+"</span></div>"}
+// step through the moves played so far: -1 back, +1 forward; going past the last move returns to the live board
+function lrnStep(d){var B=lrnB();if(!B||!LRN.lib)return;var n=B.ch.history().length,v=B.view==null?n:B.view,to=Math.max(0,Math.min(n,v+d));if(to===v)return;
+ var h=B.ch.history({verbose:true});moveSfx(h[Math.max(to,v)-1]);B.view=to===n?null:to;lrnPaint()}
+document.addEventListener("keydown",function(e){if(tab!=="learn"||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.altKey||e.ctrlKey||e.metaKey)return;
+ if(e.key==="ArrowLeft"){lrnStep(-1);e.preventDefault()}if(e.key==="ArrowRight"){lrnStep(1);e.preventDefault()}});
+function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B||B.lock)return;if(B.view!=null){B.view=null;lrnPaint();return}
  if(B.sel&&B.sel!==n){var mv=B.ch.moves({square:B.sel,verbose:true}).filter(function(m){return m.to===n});if(mv.length){var from=B.sel;B.sel=null;(LRN.sub==="puz"?pzMove:opMove)(from,n,mv);return}}
  var p=B.ch.get(n);B.sel=p&&p.color===B.ch.turn()&&B.sel!==n?n:null;lrnPaint()}
 function lrnWrong(B,sq){B.bad=sq;sfx("error");lrnPaint();setTimeout(function(){B.bad=null;lrnPaint()},450)}
 function lrnB(){return LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B}
 // dragging: press on one of your pieces, move, and let go over a square. A press without moving is left to the click handler.
 var DRAG=null;
-document.addEventListener("pointerdown",function(e){var sq=e.target.closest(".pb [data-lsq]"),B=lrnB();if(!sq||!B||B.lock||e.button>0)return;var p=B.ch.get(sq.dataset.lsq),img=sq.querySelector(".pz");
+document.addEventListener("pointerdown",function(e){var sq=e.target.closest(".pb [data-lsq]"),B=lrnB();if(!sq||!B||B.lock||B.view!=null||e.button>0)return;var p=B.ch.get(sq.dataset.lsq),img=sq.querySelector(".pz");
  if(!p||p.color!==B.ch.turn()||!img)return;e.preventDefault();var r=sq.getBoundingClientRect();DRAG={from:sq.dataset.lsq,img:img,x:e.clientX,y:e.clientY,w:r.width,ghost:null}});
 document.addEventListener("pointermove",function(e){if(!DRAG)return;if(!DRAG.ghost){if(Math.abs(e.clientX-DRAG.x)+Math.abs(e.clientY-DRAG.y)<6)return;
   var B=lrnB();if(B.sel!==DRAG.from){B.sel=DRAG.from;lrnPaint();DRAG.img=document.querySelector('.pb [data-lsq="'+DRAG.from+'"] .pz')}
@@ -721,7 +820,7 @@ document.addEventListener("pointercancel",function(){document.body.classList.rem
 // short praise for a right move or a solved puzzle
 function cheer(a){return a[Math.floor(Math.random()*a.length)]}
 function lrnAct(a){var x=a.split(":");
- if(x[0]==="hint")pzHint();else if(x[0]==="sol")pzSolve();else if(x[0]==="next"||x[0]==="pzretry"){LRN.pz=null;LRN.pzErr=0;lrnPaint()}
+ if(x[0]==="vback")return lrnStep(-1);if(x[0]==="vfwd")return lrnStep(1);if(x[0]==="hint")pzHint();else if(x[0]==="sol")pzSolve();else if(x[0]==="next"||x[0]==="pzretry"){LRN.pz=null;LRN.pzErr=0;lrnPaint()}
  else if(x[0]==="op")opStart(+x[1],x[2]);else if(x[0]==="opback"){LRN.op=null;lrnPaint()}else if(x[0]==="opretry"){LRN.repErr=0;lrnPaint()}
  else if(x[0]==="opj")opStart(LRN.op.i,LRN.op.mode,+x[1]);else if(x[0]==="opnext")opStart(LRN.op.i,LRN.op.mode,opPick(LRN.op.i,LRN.op.mode,LRN.op.j));else if(x[0]==="opmode")opStart(LRN.op.i,"practice",LRN.op.j)}
 // ---- puzzles, from the Lichess puzzle database (public domain). Your puzzle rating moves like a chess rating: the first try at
@@ -731,7 +830,7 @@ async function pzStart(){if(LRN.pzBusy)return;LRN.pzBusy=1;
  try{var lib=await lrnLib();if(!LRN.set)LRN.set=(await fetch("/vendor/puzzles/puzzles.json").then(function(r){return r.json()})).puzzles;
   var s=pzStore(),left=LRN.set.filter(function(p){return!(p.id in s.done)});if(!left.length){s.done={};lrnSet("luc-puz",s);left=LRN.set}
   var p=left.sort(function(a,b){return Math.abs(a.rating-s.r)-Math.abs(b.rating-s.r)})[0],ch=new lib.Chess(p.fen);
-  LRN.pz={p:p,i:0,state:"play",msg:"",B:{ch:ch,flip:ch.turn()==="b",last:{from:p.last.slice(0,2),to:p.last.slice(2,4)}}}}
+  LRN.pz={p:p,i:0,state:"play",msg:"",B:{ch:ch,flip:ch.turn()==="b",start:p.fen,last:{from:p.last.slice(0,2),to:p.last.slice(2,4)},first:{from:p.last.slice(0,2),to:p.last.slice(2,4)}}}}
  catch(e){LRN.pzErr=1}
  LRN.pzBusy=0;lrnPaint()}
 function pzScore(win){var P=LRN.pz;if(P.scored)return;P.scored=1;var s=pzStore(),e=1/(1+Math.pow(10,(P.p.rating-s.r)/400)),d=Math.round(32*((win?1:0)-e));
@@ -834,9 +933,7 @@ var TSTEPS=[
  {tab:"ach",sel:"main .grid",t:"Achievements",x:"Each one pays coins, and some unlock hints for secret recipes."},
  {tab:"ach",click:'.nav[data-t="ranks"]',t:"Leaderboards",x:"Click Ranks."},
  {tab:"ranks",sel:"main .tabs",t:"Leaderboards",x:"Compete with every player, just your friends, or as a clan."},
- {tab:"ranks",click:'.nav[data-t="social"]',t:"Friends and clans",x:"Click Social."},
- {tab:"social",sel:".prof",t:"Friends and clans",x:"Add friends by username, and found or join a clan to climb the clan leaderboard together."},
- {tab:"social",click:'.nav[data-t="profile"]',t:"Make it yours",x:"Click Profile."},
+ {tab:"ranks",click:'.nav[data-t="profile"]',t:"Make it yours",x:"Click Profile."},
  {tab:"profile",sel:".themes",up:".card",t:"Themes",x:"Pick a colour theme and light or dark mode. More colours unlock as you win games."},
  {t:"You're all set!",x:"That's everything. Go and play some rated games, and your rewards will be waiting here.",last:true}];
 function tutLayer(){var l=document.getElementById("tut");if(l)return l;document.body.insertAdjacentHTML("beforeend",'<div id="tut"><div class="tblock"></div><div class="tspot"></div><div class="tbox"></div></div>');l=document.getElementById("tut");
@@ -885,6 +982,8 @@ function render0(){var R=document.getElementById("root");
  // an admin changed items or textures: fetch the new catalog, then draw again
  if(CAT&&S.cv!==CAT.cv&&!render.cat){render.cat=1;api("catalog").then(function(c){CAT=c;IMG={};render.cat=0;render()},function(){render.cat=0})}
  R.innerHTML='<div class="app"><aside><div class="logo">LEVEL UP <b>CHESS</b></div>'+N.map(function(n){return'<button class="nav'+(tab===n[0]?" on":"")+'" data-t="'+n[0]+'" title="'+n[1]+'">'+ICON(n[3])+'<span class="nl">'+n[1]+'</span><span class="ns">'+n[2]+"</span></button>"}).join("")+'<div class="me"><b>'+esc(S.username)+'</b><div class="mu">Level '+S.level+" · 🪙 "+S.coins+'</div><div class="row"><button class="g" id="mute" style="padding:5px">'+(muted?"🔇":"🔊")+'</button><button class="g" id="modeQuick" style="padding:5px" title="'+(S.mode==="light"?"Switch to dark mode":"Switch to light mode")+'">'+ICON(S.mode==="light"?"moon":"sun")+'</button><button class="g" id="lo" style="padding:5px">Log out</button></div></div></aside><main'+(render.last!==tab?' class="enter"':"")+'>'+V[tab]()+"</main></div>";render.last=tab;
+ // the tab's entrance animation runs once: drop the class afterwards, or parts redrawn later (like the Learn board) would replay it
+ var mn=R.querySelector("main.enter");if(mn)setTimeout(function(){mn.classList.remove("enter")},1000);
  var $=function(i){return document.getElementById(i)};
  $("lo").onclick=async function(){await api("logout",{});S=null;render()};
  $("mute").onclick=function(){muted=!muted;try{localStorage.setItem("luc-mute",muted?"1":"0")}catch(e){}render();sfx("click")};
