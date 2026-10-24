@@ -204,7 +204,8 @@ app.post("/api/tour/complete", auth, (req, res) => {
   if (!t || Date.now() - t < C.TOUR_MIN_SECONDS * 1000) throw new AppError("too_fast", "Take the whole tour to get the reward.");
   tourStarted.delete(req.u.id); res.json(reply(req.u, core.completeTour(req.u.id)));
 });
-app.post("/api/chest/open", auth, act((u, b) => core.openChest(u, String(b.id || ""), Number(b.n) || 1)));
+app.post("/api/chest/open", auth, act((u, b) => core.openChest(u, String(b.id || ""))));
+app.post("/api/chest/pick", auth, act((u, b) => core.pickChest(u, Number(b.slot))));
 app.post("/api/lock", auth, act((u, b) => core.toggleLock(u, Number(b.iid))));
 app.get("/api/dismantle/dupes", auth, (req, res) => res.json(core.dupesPreview(req.u.id)));
 app.post("/api/dismantle/dupes", auth, act(u => core.dismantleDupes(u)));

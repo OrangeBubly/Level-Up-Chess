@@ -9,7 +9,7 @@ function setup(opts) {
   const mk = (name, ccName, wm = 1) => { const id = core.createUser(name, "s", "h"); db.prepare("UPDATE users SET cc=?, cc_player_id=?, watermark=? WHERE id=?").run(ccName, id, wm, id); return id; };
   return { db, core, mk };
 }
-const M = k => ({ t: "mat", k }), W3 = [null, M("shard"), null, null, M("essence"), null, null, M("shard"), null];
+const M = (k, q) => ({ t: "mat", k, q }), W3 = [null, M("iron"), null, null, M("oak"), null, null, M("iron"), null]; // the Bishop's Blade
 let n = 0;
 const G = (white, black, res = "win", o = {}) => { n++; return { url: "g" + n, end_time: o.t || 1000 + n, rules: "chess", rated: o.rated !== false, time_control: o.tc || "600",
   pgn: Array(o.plies || 20).fill("e4").join(" "), white: { username: white, rating: o.wr || 1500, result: res }, black: { username: black, rating: o.br || 1500, result: res === "win" ? "checkmated" : "win" } }; };
@@ -17,7 +17,7 @@ const ledgerSum = (db, uid, kind) => db.prepare("SELECT COALESCE(SUM(delta),0) s
 const bal = (db, uid, kind) => (db.prepare("SELECT qty FROM balances WHERE user_id=? AND kind=?").get(uid, kind) || { qty: 0 }).qty;
 
 test("migrations are idempotent and refuse a pre-rebuild database", () => {
-  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]); assert.deepEqual(migrate(db), []);
+  const db = open(":memory:"); assert.deepEqual(migrate(db), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]); assert.deepEqual(migrate(db), []);
   const old = open(":memory:"); old.exec("CREATE TABLE users(id INTEGER PRIMARY KEY, owned TEXT)");
   assert.throws(() => migrate(old), /DB_FILE/);
 });
@@ -84,13 +84,13 @@ test("workshop: dismantle, upgrade and craft are atomic and audited", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
   core._grant(a, "coins", 5000, "test"); core.buy(a, "w2"); core.buy(a, "w2");
   const [i1, i2] = db.prepare("SELECT id FROM items WHERE user_id=? ORDER BY id").all(a).map(r => r.id);
-  core.dismantle(a, i2); assert.equal(bal(db, a, "shard"), 6);
-  assert.throws(() => core.craft(a, W3), e => e.code === "insufficient"); // not enough materials yet
+  core.dismantle(a, i2); assert.equal(bal(db, a, "iron@1"), 6); assert.equal(bal(db, a, "oak@1"), 1); // a weapon gives iron and oak back
+  assert.throws(() => core.craft(a, W3), e => e.code === "insufficient"); // not enough oak yet
   assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE id=?").get(i2).n, 0);
-  core._grant(a, "shard", 100, "test"); core._grant(a, "essence", 10, "test");
+  core._grant(a, "iron", 100, "test"); core._grant(a, "oak", 10, "test");
   core.upgrade(a, i1); assert.equal(db.prepare("SELECT level FROM items WHERE id=?").get(i1).level, 2);
   core.craft(a, W3); assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE user_id=? AND def='w3'").get(a).n, 1);
-  for (const k of ["coins", "shard", "essence"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  for (const k of ["coins", "iron@1", "oak@1"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE user_id=?").get(a).n, ledgerSum(db, a, "item:w2") + ledgerSum(db, a, "item:w3"));
 });
 
@@ -112,7 +112,7 @@ test("migrating a database that already has players keeps them and makes a backu
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "luc-")), file = path.join(dir, "t.db"), db = open(file);
   migrate(db, { upTo: 1 });
   db.prepare("INSERT INTO users(username,salt,hash,xp) VALUES('old','s','h',321)").run();
-  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+  assert.deepEqual(migrate(db, { file, backupDir: path.join(dir, "bk") }), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
   assert.equal(db.prepare("SELECT xp FROM users WHERE username='old'").get().xp, 321);
   assert.ok(db.prepare("SELECT 1 FROM sqlite_master WHERE name='recipes_known'").get());
   const bk = fs.readdirSync(path.join(dir, "bk")); assert.equal(bk.length, 1);
@@ -128,25 +128,68 @@ test("recipes: patterns are unique, every material has a repeatable consumable s
 
 test("crafting table: shape matters, position does not, discovery is recorded", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
-  core._grant(a, "coins", 1000, "t"); core._grant(a, "shard", 50, "t"); core._grant(a, "essence", 50, "t");
-  const shifted = [M("shard"), null, null, M("essence"), null, null, M("shard"), null, null];       // the blade pattern, moved to the left column
-  assert.deepEqual(core.preview(a, shifted).out, { type: "item", id: "w3", qty: 1 });
-  assert.equal(core.preview(a, [M("shard"), M("shard"), null, null, null, null, null, null, null]).match, false);
-  assert.throws(() => core.craft(a, [M("shard"), null, null, null, null, null, null, null, null]), e => e.code === "no_recipe");
+  core._grant(a, "coins", 1000, "t"); core._grant(a, "iron", 50, "t"); core._grant(a, "oak", 50, "t");
+  const shifted = [M("iron"), null, null, M("oak"), null, null, M("iron"), null, null];       // the blade pattern, moved to the left column
+  assert.deepEqual(core.preview(a, shifted).out, { type: "item", id: "w3", qty: 1, quality: 1 });
+  assert.equal(core.preview(a, [M("iron"), M("iron"), null, null, null, null, null, null, null]).match, false);
+  assert.throws(() => core.craft(a, [M("iron"), null, null, null, null, null, null, null, null]), e => e.code === "no_recipe");
   const r = core.craft(a, shifted); assert.equal(r.discovered, true); assert.ok(r.ach.includes("first_craft"));
   assert.equal(core.craft(a, W3).discovered, false);
   assert.equal(db.prepare("SELECT times FROM recipes_known WHERE user_id=? AND recipe='w3'").get(a).times, 2);
-  assert.equal(bal(db, a, "shard"), 50 - 12); assert.equal(bal(db, a, "essence"), 50 - 6);
+  assert.equal(bal(db, a, "iron@1"), 50 - 12); assert.equal(bal(db, a, "oak@1"), 50 - 6);
+});
+
+test("quality: crafted gear gets the average quality of what went in, and better quality means stronger stats", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  core._grant(a, "coins", 5000, "t");
+  for (const k of ["iron@1", "iron@2", "iron@3", "oak@1", "oak@3"]) core._grant(a, k, 20, "t");
+  const best = [null, M("iron", 3), null, null, M("oak", 3), null, null, M("iron", 3), null];
+  assert.equal(core.preview(a, best).out.quality, 3);
+  assert.equal(core.craft(a, best).crafted.quality, 3);
+  assert.equal(bal(db, a, "iron@3"), 20 - 6); assert.equal(bal(db, a, "oak@3"), 20 - 3); assert.equal(bal(db, a, "iron@1"), 20); // each cell pays its own quality
+  assert.equal(core.craft(a, [null, M("iron", 3), null, null, M("oak", 1), null, null, M("iron", 2), null]).crafted.quality, 2); // (3 + 1 + 2) / 3
+  assert.deepEqual(db.prepare("SELECT quality FROM items WHERE user_id=? ORDER BY id").all(a).map(x => x.quality), [3, 2]);
+  assert.throws(() => core.craft(a, [null, M("iron", 4), null, null, M("oak"), null, null, M("iron"), null]), e => e.code === "bad_grid");
+  assert.throws(() => core.craft(a, [null, M("iron", 3), null, null, M("oak", 2), null, null, M("iron", 3), null]), e => e.code === "insufficient"); // no quality-2 oak
+  assert.equal(R.bonusOf([{ def: "w3", level: 1, quality: 3 }]).stats.upset, 20.8); // 16 x 1.3
+  assert.equal(R.bonusOf([{ def: "w3", level: 1, quality: 2 }]).stats.upset, 18.4); // 16 x 1.15
+  // dismantling gives the resources back at the item's quality
+  const q3 = db.prepare("SELECT id FROM items WHERE user_id=? AND quality=3").get(a).id, before = bal(db, a, "copper@3");
+  core.dismantle(a, q3); assert.ok(bal(db, a, "iron@3") > 20 - 6 - 3); assert.equal(bal(db, a, "copper@3"), before);
+  for (const k of ["iron@1", "iron@2", "iron@3", "oak@1", "oak@3"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+});
+
+test("quality: prices in plain resources take the lowest quality first", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  core._grant(a, "coins", 500, "t"); core._grant(a, "iron@1", 2, "t"); core._grant(a, "iron@3", 5, "t"); core._grant(a, "oak@2", 3, "t");
+  core.buy(a, "w1"); const w1 = db.prepare("SELECT id FROM items WHERE def='w1'").get().id;
+  core.upgrade(a, w1); // costs 40 coins, 3 iron and 1 oak
+  assert.equal(bal(db, a, "iron@1"), 0); assert.equal(bal(db, a, "iron@3"), 4); assert.equal(bal(db, a, "oak@2"), 2);
+  assert.throws(() => core.upgrade(a, w1), e => e.code === "insufficient" && /Iron Ingot/.test(e.message)); // needs 6 iron, has 4
+  for (const k of ["iron@1", "iron@3", "oak@2"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+});
+
+test("old materials: players' stock becomes quality 1 of the new resources, once, through the ledger", () => {
+  const { db, core, mk } = setup(), a = mk("alice", "alice");
+  core._grant(a, "shard", 40, "old"); core._grant(a, "essence", 6, "old"); core._grant(a, "relic", 2, "old");
+  assert.equal(core.convertLegacy(), 3);
+  assert.equal(bal(db, a, "iron@1"), 40); assert.equal(bal(db, a, "copper@1"), 6); assert.equal(bal(db, a, "gem@1"), 2);
+  for (const k of ["shard", "essence", "relic"]) assert.equal(bal(db, a, k), 0);
+  for (const k of ["shard", "essence", "relic", "iron@1", "copper@1", "gem@1"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  assert.equal(core.convertLegacy(), 0); assert.equal(bal(db, a, "iron@1"), 40); // nothing left to convert
+  // admin-made content that still names an old material reads it as the new one
+  C.applyCustom({ quests: [{ id: "cq9", kind: "daily", desc: "Old quest", type: "play", n: 1, tc: null, reward: { coins: 5, shard: 2 } }] });
+  assert.deepEqual(C.QUEST.cq9.reward, { coins: 5, iron: 2 }); C.applyCustom();
 });
 
 test("crafting table: spare gear is consumed, equipped or duplicated gear is refused", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
-  for (const k of ["coins", "shard", "essence", "relic"]) core._grant(a, k, 5000, "t");
-  core._grant(a, "coins", 0, "t"); core.craft(a, W3); // a Bishop's Blade
-  const blade = db.prepare("SELECT id FROM items WHERE def='w3'").get().id, E = M("essence"), R_ = M("relic"), B = { t: "item", id: blade };
-  const w4 = [null, E, null, E, B, E, null, R_, null];
+  for (const k of ["coins", "iron", "oak", "gem"]) core._grant(a, k, 5000, "t");
+  core.craft(a, W3); // a Bishop's Blade
+  const blade = db.prepare("SELECT id FROM items WHERE def='w3'").get().id, I = M("iron"), G_ = M("gem"), B = { t: "item", id: blade };
+  const w4 = [null, I, null, I, B, I, null, G_, null];
   core.equip(a, blade); assert.throws(() => core.craft(a, w4), e => e.code === "equipped"); core.equip(a, blade);
-  assert.throws(() => core.craft(a, [null, E, null, E, B, B, null, R_, null]), e => e.code === "bad_grid");
+  assert.throws(() => core.craft(a, [null, I, null, I, B, B, null, G_, null]), e => e.code === "bad_grid");
   core.craft(a, w4);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE def='w3'").get().n, 0);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE def='w4'").get().n, 1);
@@ -155,22 +198,25 @@ test("crafting table: spare gear is consumed, equipped or duplicated gear is ref
 
 test("consumables: crafted from materials, activated for a buff that applies to the next games", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
-  for (const k of ["coins", "shard", "essence"]) core._grant(a, k, 100, "t");
+  for (const k of ["coins", "oak", "copper"]) core._grant(a, k, 100, "t");
   assert.throws(() => core.use(a, "tonic"), e => e.code === "insufficient");
-  core.craft(a, [null, M("essence"), null, M("shard"), M("essence"), M("shard"), null, null, null]); assert.equal(bal(db, a, "tonic"), 1);
+  core.craft(a, [null, M("copper"), null, M("oak"), M("copper"), M("oak"), null, null, null]); assert.equal(bal(db, a, "tonic"), 1);
   assert.ok(core.use(a, "tonic").ach.includes("potion")); assert.equal(db.prepare("SELECT games_left FROM buffs WHERE user_id=?").get(a).games_left, 5);
   core.sync(a, [G("alice", "p1")]); assert.equal(core.user(a).xp, Math.round(20 * 1.3));
   assert.equal(db.prepare("SELECT games_left FROM buffs WHERE user_id=?").get(a).games_left, 4);
   assert.throws(() => core.use(a, "shield"), e => e.code === "not_usable");
 });
 
-test("material drops: guaranteed per rewarded game, relics and essence on win milestones", () => {
+test("resource drops: guaranteed per rewarded game, by time control, silk and gems on win milestones", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice"), games = [];
-  for (let i = 0; i < 10; i++) games.push(G("alice", "o" + i, "win"));
+  for (let i = 0; i < 10; i++) games.push(G("alice", "o" + i, "win")); // rapid games drop oak
   const r = core.sync(a, games);
-  assert.equal(bal(db, a, "shard"), 30); assert.equal(bal(db, a, "essence"), 3); assert.equal(bal(db, a, "relic"), 1);
-  assert.deepEqual(r.drops, { shard: 30, essence: 3, relic: 1 });
-  for (const k of ["shard", "essence", "relic"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k));
+  assert.equal(bal(db, a, "oak@1"), 30); assert.equal(bal(db, a, "silk@1"), 3); assert.equal(bal(db, a, "gem@1"), 1);
+  assert.deepEqual(r.drops, { "oak@1": 30, "silk@1": 3, "gem@1": 1 });
+  core.sync(a, [G("alice", "bz", "loss", { tc: "180" })]); assert.equal(bal(db, a, "iron@1"), 1); // a blitz loss: one iron
+  for (const k of ["oak@1", "silk@1", "gem@1", "iron@1"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k));
+  const lucky = setup({ rand: () => 0 }), b = lucky.mk("bob", "bob"); // a lucky win finds quality 3
+  lucky.core.sync(b, [G("bob", "x1", "win")]); assert.equal(bal(lucky.db, b, "oak@3"), 3);
 });
 
 test("achievements: unlock once, pay their reward, and the hidden Giant Slayer needs a 200+ upset", () => {
@@ -440,16 +486,17 @@ test("clan leaderboard: ranked by XP members earned this week", () => {
 
 test("admin tools: give through the ledger, validate input, reset only today's limits", () => {
   let t = 5000; const { db, core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
-  core.adminGive(a, "coins", 5000); core.adminGive(a, "relic", 7); core.adminGive(a, "tonic", 2);
-  assert.equal(bal(db, a, "relic"), 7); assert.equal(bal(db, a, "tonic"), 2);
-  for (const k of ["coins", "relic", "tonic"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  core.adminGive(a, "coins", 5000); core.adminGive(a, "gem", 7); core.adminGive(a, "tonic", 2);
+  assert.equal(bal(db, a, "gem@1"), 7); assert.equal(bal(db, a, "tonic"), 2);
+  for (const k of ["coins", "gem@1", "tonic"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM ledger WHERE user_id=? AND reason='admin'").get(a).n, 3);
-  for (const [k, n] of [["xp", 5], ["coins", 0], ["coins", -5], ["coins", 1.5], ["coins", 100001], ["__proto__", 1]]) assert.throws(() => core.adminGive(a, k, n), e => e.code === "bad_kind" || e.code === "bad_amount", k + n);
+  core.adminGive(a, "gem@3", 2); assert.equal(bal(db, a, "gem@3"), 2);
+  for (const [k, n] of [["xp", 5], ["coins", 0], ["coins", -5], ["coins", 1.5], ["coins", 100001], ["__proto__", 1], ["gem@4", 1], ["shard", 1]]) assert.throws(() => core.adminGive(a, k, n), e => e.code === "bad_kind" || e.code === "bad_amount", k + n);
   core.adminItem(a, "m3"); assert.equal(db.prepare("SELECT COUNT(*) n FROM items WHERE user_id=? AND def='m3'").get(a).n, 1);
   assert.throws(() => core.adminItem(a, "nope"), e => e.code === "bad_item");
   assert.ok(core.adminWins(a, 50).ach.includes("wins50")); assert.equal(core.user(a).wins, 50); assert.ok(core.user(a).games >= 50);
   core.setTheme(a, "ocean"); assert.throws(() => core.adminWins(a, -1), e => e.code === "bad_amount");
-  core.adminGive(a, "shard", 500); core.adminGive(a, "essence", 50);
+  for (const k of ["iron", "silk", "copper", "oak", "leather"]) core.adminGive(a, k, 500);
   const o = core.merchant(a).offers.find(x => x.kind === "pool"); core.buyOffer(a, o.id);
   db.prepare("INSERT INTO merchant_buys(user_id,period,offer,qty) VALUES(?,?,?,1)").run(a, "d1969-12-31", "old");
   core.adminResetDay(a);
@@ -466,12 +513,12 @@ test("leaderboard can leave admin accounts off", () => {
 
 test("clear save data: progress goes, login, link, friends and claimed games stay", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice"), b = mk("bob", "bob");
-  core.adminGive(a, "coins", 5000); core.adminGive(a, "shard", 50); core.adminItem(a, "w2"); core.adminWins(a, 30); core.setTheme(a, "royal");
+  core.adminGive(a, "coins", 5000); core.adminGive(a, "iron", 50); core.adminItem(a, "w2"); core.adminWins(a, 30); core.setTheme(a, "royal");
   core.addFriend(a, "bob"); core.answerFriend(b, "alice", true); core.createClan(a, "Reset Club", "RC");
   const g = G("alice", "q1"); core.sync(a, [g]); const claims = db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n;
   core.resetProgress(a); const u = core.user(a), v = core.view(a);
   assert.equal(u.xp, 0); assert.equal(u.wins, 0); assert.equal(u.cc, "alice"); assert.equal(u.theme, "dark");
-  assert.equal(v.items.length, 0); assert.equal(v.mats.shard, 0); assert.equal(v.coins, C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward + C.ACHIEVEMENT.friend1.reward + C.ACHIEVEMENT.clan1.reward);
+  assert.equal(v.items.length, 0); assert.deepEqual(v.mats.iron, [0, 0, 0]); assert.equal(v.coins, C.WELCOME_COINS + C.ACHIEVEMENT.linked.reward + C.ACHIEVEMENT.friend1.reward + C.ACHIEVEMENT.clan1.reward);
   assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins"));
   assert.deepEqual(v.social.friends.map(x => x.username), ["bob"]); assert.equal(v.clan.mine.tag, "RC");
   assert.equal(db.prepare("SELECT COUNT(*) n FROM claims WHERE user_id=?").get(a).n, claims);
@@ -520,12 +567,12 @@ test("content editor: edit and restore built-in items, merchant prices, and it a
 });
 
 test("content editor: recipes from a 3x3 grid, unique patterns, turning built-ins off and on", () => {
-  const { core, mk } = setup(), a = mk("alice", "alice"), S_ = "shard", E = "essence";
+  const { core, mk } = setup(), a = mk("alice", "alice"), S_ = "iron", E = "oak";
   const it = core.saveItem({ name: "Glass Dagger", slot: "weapon", r: 1, price: 0, stats: { coin: 2 }, g: "♝", f: "" });
-  const grid = [S_, null, S_, null, S_, null, S_, null, S_]; // an X of shards
+  const grid = [S_, null, S_, null, S_, null, S_, null, S_]; // an X of iron
   const r = core.saveRecipe({ out: ["item", it.id], grid, mult: 2, fee: 100, hint: "An X marks the spot.", hintAch: null });
   assert.equal(r.id, "cr1"); assert.deepEqual(C.matchRecipe(grid).out, ["item", it.id]);
-  core.adminGive(a, "coins", 500); core.adminGive(a, "shard", 50);
+  core.adminGive(a, "coins", 500); core.adminGive(a, "iron", 50);
   assert.ok(core.craft(a, grid.map(t => t && M(t))).discovered); assert.ok(core.view(a).items.some(i => i.def === it.id));
   const w3 = C.RECIPES.find(x => x.id === "w3"), w3grid = [null, S_, null, null, E, null, null, S_, null];
   assert.throws(() => core.saveRecipe({ out: ["cons", "tonic"], grid: w3grid, mult: 1, fee: 0, hint: "" }), e => e.code === "pattern_taken");
@@ -540,7 +587,7 @@ test("content editor: recipes from a 3x3 grid, unique patterns, turning built-in
 test("content editor: textures are stored per item and versioned", () => {
   const { core } = setup(), png = Buffer.from("89504e470d0a1a0a", "hex");
   core.setArt("w1", png); assert.ok(C.ART.w1); assert.ok(core.getArt("w1").png.equals(png)); assert.ok(C.catalog().art.w1);
-  assert.throws(() => core.setArt("nope", png), e => e.code === "not_found"); core.setArt("shard", png); core.setArt("tonic", png);
+  assert.throws(() => core.setArt("nope", png), e => e.code === "not_found"); core.setArt("iron", png); core.setArt("tonic", png);
   core.clearArt("w1"); assert.equal(C.ART.w1, undefined); assert.equal(core.getArt("w1"), undefined);
 });
 
@@ -561,9 +608,9 @@ test("editor: sets can be created, edited, restored, and can't vanish while item
 
 test("editor: new achievements count real stats and pay through the ledger; built-ins can be edited and turned off", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice");
-  const ach = core.saveContent("ach", { name: "Shard Baron", desc: "Hold 50 Iron Shards.", reward: 40, rule: "shards", n: 50 });
-  assert.ok(core.adminGive(a, "shard", 60).ach.includes(ach.id));
-  assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins")); assert.ok(C.catalog().ach.some(x => x.id === ach.id && x.name === "Shard Baron"));
+  const ach = core.saveContent("ach", { name: "Iron Baron", desc: "Hold 50 Iron Ingots.", reward: 40, rule: "shards", n: 50 });
+  assert.ok(core.adminGive(a, "iron", 60).ach.includes(ach.id));
+  assert.equal(bal(db, a, "coins"), ledgerSum(db, a, "coins")); assert.ok(C.catalog().ach.some(x => x.id === ach.id && x.name === "Iron Baron"));
   core.saveContent("ach", { id: "first_win", name: "First Win", desc: "Win once.", reward: 99, rule: "wins", n: 1 }); assert.equal(C.ACHIEVEMENT.first_win.reward, 99);
   core.saveContent("ach", { id: "giant", name: "Titan Slayer", desc: "Beat someone 200+ higher.", reward: 150, rule: "wins", n: 1, hidden: true });
   assert.equal(C.ACHIEVEMENT.giant.rule, "special"); // hand-coded rules can't be swapped
@@ -576,7 +623,7 @@ test("editor: new achievements count real stats and pay through the ledger; buil
 
 test("editor: quests and merchant offers, with minimum pool sizes kept", () => {
   let t = 5000; const { core, mk } = setup({ now: () => t }), a = mk("alice", "alice");
-  const q = core.saveContent("quest", { kind: "daily", desc: "Win 4 games", type: "win", n: 4, tc: null, reward: { coins: 100, relic: 1 } });
+  const q = core.saveContent("quest", { kind: "daily", desc: "Win 4 games", type: "win", n: 4, tc: null, reward: { coins: 100, gem: 1 } });
   assert.equal(C.QUEST[q.id].kind, "daily"); assert.ok(C.QUESTS.daily.some(x => x.id === q.id));
   core.saveContent("quest", { id: q.id, kind: "weekly", desc: "Win 4 games", type: "win", n: 4, reward: { coins: 1 } });
   assert.equal(C.QUEST[q.id].kind, "daily"); // a quest can't move between daily and weekly
@@ -588,13 +635,13 @@ test("editor: quests and merchant offers, with minimum pool sizes kept", () => {
   assert.equal(C.QUEST.w_play40.tc, null); // the refused edit was rolled back
   assert.throws(() => core.deleteContent("quest", C.QUESTS.weekly[0].id), e => e.code === "too_few"); assert.equal(C.QUESTS.weekly.length, 3);
   assert.equal(core.quests(a).weekly.list.length, 3);
-  const o = core.saveContent("offer", { give: { t: "mat", id: "relic", qty: 2 }, cost: { coins: 700 }, limit: 1 });
+  const o = core.saveContent("offer", { give: { t: "mat", id: "gem", qty: 2 }, cost: { coins: 700 }, limit: 1 });
   assert.ok(C.MERCHANT_POOL.some(x => x.id === o.id && x.give.qty === 2));
   for (const id of C.MERCHANT_POOL.map(x => x.id).slice(0, -3)) core.deleteContent("offer", id);
   assert.throws(() => core.deleteContent("offer", C.MERCHANT_POOL[0].id), e => e.code === "too_few");
   assert.equal(core.merchant(a).offers.filter(x => x.kind === "pool").length, 3);
   for (const bad of [{ give: { t: "coins", id: "coins", qty: 1 } }, { give: { t: "mat", id: "gold", qty: 1 } }, { cost: {} }, { limit: 0 }])
-    assert.throws(() => core.saveContent("offer", { give: { t: "mat", id: "shard", qty: 5 }, cost: { coins: 10 }, limit: 1, ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+    assert.throws(() => core.saveContent("offer", { give: { t: "mat", id: "iron", qty: 5 }, cost: { coins: 10 }, limit: 1, ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
   assert.throws(() => core.saveContent("nope", {}), e => e.code === "bad_kind");
 });
 
@@ -606,19 +653,28 @@ test("chest odds: rarest checked first, each gets exactly its chance, the rest i
   assert.deepEqual(n, { gold: 300, iron: 1000, wood: 2500, none: 6200 });
 });
 
-test("chests: only rewarded wins drop them, they open for materials through the ledger, never empty", () => {
+test("chests: only rewarded wins drop them; opening lays out loot stacks to pick from, saved until the picks are taken", () => {
   let r = 0; const { db, core, mk } = setup({ rand: () => r }), a = mk("alice", "alice");
   core.sync(a, [G("alice", "l1", "loss"), G("alice", "w1", "win")]); // rand 0: the win drops a gold chest, the loss nothing
   assert.deepEqual(core.view(a).chests, { wood: 0, iron: 0, gold: 1 });
   core.sync(a, [G("alice", "u1", "win", { rated: false })]); assert.equal(core.view(a).chests.gold, 1); // unrated: nothing
-  const before = core.view(a).mats, o = core.openChest(a, "gold");
-  assert.deepEqual(o.opened.loot, { shard: 15, essence: 2, relic: 1 }); assert.ok(o.ach.includes("chest1")); // rand 0: every line hits, minimum amounts
-  assert.equal(core.view(a).mats.shard, before.shard + 15); assert.equal(core.view(a).chests.gold, 0);
+  const o = core.openChest(a, "gold"), coins = bal(db, a, "coins");
+  assert.ok(o.ach.includes("chest1")); assert.equal(o.draw.picks, C.CHEST_PICKS); assert.equal(o.draw.slots.length, C.CHEST_SLOTS);
+  // rand 0: the fewest stacks (8): a coins stack with the least coins, then the first loot line at its minimum, quality 1
+  assert.equal(o.draw.slots.filter(Boolean).length, 8); assert.deepEqual(o.draw.slots[0], { id: "coins", n: 150 }); assert.deepEqual(o.draw.slots[1], { id: "iron", q: 1, n: 8 });
+  assert.deepEqual(core.view(a).chestDraw, o.draw); assert.equal(core.view(a).chests.gold, 0); // saved: a reload shows the same chest
+  core.adminGive(a, "chest:wood", 1); assert.throws(() => core.openChest(a, "wood"), e => e.code === "chest_open"); // one chest at a time
+  assert.throws(() => core.pickChest(a, 26), e => e.code === "bad_slot"); assert.throws(() => core.pickChest(a, "0"), e => e.code === "bad_slot");
+  core.pickChest(a, 0); assert.equal(bal(db, a, "coins"), coins + 150);
+  assert.throws(() => core.pickChest(a, 0), e => e.code === "bad_slot"); // already taken
+  const last = core.pickChest(a, 1); assert.equal(last.draw.picks, 0); assert.equal(bal(db, a, "iron@1"), 8);
+  assert.equal(core.view(a).chestDraw, null); assert.throws(() => core.pickChest(a, 2), e => e.code === "no_chest");
   assert.throws(() => core.openChest(a, "gold"), e => e.code === "insufficient"); assert.throws(() => core.openChest(a, "nope"), e => e.code === "not_found");
-  for (const k of ["shard", "essence", "relic", "chest:gold"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
-  r = 0.999; assert.deepEqual(R.rollLoot(C.CHESTS.find(c => c.id === "wood"), () => r), { shard: 8 }); // 100% line always pays; top of 4-8
-  assert.deepEqual(R.rollLoot({ loot: [{ id: "relic", min: 2, max: 5, chance: 10 }] }, () => 0.999), { relic: 2 }); // nothing came up: first line's minimum
-  core.adminGive(a, "chest:wood", 3); assert.equal(core.openChest(a, "wood", 3).opened.n, 3); assert.equal(core.view(a).chests.wood, 0);
+  for (const k of ["coins", "iron@1", "chest:gold"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
+  // rand near 1: the most stacks, the most of each, the best quality, the last loot line
+  const top = R.rollDraw(C.CHESTS.find(c => c.id === "gold"), () => 0.999), full = top.filter(Boolean);
+  assert.equal(full.length, 9); assert.ok(full.some(x => x.id === "coins" && x.n === 500)); assert.ok(full.filter(x => x.id !== "coins").every(x => x.q === 3 && x.id === "copper" && x.n === 14));
+  r = 0.5; core.openChest(a, "wood"); assert.ok(core.view(a).chestDraw.slots.filter(Boolean).length >= 6);
 });
 
 test("item locks: a locked item can't be dismantled or crafted away; duplicates keep the best copy", () => {
@@ -629,45 +685,49 @@ test("item locks: a locked item can't be dismantled or crafted away; duplicates 
   core.toggleLock(a, ids[0]); assert.ok(core.view(a).items.find(i => i.id === ids[0]).locked);
   assert.throws(() => core.dismantle(a, ids[0]), e => e.code === "locked");
   const p = core.dupesPreview(a); assert.equal(p.count, 1); assert.deepEqual(p.items.map(x => x.id), [ids[1]]); // locked and best are kept
-  const shards = core.view(a).mats.shard, r = core.dismantleDupes(a);
-  assert.equal(r.dupes.count, 1); assert.equal(core.view(a).mats.shard, shards + r.dupes.yield.shard);
+  const iron = core.view(a).mats.iron[0], r = core.dismantleDupes(a);
+  assert.equal(r.dupes.count, 1); assert.equal(core.view(a).mats.iron[0], iron + r.dupes.yield["iron@1"]);
   assert.deepEqual(db.prepare("SELECT id FROM items WHERE user_id=? AND def='w2' ORDER BY id").all(a).map(x => x.id), [ids[0], ids[2]]);
   assert.equal(core.dupesPreview(a).count, 0);
   core.toggleLock(a, ids[0]); core.dismantle(a, ids[0]); // unlocked again: fine
-  assert.equal(bal(db, a, "shard"), ledgerSum(db, a, "shard"));
+  assert.equal(bal(db, a, "iron@1"), ledgerSum(db, a, "iron@1"));
 });
 
 test("editor: new materials work in recipes, prices, quests and chest loot, and can't vanish while used or held", () => {
   const { core, mk } = setup({ rand: () => 0 }), a = mk("alice", "alice");
   const m = core.saveContent("mat", { name: "Moonstone", r: 3, color: "#88CCFF" });
   assert.equal(m.id, "cm1"); assert.equal(C.MATS.cm1, "Moonstone"); assert.equal(C.MAT_INFO.cm1.color, "#88ccff"); assert.equal(C.NAMES.cm1, "Moonstone");
-  assert.equal(core.view(a).mats.cm1, 0);
-  const ch = core.saveContent("chest", { name: "Moon Chest", color: "#334466", chance: 1, loot: [{ id: "cm1", min: 2, max: 3, chance: 100 }] });
+  assert.deepEqual(core.view(a).mats.cm1, [0, 0, 0]);
+  const ch = core.saveContent("chest", { name: "Moon Chest", color: "#334466", chance: 1, stacks: [1, 1], quality: [1, 0, 0], loot: [{ id: "cm1", min: 2, max: 3, weight: 1 }] });
   assert.ok(C.CHESTS.some(c => c.id === ch.id)); assert.equal(core.view(a).chests[ch.id], 0);
   core.sync(a, [G("alice", "mm1")]); assert.equal(core.view(a).chests[ch.id], 1); // rand 0: the rarest chest (1%) drops
-  assert.deepEqual(core.openChest(a, ch.id).opened.loot, { cm1: 2 }); assert.equal(core.view(a).mats.cm1, 2);
+  assert.deepEqual(core.openChest(a, ch.id).draw.slots[0], { id: "cm1", q: 1, n: 2 });
+  assert.equal(core.pickChest(a, 0).draw.picks, 0); // nothing else in it: the chest closes after one pick
+  assert.deepEqual(core.view(a).mats.cm1, [2, 0, 0]);
   const it = core.saveItem({ name: "Moon Ring", slot: "ring", r: 3, price: 0, stats: { xp: 3 }, g: "◎", f: "" });
   core.saveRecipe({ out: ["item", it.id], grid: ["cm1", null, "cm1", null, null, null, null, null, null], mult: 1, fee: 0, hint: "" });
-  core.craft(a, [{ t: "mat", k: "cm1" }, null, { t: "mat", k: "cm1" }, null, null, null, null, null, null]); assert.equal(core.view(a).mats.cm1, 0);
+  core.craft(a, [{ t: "mat", k: "cm1" }, null, { t: "mat", k: "cm1" }, null, null, null, null, null, null]); assert.deepEqual(core.view(a).mats.cm1, [0, 0, 0]);
   assert.throws(() => core.deleteContent("mat", "cm1"), e => e.code === "in_use" && /recipe|Moon Chest/.test(e.message)); assert.ok(C.MATS.cm1);
-  assert.throws(() => core.deleteContent("mat", "shard"), e => e.code === "in_use"); // built-ins stay
-  core.saveContent("mat", { id: "shard", name: "Iron Bits", r: 0, color: "#7f8fa6" }); assert.equal(C.MATS.shard, "Iron Bits");
-  core.restoreContent("mat", "shard"); assert.equal(C.MATS.shard, "Iron Shards");
+  assert.throws(() => core.deleteContent("mat", "iron"), e => e.code === "in_use"); // built-ins stay
+  core.saveContent("mat", { id: "iron", name: "Iron Bars", r: 1, color: "#9aa4b5" }); assert.equal(C.MATS.iron, "Iron Bars");
+  core.restoreContent("mat", "iron"); assert.equal(C.MATS.iron, "Iron Ingot");
   for (const bad of [{ name: "<b>" }, { r: 7 }, { color: "red" }]) assert.throws(() => core.saveContent("mat", { name: "Ok", r: 1, color: "#123456", ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
 });
 
 test("editor: chest odds and loot are checked, and held chests can't be deleted", () => {
-  const { core, mk } = setup(), a = mk("alice", "alice");
-  core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 40, loot: [{ id: "shard", min: 5, max: 9, chance: 100 }] });
+  const { core, mk } = setup(), a = mk("alice", "alice"), ok = { stacks: [6, 9], quality: [70, 25, 5] };
+  core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 40, ...ok, loot: [{ id: "oak", min: 5, max: 9, weight: 3 }, { id: "coins", min: 10, max: 20, weight: 1 }] });
   assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40);
-  assert.throws(() => core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 90, loot: [{ id: "shard", min: 1, max: 1, chance: 100 }] }), e => e.code === "too_many");
+  assert.throws(() => core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 90, ...ok, loot: [{ id: "oak", min: 1, max: 1, weight: 1 }] }), e => e.code === "too_many");
   assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40); // refused change rolled back
   assert.throws(() => core.deleteContent("chest", "wood"), e => e.code === "in_use");
-  for (const bad of [{ loot: [] }, { loot: [{ id: "gold_ore", min: 1, max: 1, chance: 50 }] }, { loot: [{ id: "shard", min: 5, max: 2, chance: 50 }] }, { loot: [{ id: "shard", min: 1, max: 1, chance: 0 }] }, { chance: 101 }])
-    assert.throws(() => core.saveContent("chest", { name: "Box", color: "#123456", chance: 1, loot: [{ id: "shard", min: 1, max: 1, chance: 50 }], ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
-  const c = core.saveContent("chest", { name: "Box", color: "#123456", chance: 0, loot: [{ id: "shard", min: 1, max: 1, chance: 50 }] });
+  for (const bad of [{ loot: [] }, { loot: [{ id: "coins", min: 1, max: 5, weight: 1 }] }, { loot: [{ id: "gold_ore", min: 1, max: 1, weight: 5 }] }, { loot: [{ id: "oak", min: 5, max: 2, weight: 5 }] },
+    { loot: [{ id: "oak", min: 1, max: 1, weight: 0 }] }, { chance: 101 }, { stacks: [5, 2] }, { stacks: [0, 3] }, { quality: [0, 0, 0] }])
+    assert.throws(() => core.saveContent("chest", { name: "Box", color: "#123456", chance: 1, ...ok, loot: [{ id: "oak", min: 1, max: 1, weight: 5 }], ...bad }), e => e.code.startsWith("bad_"), JSON.stringify(bad));
+  const c = core.saveContent("chest", { name: "Box", color: "#123456", chance: 0, ...ok, loot: [{ id: "oak", min: 1, max: 1, weight: 5 }] });
   core.adminGive(a, "chest:" + c.id, 1); assert.throws(() => core.deleteContent("chest", c.id), e => e.code === "in_use");
   core.openChest(a, c.id); core.deleteContent("chest", c.id); assert.ok(!C.CHESTS.some(x => x.id === c.id));
+  core.pickChest(a, core.view(a).chestDraw.slots.findIndex(Boolean)); // an open chest still pays out after its kind is gone
   core.restoreContent("chest", "wood"); assert.equal(C.CHESTS.find(x => x.id === "wood").chance, 25);
 });
 
