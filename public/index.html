@@ -109,7 +109,7 @@ a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
 .pb .bq{cursor:pointer}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
 .bq.tg::before{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(20,40,10,.28);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:2%;border-radius:50%;border:5px solid rgba(20,40,10,.28);z-index:2}
-.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}.q.on{background:rgb(var(--acr) / .1);border-radius:8px}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
 /* extra animations: only with <html class="fx"> */
 html.fx body{transition:background-color .3s}
@@ -215,11 +215,45 @@ function ICON(n){return'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
 function artId(t,id){return t==="chest"?"chest_"+id:id}
 function icoSrc(t,id){var k=t+":"+id,a=artId(t,id);return CAT&&CAT.art&&CAT.art[a]?"/art/"+a+".png?v="+CAT.art[a]:A.items.indexOf(id)>-1?"assets/items/"+id+".png":(IMG[k]||(IMG[k]=mkSprite(t,id)))}
 function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
-/* ---------- sounds: synthesized 8-bit effects, or your own files from assets/sfx ---------- */
-var AC=null;function tone(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();var o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=t||"square";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d)}catch(e){}}
-function seq(a,gap,t){a.forEach(function(f,i){setTimeout(function(){tone(f,.12,t||"square")},i*gap)})}
-var SFX={click:function(){tone(520,.04)},equip:function(){seq([300,450],70)},buy:function(){seq([660,880],70)},craft:function(){seq([200,260,320,400],90,"sawtooth");setTimeout(function(){tone(784,.2,"triangle")},400)},discover:function(){seq([523,659,784,1047],110,"triangle")},levelup:function(){seq([392,523,659,784,1047],100,"triangle")},error:function(){tone(150,.18,"sawtooth",.06,90)},ach:function(){seq([659,784,988,1319],90,"triangle")}};
+/* ---------- sounds: made in the browser with the Web Audio API (no sound files), or your own files from assets/sfx ---------- */
+var AC=null,OUT=null,NOISE=null;
+function ac(){if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
+ if(AC.state==="suspended")AC.resume();return AC}
+// one note: o = {f: pitch, f2: pitch to glide to, d: length, at: delay, v: volume, a: attack, type: wave shape}
+function note(o){var a=ac();if(!a)return;var t=a.currentTime+(o.at||0),osc=a.createOscillator(),g=a.createGain();osc.type=o.type||"sine";osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.d);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(o.v||.1,t+(o.a||.004));g.gain.exponentialRampToValueAtTime(.0001,t+o.d);osc.connect(g);g.connect(OUT);osc.start(t);osc.stop(t+o.d+.02)}
+// a burst of filtered noise: the click of wood, the hiss of a sparkle, the creak of a lid
+function hiss(o){var a=ac();if(!a)return;if(!NOISE){NOISE=a.createBuffer(1,a.sampleRate*.6,a.sampleRate);var d=NOISE.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1}
+ var t=a.currentTime+(o.at||0),s=a.createBufferSource(),fl=a.createBiquadFilter(),g=a.createGain();s.buffer=NOISE;fl.type=o.ft||"bandpass";fl.frequency.value=o.f;fl.Q.value=o.q||1;
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(o.v||.2,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+o.d);s.connect(fl);fl.connect(g);g.connect(OUT);s.start(t,Math.random()*.4);s.stop(t+o.d+.02)}
+// a wooden piece set down on a wooden board: a short knock with a low body under it
+function knock(at,p,v){p=p||1;v=v||1;hiss({at:at,f:1500*p,q:3,d:.05,v:.55*v});note({at:at,f:190*p,f2:110*p,d:.1,v:.4*v});note({at:at,f:560*p,f2:380*p,d:.04,v:.1*v,type:"triangle"})}
+// a soft bell: a sine with two quieter overtones
+function bell(at,f,d,v){d=d||.5;v=v||.06;note({at:at,f:f,d:d,v:v});note({at:at,f:f*2.01,d:d*.6,v:v*.35});note({at:at,f:f*3.98,d:d*.3,v:v*.12})}
+function chime(fs,gap,d,v,at){fs.forEach(function(f,i){bell((at||0)+i*gap,f,d,v)})}
+var SFX={
+ move:function(){knock(0)},
+ capture:function(){knock(0,1.2,1.3);hiss({at:.01,f:3400,q:1.2,d:.06,v:.3});knock(.035,.75,.6)},
+ castle:function(){knock(0,1.05);knock(.12,.88,.9)},
+ check:function(){knock(0);bell(.03,1568,.3,.05)},
+ promote:function(){knock(0);chime([784,1047,1319],55,.35,.045,.04)},
+ end:function(){knock(0,.9,1.2);chime([659,523,392],130,.7,.06,.06)},
+ click:function(){hiss({f:2600,q:1.6,d:.03,v:.16});note({f:880,d:.035,v:.025,type:"triangle"})},
+ tab:function(){hiss({f:1900,q:1.2,d:.025,v:.12})},
+ equip:function(){hiss({f:5200,ft:"highpass",d:.06,v:.1});bell(0,880,.2,.05);bell(.06,1320,.3,.05)},
+ buy:function(){bell(0,1319,.2,.06);bell(.075,1760,.45,.06)},
+ reward:function(){bell(0,1319,.2,.06);bell(.075,1760,.3,.06);chime([1047,1319,1568],70,.45,.05,.2)},
+ notify:function(){bell(0,988,.35,.05);bell(.13,1319,.5,.05)},
+ craft:function(){knock(0,.7,1.2);knock(.15,.75,1.2);knock(.3,.8,1.3);chime([784,1175],90,.6,.06,.45)},
+ chest:function(){hiss({f:320,ft:"lowpass",q:4,d:.3,v:.2});hiss({at:.22,f:6000,ft:"highpass",d:.35,v:.08});chime([1047,1319,1568,2093],65,.55,.045,.22)},
+ discover:function(){hiss({f:6500,ft:"highpass",d:.3,v:.07});chime([659,880,1175,1568],85,.6,.05)},
+ solve:function(){chime([784,1047,1319],75,.5,.06)},
+ levelup:function(){chime([523,659,784,1047],95,.5,.06);bell(.42,1568,1,.05);bell(.42,784,1,.05)},
+ ach:function(){chime([784,988,1175,1568],70,.55,.055)},
+ error:function(){note({f:200,f2:140,d:.14,v:.12,type:"triangle"});note({at:.1,f:160,f2:110,d:.16,v:.1,type:"triangle"})}};
 function sfx(n){if(muted)return;if(A.sfx.indexOf(n)>-1){try{new Audio("assets/sfx/"+n+".mp3").play()}catch(e){}return}if(SFX[n])SFX[n]()}
+// the sound for a chess move (a chess.js move): mate, check, castling, promotion, capture, or a plain move
+function moveSfx(m){if(m)sfx(/#/.test(m.san)?"end":/\+/.test(m.san)?"check":/[kq]/.test(m.flags)?"castle":m.promotion?"promote":m.captured?"capture":"move")}
 /* ---------- helpers ---------- */
 function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
 async function api(p,b){var o=b===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)};var r=await fetch("/api/"+p,o),j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.error||"Request failed");return j}
@@ -322,7 +356,7 @@ function merHTML(){var M=S.merchant;if(!M)return"";
 function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleDateString();
  var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+swatch(t.id).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
- +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Button clicks, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button><label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
+ +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Chess moves and captures, buttons, rewards, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button><label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
  +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
  +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+tourCard()+dangerHTML()}
 function tourCard(){return'<div class="card" style="margin-top:16px"><h2>Site tour</h2><p class="mu" style="margin-top:0">A quick guided walk through everything on the site'+(S.tutorial===1?".":', with a one-time reward of <b>+'+CAT.tourXp+" XP and "+CAT.tourCoins+" coins</b>.")+'</p><button id="tourBtn">'+(S.tutorial===1?"Take the tour again":"Take the tour")+"</button></div>"}
@@ -575,7 +609,7 @@ function rvTodo(c){return c.moves.map(function(m,i){return i}).filter(function(i
 function rvReady(c){return c.done&&c.seen[c.fens.length-1]&&rvTodo(c).every(function(i){return c.seen[i+1]})}
 // a move animates once, when you step to it: slideFor (stepping forward one move) and popFor (any change) are used up by the
 // next board drawing, so later redraws (analysis progress, auto-sync) show the position still
-function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;var was=c.ply;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.slideFor=c.ply===was+1?c.ply:null;c.popFor=c.ply!==was?c.ply:null;c.seen[c.ply]=1;render()}
+function rvGo(p){var c=RV.cur;if(!c||!c.fens)return;var was=c.ply;c.ply=Math.max(0,Math.min(c.fens.length-1,p));c.slideFor=c.ply===was+1?c.ply:null;c.popFor=c.ply!==was?c.ply:null;c.seen[c.ply]=1;if(c.ply!==was)moveSfx(c.moves[Math.max(c.ply,was)-1]);render()}
 function rvNextMistake(){var c=RV.cur,t=rvTodo(c).map(function(i){return i+1}),n=t.filter(function(p){return p>c.ply})[0];rvGo(n!=null?n:t[0]!=null?t[0]:c.fens.length-1)}
 // progress redraws while the engine works, at most about once a second
 function rvPaint(){var t=Date.now();if(tab==="review"&&RV.cur&&!RV.cur.done&&t-(RV.painted||0)>900){RV.painted=t;render()}}
@@ -634,15 +668,7 @@ function authView(R){var $=function(i){return document.getElementById(i)},v=func
    sel: what to spotlight; up: spotlight its nearest parent matching this instead; tab/sub: the page it's on. */
 var TUT={on:false,i:0,asked:false};
 // ---- Learn: puzzles and an opening trainer. A first version: progress is kept in this browser only and earns no XP yet ----
-var LRN={sub:"puz"},LINES=[ // [name, the side you play, the moves]
- ["Italian Game","w","e4 e5 Nf3 Nc6 Bc4 Bc5 c3 Nf6 d4 exd4 cxd4 Bb4+ Bd2 Bxd2+ Nbxd2 d5"],
- ["Ruy Lopez","w","e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 d6 c3 O-O h3"],
- ["Queen's Gambit Declined","w","d4 d5 c4 e6 Nc3 Nf6 Bg5 Be7 e3 O-O Nf3 h6 Bh4 b6"],
- ["London System","w","d4 d5 Bf4 Nf6 e3 e6 Nf3 c5 c3 Nc6 Nbd2 Bd6 Bg3 O-O Bd3"],
- ["Sicilian Najdorf","b","e4 c5 Nf3 d6 d4 cxd4 Nxd4 Nf6 Nc3 a6 Be3 e5 Nb3 Be6"],
- ["Caro-Kann Classical","b","e4 c6 d4 d5 Nc3 dxe4 Nxe4 Bf5 Ng3 Bg6 h4 h6 Nf3 Nd7 h5 Bh7"],
- ["King's Indian Defense","b","d4 Nf6 c4 g6 Nc3 Bg7 e4 d6 Nf3 O-O Be2 e5 O-O Nc6 d5 Ne7"],
- ["Scandinavian Defense","b","e4 d5 exd5 Qxd5 Nc3 Qa5 d4 Nf6 Nf3 Bf5 Bc4 e6 Bd2 c6"]];
+var LRN={sub:"puz"};
 function lrnGet(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}}
 function lrnSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 async function lrnLib(){if(!LRN.lib)LRN.lib=await import("/vendor/chess/chess.js");return LRN.lib}
@@ -663,7 +689,8 @@ function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B
 function lrnWrong(B,sq){B.bad=sq;sfx("error");lrnPaint();setTimeout(function(){B.bad=null;lrnPaint()},450)}
 function lrnAct(a){var x=a.split(":");
  if(x[0]==="hint")pzHint();else if(x[0]==="sol")pzSolve();else if(x[0]==="next"||x[0]==="pzretry"){LRN.pz=null;LRN.pzErr=0;lrnPaint()}
- else if(x[0]==="op")opStart(+x[1],x[2]);else if(x[0]==="opback"){LRN.op=null;lrnPaint()}else if(x[0]==="opagain")opStart(LRN.op.i,LRN.op.mode)}
+ else if(x[0]==="op")opStart(+x[1],x[2]);else if(x[0]==="opback"){LRN.op=null;lrnPaint()}else if(x[0]==="opretry"){LRN.repErr=0;lrnPaint()}
+ else if(x[0]==="opj")opStart(LRN.op.i,LRN.op.mode,+x[1]);else if(x[0]==="opnext")opStart(LRN.op.i,LRN.op.mode,opPick(LRN.op.i,LRN.op.mode,LRN.op.j));else if(x[0]==="opmode")opStart(LRN.op.i,"practice",LRN.op.j)}
 // ---- puzzles, from the Lichess puzzle database (public domain). Your puzzle rating moves like a chess rating: the first try at
 // each puzzle counts, up if you solve it cleanly, down if you miss or take a hint. Next comes the unsolved puzzle nearest your rating.
 function pzStore(){return lrnGet("luc-puz",{r:1000,n:0,done:{}})}
@@ -677,19 +704,19 @@ async function pzStart(){if(LRN.pzBusy)return;LRN.pzBusy=1;
 function pzScore(win){var P=LRN.pz;if(P.scored)return;P.scored=1;var s=pzStore(),e=1/(1+Math.pow(10,(P.p.rating-s.r)/400)),d=Math.round(32*((win?1:0)-e));
  s.r=Math.max(100,s.r+d);s.done[P.p.id]=win?1:0;if(win)s.n++;lrnSet("luc-puz",s);P.delta=d}
 function pzMove(from,to,cands){var P=LRN.pz,B=P.B,want=P.p.moves[P.i],promo=want.slice(0,4)===from+to&&want[4]||cands[0].promotion&&"q";
- B.ch.move({from:from,to:to,promotion:promo||undefined});
+ var mv=B.ch.move({from:from,to:to,promotion:promo||undefined});
  if(from+to+(promo||"")!==want&&!B.ch.isCheckmate()){B.ch.undo();pzScore(false);P.msg="Not that one. Try again, or ask for a hint.";lrnWrong(B,to);return}
- B.last={from:from,to:to};B.hint=null;P.i++;sfx("click");pzReply()}
+ B.last={from:from,to:to};B.hint=null;P.i++;moveSfx(mv);pzReply()}
 // after a right move the other side answers, until the puzzle is finished
 function pzReply(){var P=LRN.pz,B=P.B;
- if(P.i>=P.p.moves.length||B.ch.isCheckmate()){if(P.state==="play"){P.state="won";pzScore(true);P.msg=P.delta>0?"Solved! 🎉":"Solved, but it took more than one try.";sfx("discover");if(P.delta>0)burst(["🧩","✨","⭐"])}else P.msg="That’s the solution. On to the next one!";lrnPaint();return}
+ if(P.i>=P.p.moves.length||B.ch.isCheckmate()){if(P.state==="play"){P.state="won";pzScore(true);P.msg=P.delta>0?"Solved! 🎉":"Solved, but it took more than one try.";sfx("solve");if(P.delta>0)burst(["🧩","✨","⭐"])}else P.msg="That’s the solution. On to the next one!";lrnPaint();return}
  if(P.state==="play")P.msg="Good move! Keep going.";B.lock=true;lrnPaint();
- setTimeout(function(){if(LRN.pz!==P)return;var r=P.p.moves[P.i];B.ch.move({from:r.slice(0,2),to:r.slice(2,4),promotion:r[4]});B.last={from:r.slice(0,2),to:r.slice(2,4)};P.i++;B.lock=false;sfx("click");
+ setTimeout(function(){if(LRN.pz!==P)return;var r=P.p.moves[P.i],mv=B.ch.move({from:r.slice(0,2),to:r.slice(2,4),promotion:r[4]});B.last={from:r.slice(0,2),to:r.slice(2,4)};P.i++;B.lock=false;moveSfx(mv);
   if(P.state==="shown")pzSolve();else if(P.i>=P.p.moves.length)pzReply();else lrnPaint()},500)}
 function pzHint(){var P=LRN.pz;if(!P||P.state!=="play"||P.B.lock)return;pzScore(false);var w=P.p.moves[P.i];P.B.hint=P.B.hint?[w.slice(0,2),w.slice(2,4)]:[w.slice(0,2)];P.msg=P.B.hint.length>1?"Move this piece to the marked square.":"Move the marked piece.";lrnPaint()}
 function pzSolve(){var P=LRN.pz;if(!P||P.B.lock||P.state==="won")return;if(P.state==="play"){pzScore(false);P.state="shown"}
  if(P.i>=P.p.moves.length)return pzReply();
- var B=P.B,w=P.p.moves[P.i];B.ch.move({from:w.slice(0,2),to:w.slice(2,4),promotion:w[4]});B.last={from:w.slice(0,2),to:w.slice(2,4)};B.hint=null;B.sel=null;P.i++;P.msg="Showing the solution…";pzReply()}
+ var B=P.B,w=P.p.moves[P.i];moveSfx(B.ch.move({from:w.slice(0,2),to:w.slice(2,4),promotion:w[4]}));B.last={from:w.slice(0,2),to:w.slice(2,4)};B.hint=null;B.sel=null;P.i++;P.msg="Showing the solution…";pzReply()}
 function pzHTML(){var P=LRN.pz,s=pzStore();if(!P){if(LRN.pzErr)return'<div class="card"><p>Couldn’t load the puzzles.</p><button data-la="pzretry">Try again</button></div>';pzStart();return'<p class="mu">Loading puzzles…</p>'}
  var play=P.state==="play",btn=function(a,t,g){return'<button class="'+(g?"g":"")+'" data-la="'+a+'">'+t+"</button>"};
  return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(P.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+(play?(P.B.flip?"Black":"White")+" to move":P.state==="won"?"Solved ✓":"Solution")+"</h2>"
@@ -698,33 +725,44 @@ function pzHTML(){var P=LRN.pz,s=pzStore();if(!P){if(LRN.pzErr)return'<div class
   +'<div class="row">'+(play?btn("hint",P.B.hint?"Show where":"Hint",1)+btn("sol","Show solution",1):"")+btn("next",play?"Skip":"Next puzzle",play)+"</div></div>"
   +'<div class="card" style="margin-top:14px"><h2>Your puzzles</h2><div class="bn" style="grid-template-columns:1fr 1fr"><div><b>'+s.r+(P.delta?' <span style="font-size:14px;color:'+(P.delta>0?"#16a34a":"#dc2626")+'">'+(P.delta>0?"+":"")+P.delta+"</span>":"")+'</b><span class="mu">Puzzle rating</span></div><div><b>'+s.n+'</b><span class="mu">Solved</span></div></div>'
   +'<p class="mu" style="font-size:12px;margin:10px 0 0">Puzzles from the Lichess puzzle database (public domain).</p></div></div></div>'}
-// ---- openings, spaced repetition: learn a line with the moves shown, then practise it from memory. A clean practice
-// pushes the next one further away (1, 3, 7, 14, then 30 days); a mistake brings it back to tomorrow.
-var GAPS=[1,3,7,14,30];
-async function opStart(i,mode){var lib=await lrnLib();LRN.op={i:i,mode:mode,moves:LINES[i][2].split(" "),k:0,miss:0,msg:"",B:{ch:new lib.Chess(),flip:LINES[i][1]==="b"}};opNext()}
-// the card picture: the first OP_SHOW moves of the line, from the side you play
-var OP_SHOW=6;
-function opMini(L){var ch=new LRN.lib.Chess(),m=null;L[2].split(" ").slice(0,OP_SHOW).forEach(function(x){m=ch.move(x)});return lrnBoard({ch:ch,flip:L[1]==="b",last:m&&{from:m.from,to:m.to}},1)}
-function opMine(O){return(O.k%2===0)===(LINES[O.i][1]==="w")}
+// ---- openings: each opening is a repertoire of lines (public/learn/openings.json), one for each common reply by the other side.
+// Learn a line with the moves marked, then practise it from memory. Spaced repetition for every line: a clean practice pushes
+// its next one further away (1, 3, 7, 14, then 30 days); a mistake brings it back to tomorrow.
+var GAPS=[1,3,7,14,30],OP_SHOW=6;
+async function opLoad(){if(LRN.repBusy)return;LRN.repBusy=1;
+ try{await lrnLib();LRN.reps=(await fetch("/learn/openings.json").then(function(r){return r.json()})).openings}catch(e){LRN.repErr=1}
+ LRN.repBusy=0;lrnPaint()}
+function opKey(o,l){return o.name+" | "+l.name}
+// the next line: Learn takes the first one not learned yet, Practise the first one that is due, both counting on from line `after`
+function opPick(i,mode,after){var o=LRN.reps[i],all=lrnGet("luc-reps",{}),n=o.lines.length,now=Date.now(),order=[];for(var k=1;k<=n;k++)order.push((after+k+n)%n);
+ var hit=order.filter(function(j){var e=all[opKey(o,o.lines[j])];return mode==="learn"?!e:e&&e.due<=now})[0];return hit==null?order[0]:hit}
+async function opStart(i,mode,j){await lrnLib();var o=LRN.reps[i];if(j==null)j=opPick(i,mode,-1);
+ LRN.op={i:i,j:j,mode:mode,moves:o.lines[j].moves.split(" "),k:0,miss:0,msg:"",B:{ch:new LRN.lib.Chess(),flip:o.side==="b"}};opNext()}
+// the card picture: the first OP_SHOW moves of the opening's first line, from the side you play
+function opMini(o){var ch=new LRN.lib.Chess(),m=null;o.lines[0].moves.split(" ").slice(0,OP_SHOW).forEach(function(x){m=ch.move(x)});return lrnBoard({ch:ch,flip:o.side==="b",last:m&&{from:m.from,to:m.to}},1)}
+function opMine(O){return(O.k%2===0)===(LRN.reps[O.i].side==="w")}
 function opNext(){var O=LRN.op,B=O.B;B.hint=null;if(O.k>=O.moves.length)return opDone();
- if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;sfx("click");opNext()},O.k?500:350);return}
+ if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;moveSfx(m);opNext()},O.k?500:350);return}
  if(O.mode==="learn")opShow(O);lrnPaint()}
 function opShow(O){var m=new LRN.lib.Chess(O.B.ch.fen()).move(O.moves[O.k]);O.B.hint=[m.from,m.to]}
 function opMove(from,to,cands){var O=LRN.op,B=O.B,m=B.ch.move({from:from,to:to,promotion:cands[0].promotion&&"q"});
  if(m.san!==O.moves[O.k]){B.ch.undo();O.miss++;opShow(O);O.msg="Not in this line. The right move is marked.";lrnWrong(B,to);return}
- B.last={from:from,to:to};O.k++;O.msg="";sfx("click");opNext()}
-function opDone(){var O=LRN.op,L=LINES[O.i],all=lrnGet("luc-reps",{}),e=all[L[0]]||{box:0};O.done=1;
+ B.last={from:from,to:to};O.k++;O.msg="";moveSfx(m);opNext()}
+function opDone(){var O=LRN.op,o=LRN.reps[O.i],key=opKey(o,o.lines[O.j]),all=lrnGet("luc-reps",{}),e=all[key]||{box:0};O.done=1;
  if(O.mode==="practice"){e.box=O.miss?0:Math.min(e.box+1,GAPS.length);e.due=Date.now()+GAPS[Math.max(e.box-1,0)]*864e5}else if(!e.due)e.due=Date.now();
- e.learned=1;all[L[0]]=e;lrnSet("luc-reps",all);if(!O.miss){sfx("discover");burst(["📖","✨","♟️"])}lrnPaint()}
+ e.learned=1;all[key]=e;lrnSet("luc-reps",all);if(!O.miss){sfx("solve");burst(["📖","✨","♟️"])}lrnPaint()}
 function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
- if(!O){if(!LRN.lib){lrnLib().then(lrnPaint);return'<p class="mu">Loading openings…</p>'}
-  return'<div class="ogrid">'+LINES.map(function(L,i){var e=all[L[0]],st=!e?"New":e.due<=now?'<b style="color:#d97706">Due for practice</b>':"Next practice "+new Date(e.due).toLocaleDateString();
-   return'<div class="card ocard">'+opMini(L)+"<h3>"+esc(L[0])+'</h3><div class="mu">You play '+(L[1]==="w"?"white":"black")+" · "+Math.ceil(L[2].split(" ").length/2)+" moves<br>"+st+'</div><div class="row"><button class="'+(e?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(e?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div></div>'}).join("")+"</div>"}
- var L=LINES[O.i],list="";for(var j=0;j<O.k;j++)list+=(j%2?"":'<span class="mu">'+(j/2+1)+".</span> ")+esc(O.moves[j])+" ";
- var head=O.done?(O.miss?"Line finished, with "+O.miss+" mistake"+(O.miss>1?"s":"")+".":"Line complete! 🎉")+(O.mode==="practice"?" Next practice "+(function(d){return d===1?"tomorrow":"in "+d+" days"})(GAPS[Math.max((all[L[0]]||{box:0}).box-1,0)])+".":" Now try it from memory with Practise.")
+ if(!LRN.reps){if(LRN.repErr)return'<div class="card"><p>Couldn’t load the openings.</p><button data-la="opretry">Try again</button></div>';opLoad();return'<p class="mu">Loading openings…</p>'}
+ if(!O)return'<div class="ogrid">'+LRN.reps.map(function(o,i){var n=o.lines.length,got=0,due=0;o.lines.forEach(function(l){var e=all[opKey(o,l)];if(e){got++;if(e.due<=now)due++}});
+   return'<div class="card ocard">'+opMini(o)+"<h3>"+esc(o.name)+'</h3><div class="mu">You play '+(o.side==="w"?"white":"black")+" · "+n+" lines<br>"+(got?got+" learned"+(due?' · <b style="color:#d97706">'+due+" due for practice</b>":""):"New")+'</div><div class="row"><button class="'+(got===n?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(got?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div></div>'}).join("")+"</div>";
+ var o=LRN.reps[O.i],L=o.lines[O.j],e=all[opKey(o,L)],list="";for(var j=0;j<O.k;j++)list+=(j%2?"":'<span class="mu">'+(j/2+1)+".</span> ")+esc(O.moves[j])+" ";
+ var head=O.done?(O.miss?"Line finished, with "+O.miss+" mistake"+(O.miss>1?"s":"")+".":"Line complete! 🎉")+(O.mode==="practice"?" Next practice "+(function(d){return d===1?"tomorrow":"in "+d+" days"})(GAPS[Math.max((e||{box:0}).box-1,0)])+".":"")
   :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");
- return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(L[0])+'</h2><p class="mu">'+(O.mode==="learn"?"Learning":"Practising")+" as "+(L[1]==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+"</p><p>"+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
-  +(O.done&&O.mode==="learn"?'<button data-la="op:'+O.i+':practice">Practise it now</button>':"")+'<button class="g" data-la="opagain">Start again</button><button class="g" data-la="opback">All openings</button></div></div></div></div>'}
+ var lines=o.lines.map(function(l,j){var x=all[opKey(o,l)],st=!x?"New":x.due<=now?'<b style="color:#d97706">Due</b>':"✓";
+  return'<div class="q'+(j===O.j?" on":"")+'" style="padding:6px 4px"><div style="flex:1;min-width:0"><b>'+esc(l.name)+'</b><div class="mu" style="font-size:12px">'+st+'</div></div><button class="g" style="flex:none;padding:5px 10px" data-la="opj:'+j+'">'+(j===O.j?"Restart":"Play")+"</button></div>"}).join("");
+ return'<div class="wrap"><div style="flex:0 1 460px">'+lrnBoard(O.B)+'</div><div style="flex:1 1 280px"><div class="card"><h2>'+esc(o.name)+'</h2><p style="margin:2px 0"><b>'+esc(L.name)+'</b></p><p class="mu">'+(O.mode==="learn"?"Learning":"Practising")+" as "+(o.side==="w"?"white":"black")+" · move "+Math.min(Math.floor(O.k/2)+1,Math.ceil(O.moves.length/2))+" of "+Math.ceil(O.moves.length/2)+"</p><p>"+head+'</p><p style="min-height:1.4em">'+list+'</p><div class="row">'
+  +(O.done?'<button data-la="opnext">Next line</button>'+(O.mode==="learn"?'<button class="g" data-la="opmode">Practise this line</button>':""):"")+'<button class="g" data-la="opback">All openings</button></div></div>'
+  +'<div class="card" style="margin-top:14px"><h2>Lines ('+o.lines.length+')</h2>'+lines+"</div></div></div>"}
 var TSTEPS=[
  {tab:"home",sel:".hero",t:"Welcome to Level Up Chess!",x:"This is you. Every rated game you play on chess.com earns XP here, and XP levels you up."},
  {tab:"home",sel:"#sy",up:".card",t:"Your chess.com games",x:"Your account is linked here. New games sync by themselves while the site is open, paying XP, coins and crafting materials."},
@@ -863,7 +901,7 @@ async function sync(quiet){var se=document.getElementById("se");if(SY.busy)retur
  try{var r=await api("sync",{});SY.last=Date.now();S=r;await refresh();if(!quiet||r.count||r.msg||!busyTyping())render();
   if(se&&!quiet)se.textContent="";
   if(r.msg)toast(r.msg);else if(r.count){var d=Object.keys(r.drops||{}).map(function(k){return"+"+r.drops[k]+" "+kindName(k)}).join(", "),got=Object.keys(r.drops||{}).filter(function(k){return k.indexOf("chest:")===0});
-  if(got.length)setTimeout(function(){sfx("discover");burst(["🎁","✨"]);toast("🎁 You found "+got.map(function(k){return(r.drops[k]>1?r.drops[k]+"× ":"a ")+kindName(k)}).join(" and ")+"! Open it in your Inventory.")},1400);toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"buy");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else if(!quiet)toast("No new rated games since last sync.");
+  if(got.length)setTimeout(function(){sfx("discover");burst(["🎁","✨"]);toast("🎁 You found "+got.map(function(k){return(r.drops[k]>1?r.drops[k]+"× ":"a ")+kindName(k)}).join(" and ")+"! Open it in your Inventory.")},1400);toast(r.count+" new games: +"+r.gained+" XP! "+d+(r.leveled?" 🎉 Level up!":""));sfx(r.leveled?"levelup":"notify");if(r.won&&fx)burst(["🔥","✨","♟️","⭐"])}else if(!quiet)toast("No new rated games since last sync.");
   if(r.unlocked&&r.unlocked.length)setTimeout(function(){sfx("ach");toast("🏆 Achievement unlocked: "+r.unlocked.map(achName).join(", "))},2200)
  }catch(e){if(!quiet){var s2=document.getElementById("se");if(s2)s2.textContent=e.message;sfx("error")}}finally{SY.busy=false}}
 setInterval(function(){if(Date.now()-SY.last>=SY.every)autoSync()},30e3);
@@ -899,12 +937,12 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-cl]")){var ca=b.dataset.cl,cn=b.dataset.n,ci=+b.dataset.i;if(ca==="leave"&&!confirm("Leave your clan?"))return;if(ca==="kick"&&!confirm("Kick "+cn+" from the clan?"))return;
   var cp={join:"clan/join",cancel:"clan/cancel",accept:"clan/answer",decline:"clan/answer",kick:"clan/kick",leave:"clan/leave",open:"clan/open"}[ca];
   await doPost(cp,{id:ci,name:cn,accept:ca==="accept",open:cn==="1"},function(r){return r.clanAction==="joined"?"🏰 Welcome to the clan!":r.clanAction==="requested"?"Join request sent.":"Done."});return}
- if(b=e.target.closest("[data-t]")){e.preventDefault();if(location.hash)history.replaceState(null,"",location.pathname);tab=b.dataset.t;render();window.scrollTo(0,0);sfx("click");return}
+ if(b=e.target.closest("[data-t]")){e.preventDefault();if(location.hash)history.replaceState(null,"",location.pathname);tab=b.dataset.t;render();window.scrollTo(0,0);sfx("tab");return}
  if(b=e.target.closest("[data-f]")){flt=b.dataset.f;render();sfx("click");return}
  if(b=e.target.closest("[data-fill]")){fill(b.dataset.fill);return}
  if(b=e.target.closest("[data-m]")){await doPost("merchant",{id:b.dataset.m},function(r){return"🧳 Bought "+giveInfo(r.bought).name+(r.bought.qty>1?" ×"+r.bought.qty:"")+"!"},"buy");return}
  if(b=e.target.closest("[data-th]")){await doPost("theme",{theme:b.dataset.th},null,"equip");return}
- if(b=e.target.closest("[data-q]")){await doPost("quest",{id:b.dataset.q},function(r){return"📜 Quest complete! +"+costTxt(r.quest.reward)},"buy");return}
+ if(b=e.target.closest("[data-q]")){await doPost("quest",{id:b.dataset.q},function(r){return"📜 Quest complete! +"+costTxt(r.quest.reward)},"reward");return}
  if(b=e.target.closest("[data-rb]")){rsel=b.dataset.rb;render();sfx("click");return}
  if(b=e.target.closest("[data-p]")){var p=b.dataset.p.split(":");pick=p[0]==="mat"?{t:"mat",k:p[1]}:{t:"item",id:+p[1]};sfx("click");render();return}
  if(b=e.target.closest("[data-c]")){place(+b.dataset.c);return}
@@ -913,15 +951,15 @@ document.addEventListener("click",async function(e){if(!S)return;var b;
  if(b=e.target.closest("[data-rp]")){rvGo(+b.dataset.rp);return}
  if(b=e.target.closest("[data-go]")){var go=b.dataset.go.split(":");tab=go[0];if(go[1])invSub=go[1];render();window.scrollTo(0,0);sfx("click");return}
  if(b=e.target.closest("[data-lsq]")){lrnTap(b.dataset.lsq);return}
- if(b=e.target.closest("[data-lsub]")){LRN.sub=b.dataset.lsub;render();sfx("click");return}
+ if(b=e.target.closest("[data-lsub]")){LRN.sub=b.dataset.lsub;render();sfx("tab");return}
  if(b=e.target.closest("[data-la]")){lrnAct(b.dataset.la);return}
- if(b=e.target.closest("[data-isub]")){invSub=b.dataset.isub;sel=null;render();sfx("click");return}
+ if(b=e.target.closest("[data-isub]")){invSub=b.dataset.isub;sel=null;render();sfx("tab");return}
  if(b=e.target.closest("[data-if]")){invF=b.dataset.if;sfx("click");render();return}
  if(b=e.target.closest("[data-s]")){sel=b.dataset.s;sfx("click");render();return}
  if(b=e.target.closest("[data-a]")){var a=b.dataset.a,i=b.dataset.i;
   if(a==="dismantle"&&!confirm("Dismantle this item for materials? This can’t be undone."))return;
   var body=a==="buy"?{id:i}:a==="use"?{kind:i}:a==="open"?{id:i,n:+b.dataset.n||1}:{iid:+i},msg={buy:"Purchased!",upgrade:"Upgraded!",dismantle:"Dismantled for materials.",equip:"Done!",use:"Potion activated!",lock:null,open:function(r){return"🎁 "+(r.opened.n>1?r.opened.n+" chests: ":"")+costTxt(r.opened.loot)}}[a];
-  var r=await doPost(a==="open"?"chest/open":a,body,msg,a==="equip"?"equip":a==="buy"||a==="open"?"buy":"click");if(r&&a==="open")burst(["✨","💎"]);if(r&&a==="dismantle")sel=null;if(r)render()}});
+  var r=await doPost(a==="open"?"chest/open":a,body,msg,a==="equip"?"equip":a==="open"?"chest":a==="buy"?"buy":"click");if(r&&a==="open")burst(["✨","💎"]);if(r&&a==="dismantle")sel=null;if(r)render()}});
 document.addEventListener("contextmenu",function(e){var c=e.target.closest("[data-c]");if(c&&S){e.preventDefault();grid[+c.dataset.c]=null;pvSoon();render()}});
 document.addEventListener("mouseover",function(e){var t=e.target.closest("[data-tip]"),el=document.getElementById("tip");if(!t||!t.dataset.tip||!S||!CAT){el.style.display="none";return}var h=tipFor(t.dataset.tip);if(!h){el.style.display="none";return}el.innerHTML=h;el.style.display="block"});
 document.addEventListener("mousemove",function(e){var el=document.getElementById("tip");if(el.style.display==="block"){el.style.left=Math.min(e.clientX+14,window.innerWidth-280)+"px";el.style.top=(e.clientY+14)+"px"}});

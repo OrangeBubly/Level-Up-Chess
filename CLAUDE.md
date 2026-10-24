@@ -32,6 +32,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 ## Adding content
 - The owner adds and edits items, recipes, textures, sets, achievements, quests, merchant offers, materials and chests from the **Admin tab** on the live site (no code needed). Those live in the `custom_items`, `custom_recipes`, `art` and `custom_content` tables and are layered over the built-ins by `applyCustom()` in `lib/content.js`. Don't overwrite them from code. Items players own are retired, never deleted.
 - New built-in item (in code): add a row to `ROWS` in `lib/content.js`. The sprite is generated from slot, rarity and glyph. Items with price 0 need a recipe.
+- Opening lines for the Learn tab: edit `public/learn/openings.json` (one line per common reply; a test checks every move is legal and that you always answer a position the same way).
 - New recipe, potion or achievement: add it in `lib/content.js` and extend the tests. Hidden recipes' patterns are only sent to the player after they are discovered.
 - New feature that needs data: add a migration, put logic in `lib/core.js`, add routes in `server.js`, add tests, then the UI.
 

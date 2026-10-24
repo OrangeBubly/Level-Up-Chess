@@ -780,3 +780,32 @@ test("names: offensive usernames and clan names are refused, including disguised
   assert.throws(() => core.createClan(a, "Nice Clan", "A55"), e => e.code === "bad_tag");
   assert.equal(core.createClan(a, "Classic Assassins", "CLS").clanAction, "created");
 });
+
+// ---- Learn content: the opening repertoires and the puzzle set are checked with chess.js ----
+const chessLib = () => import(require("url").pathToFileURL(path.join(__dirname, "../public/vendor/chess/chess.js")).href);
+test("openings: every line is legal, and you always play the same move in the same position", async () => {
+  const { Chess } = await chessLib(), { openings } = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/learn/openings.json"), "utf8"));
+  assert.ok(openings.length >= 8);
+  for (const o of openings) {
+    assert.ok(["w", "b"].includes(o.side), o.name); assert.ok(o.lines.length >= 5, o.name + " has a line for each common reply");
+    const mine = new Map(), names = new Set();
+    for (const l of o.lines) {
+      assert.ok(!names.has(l.name), "line names are unique: " + l.name); names.add(l.name);
+      const c = new Chess();
+      for (const m of l.moves.split(" ")) {
+        const pos = c.fen().split(" ").slice(0, 4).join(" "), turn = c.turn(), r = c.move(m); // throws on an illegal move
+        assert.equal(r.san, m, `${o.name} / ${l.name}: write ${m} as ${r.san}`);
+        if (turn === o.side) { assert.equal(mine.get(pos) ?? m, m, `${o.name} / ${l.name}: two different moves of yours in one position`); mine.set(pos, m); }
+      }
+      for (const k of o.lines) assert.ok(k === l || !k.moves.startsWith(l.moves + " "), `${l.name} is only the start of ${k.name}`);
+    }
+  }
+});
+test("puzzles: every solution is legal from its position", async () => {
+  const { Chess } = await chessLib(), { puzzles } = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/vendor/puzzles/puzzles.json"), "utf8"));
+  assert.ok(puzzles.length >= 500); assert.equal(new Set(puzzles.map(p => p.id)).size, puzzles.length);
+  for (const p of puzzles) {
+    const c = new Chess(p.fen);
+    for (const u of p.moves) c.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] });
+  }
+});
