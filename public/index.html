@@ -336,7 +336,7 @@ function ac(){var ua=navigator.userActivation;if(document.hidden)return null;
  if(!AC){if(ua&&!ua.hasBeenActive)return null;var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
  if(AC.state!=="running"){if(ua&&!ua.isActive)return null;AC.resume()}return AC}
 // one note: o = {f: pitch, f2: pitch to glide to, d: length, at: delay, v: volume, a: attack, type: wave shape}
-function note(o){var a=ac();if(!a)return;var t=a.currentTime+(o.at||0),osc=a.createOscillator(),g=a.createGain();osc.type=o.type||"sine";osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.d);
+function note(o){if(Date.now()-SLAST>1500){SLAST=Date.now();slog("(tone)")}var a=ac();if(!a)return;var t=a.currentTime+(o.at||0),osc=a.createOscillator(),g=a.createGain();osc.type=o.type||"sine";osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.d);
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(o.v||.1,t+(o.a||.004));g.gain.exponentialRampToValueAtTime(.0001,t+o.d);osc.connect(g);g.connect(OUT);osc.start(t);osc.stop(t+o.d+.02)}
 // a burst of filtered noise: the click of wood, the hiss of a sparkle, the creak of a lid
 function hiss(o){var a=ac();if(!a)return;if(!NOISE){NOISE=a.createBuffer(1,a.sampleRate*.6,a.sampleRate);var d=NOISE.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1}
@@ -348,7 +348,8 @@ function knock(at,p,v){p=p||1;v=v||1;hiss({at:at,f:1500*p,q:3,d:.05,v:.55*v});no
 function bell(at,f,d,v){d=d||.5;v=v||.06;note({at:at,f:f,d:d,v:v});note({at:at,f:f*2.01,d:d*.6,v:v*.35});note({at:at,f:f*3.98,d:d*.3,v:v*.12})}
 // coins clinking: short bright pings at slightly random pitches and times
 function clinks(n){for(var i=0;i<n;i++){var at=i*.055+Math.random()*.02,f=2300+Math.random()*900;note({at:at,f:f,d:.09,v:.05});note({at:at,f:f*1.52,d:.06,v:.022})}}
-function chime(fs,gap,d,v,at){fs.forEach(function(f,i){bell((at||0)+i*gap,f,d,v)})}
+// notes one after another: gap between them in milliseconds, at (the start) in seconds like every other sound delay
+function chime(fs,gap,d,v,at){fs.forEach(function(f,i){bell((at||0)+i*gap/1000,f,d,v)})}
 var SFX={
  move:function(){knock(0)},
  capture:function(){knock(0,1.2,1.3);hiss({at:.01,f:3400,q:1.2,d:.06,v:.3});knock(.035,.75,.6)},
@@ -377,7 +378,11 @@ var SFX={
  levelup:function(){chime([523,659,784,1047],95,.5,.06);bell(.42,1568,1,.05);bell(.42,784,1,.05)},
  ach:function(){chime([784,988,1175,1568],70,.55,.055)},
  error:function(){note({f:200,f2:140,d:.14,v:.12,type:"triangle"});note({at:.1,f:160,f2:110,d:.16,v:.1,type:"triangle"})}};
-function sfx(n){if(muted)return;if(A.sfx.indexOf(n)>-1){try{new Audio("assets/sfx/"+n+".mp3").play()}catch(e){}return}if(SFX[n])SFX[n]()}
+// a record of the last sounds the site played and what asked for them (shown in Profile), to track down stray sounds
+var SLOG=[],SLAST=0;
+function slog(n){var st=(new Error().stack||"").split("\n").slice(3,6).map(function(l){var m=/at (?:async )?([\w.$]+)/.exec(l)||/^([\w.$]+)@/.exec(l.trim());return!m?"?":m[1]==="http"||m[1]==="https"?"a timer":/^HTML/.test(m[1])?"a click":m[1]}).filter(function(x){return x!=="?"}).join(" ← ");
+ SLOG.unshift({t:new Date().toLocaleTimeString(),n:n,by:st||"page"});if(SLOG.length>20)SLOG.pop()}
+function sfx(n){if(!muted){SLAST=Date.now();slog(n)}if(muted)return;if(A.sfx.indexOf(n)>-1){try{new Audio("assets/sfx/"+n+".mp3").play()}catch(e){}return}if(SFX[n])SFX[n]()}
 // the sound for a chess move (a chess.js move): mate, check, castling, promotion, capture, or a plain move
 function moveSfx(m){if(m)sfx(/#/.test(m.san)?"end":/\+/.test(m.san)?"check":/[kq]/.test(m.flags)?"castle":m.promotion?"promote":m.captured?"capture":"move")}
 /* ---------- helpers ---------- */
@@ -497,7 +502,8 @@ function merHTML(){var M=S.merchant;if(!M)return"";
 function vProfile(){var mine=CAT.themes||[],day=new Date(S.since*1000).toLocaleDateString();
  var th=mine.map(function(t){var ok=S.wins>=t.wins,on=S.theme===t.id;return'<button class="th'+(on?" on":"")+'" data-th="'+t.id+'"'+(ok?"":" disabled")+'><i>'+swatch(t.id).map(function(c){return'<b style="background:'+c+'"></b>'}).join("")+"</i><span><b>"+t.name+(on?" ✔":"")+'</b></span><span class="mu">'+(ok?(t.wins?"Unlocked":"Free"):"🔒 "+Math.min(S.wins,t.wins)+" / "+t.wins+" wins")+"</span></button>"}).join("");
  return'<h1>Profile</h1><p class="mu" style="margin:4px 0 14px">Your account and settings.</p><div class="prof"><div class="card"><h2>Account</h2><p style="margin:0"><b style="font-size:20px">'+esc(S.username)+'</b></p><div class="mu">Member since '+day+'</div><div class="mu">Chess.com: '+(S.cc?"<b>"+esc(S.cc)+"</b> ✔":"not linked yet")+'</div><div class="mu">Level '+S.level+" · "+S.xp+" XP · "+S.wins+" wins in "+S.games+' games · best streak '+S.best+'</div></div>'
- +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Chess moves and captures, buttons, rewards, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button><label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
+ +'<div class="card"><h2>Sound & animation</h2><p class="mu" style="margin:0 0 8px">Chess moves and captures, buttons, rewards, crafting and level-up sounds.</p><button class="g" id="snd">'+(muted?"🔇 Sound is off":"🔊 Sound is on")+'</button>'
+ +'<details style="margin-top:10px"><summary class="mu" style="cursor:pointer">Recent sounds (if you hear one you can’t explain, look here)</summary>'+(SLOG.length?'<div class="mu" style="font-size:12px;margin-top:6px">'+SLOG.map(function(x){return esc(x.t)+" · <b>"+esc(x.n)+"</b> · "+esc(x.by)}).join("<br>")+"</div>":'<p class="mu" style="font-size:12px">No sounds yet.</p>')+"</details>"+'<label class="sw" style="margin-top:14px"><input type="checkbox" id="fxSw"'+(FX?" checked":"")+'><i></i>Extra animations</label><p class="mu" style="margin:6px 0 0">Smoother pages, bouncier buttons and pop-ups, and sliding pieces in game review. Saved on this device.</p></div></div>'
  +'<div class="card" style="margin-bottom:16px"><div class="qh"><h2>Theme</h2><label class="sw"><input type="checkbox" id="modeSw"'+(S.mode==="light"?" checked":"")+'><i></i>'+ICON("sun")+' Light mode</label></div><p class="mu" style="margin:0 0 10px">Light mode works with every colour. Win rated games to unlock more colours.</p><div class="themes">'+th+"</div></div>"
  +'<div class="card"><h2>Change password</h2><input id="op" type="password" placeholder="Current password" autocomplete="current-password"><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><div class="err" id="pe"></div><div class="row"><button id="pwBtn" style="flex:none">Change password</button></div><p class="mu">Changing it logs you out on your other devices.</p></div>'+tourCard()+dangerHTML()}
 function tourCard(){return'<div class="card" style="margin-top:16px"><h2>Site tour</h2><p class="mu" style="margin-top:0">A quick guided walk through everything on the site'+(S.tutorial===1?".":', with a one-time reward of <b>+'+CAT.tourXp+" XP and "+CAT.tourCoins+" coins</b>.")+'</p><button id="tourBtn">'+(S.tutorial===1?"Take the tour again":"Take the tour")+"</button></div>"}

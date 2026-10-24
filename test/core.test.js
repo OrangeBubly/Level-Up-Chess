@@ -880,3 +880,15 @@ test("puzzles: every solution is legal from its position", async () => {
     for (const u of p.moves) c.move({ from: u.slice(0, 2), to: u.slice(2, 4), promotion: u[4] });
   }
 });
+
+test("sounds: every sound effect plays all its notes within a second or two, none drift in much later", () => {
+  // runs the page's sound code with a recorder in place of the audio, and checks when each note is scheduled
+  const page = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
+  const code = page.slice(page.indexOf("/* ---------- sounds:"), page.indexOf("/* ---------- helpers ---------- */"));
+  const env = new Function("muted", "A", "MT", "navigator", "document", code + ";return { SFX, setNote: f => { note = f; }, setHiss: f => { hiss = f; } };")(false, { sfx: [] }, { wood: [] }, {}, { hidden: false });
+  let cur = ""; const late = {};
+  const rec = o => { late[cur] = Math.max(late[cur] || 0, o.at || 0); }; env.setNote(rec); env.setHiss(rec);
+  for (const k of Object.keys(env.SFX)) { cur = k; env.SFX[k](); }
+  assert.ok(Object.keys(late).length >= 20);
+  for (const [k, at] of Object.entries(late)) assert.ok(at < 2, `${k} plays a note ${at}s after it starts`);
+});
