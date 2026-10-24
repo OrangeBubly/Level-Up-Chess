@@ -209,11 +209,14 @@ function paint(layers,spark){var N=SZ*SZ,own=new Array(N),col=new Array(N);
  // the outer outline, in the darkest tone of whatever it surrounds
  var out=col.slice();for(var y=0;y<SZ;y++)for(var x=0;x<SZ;x++){var i=y*SZ+x;if(own[i]!=null)continue;
   var nb=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]].filter(function(p){return p[0]>=0&&p[1]>=0&&p[0]<SZ&&p[1]<SZ&&own[p[1]*SZ+p[0]]!=null})[0];if(nb)out[i]=layers[own[nb[1]*SZ+nb[0]]].r[0]}
- // legendary and mythic items twinkle: small four-point sparkles in empty corners
- if(spark)[[4,4],[27,5],[26,27]].forEach(function(p,n){if(n===2&&spark.length<2)return;[[0,0,4],[0,-1,3],[0,1,3],[-1,0,3],[1,0,3]].forEach(function(o){var i=(p[1]+o[1])*SZ+p[0]+o[0];if(out[i]==null)out[i]=spark[o[2]===4?0:1]})});
- var c=document.createElement("canvas");c.width=c.height=SZ;var x2=c.getContext("2d");out.forEach(function(v,i){if(v){x2.fillStyle=v;x2.fillRect(i%SZ,Math.floor(i/SZ),1,1)}});
- // hand back a 4x copy, so the picture scales down smoothly to any size instead of stretching pixels unevenly
- var big=document.createElement("canvas");big.width=big.height=SZ*4;var bx=big.getContext("2d");bx.imageSmoothingEnabled=false;bx.drawImage(c,0,0,SZ*4,SZ*4);return big.toDataURL()}
+ var c=document.createElement("canvas");c.width=c.height=SZ;var x2=c.getContext("2d"),x0=SZ,y0=SZ,x1=-1,y1=-1;
+ out.forEach(function(v,i){if(v){var px=i%SZ,py=Math.floor(i/SZ);x2.fillStyle=v;x2.fillRect(px,py,1,1);x0=Math.min(x0,px);y0=Math.min(y0,py);x1=Math.max(x1,px);y1=Math.max(y1,py)}});
+ // hand back a 4x copy (it scales down smoothly to any size), with the drawing trimmed and enlarged to fill FILL of the
+ // box, so every picture looks as big on screen as the old 16x16 ones did
+ var B=SZ*4,FILL=.94,big=document.createElement("canvas");big.width=big.height=B;var bx=big.getContext("2d");bx.imageSmoothingEnabled=false;
+ // legendary and mythic items twinkle: small four-point sparkles in the corners, behind the drawing
+ if(spark)[[14,14],[112,16],[108,112]].forEach(function(p){bx.fillStyle=spark[1];bx.fillRect(p[0]-6,p[1]-2,12,4);bx.fillRect(p[0]-2,p[1]-6,4,12);bx.fillStyle=spark[0];bx.fillRect(p[0]-2,p[1]-2,4,4)});
+ if(x1<0)return big.toDataURL();var w=x1-x0+1,h=y1-y0+1,k=Math.min(B*FILL/w,B*FILL/h,6);bx.drawImage(c,x0,y0,w,h,(B-w*k)/2,(B-h*k)/2,w*k,h*k);return big.toDataURL()}
 // ---- the designs. r is the rarity (0 to 5), a the accent ramp ----
 var ART={
  sword:function(r,a,o){o=o||{};var blade=o.curve?Pg([[9,21],[13,15],[18,10],[23,6],[28,3.5],[26.5,8],[22,12],[17,17],[12,24]]):o.big?Pg([[8,20],[23,5],[28.5,3],[27,9],[12,24]]):Pg([[9,20],[24,5],[28,4],[27,8],[12,23]]);
