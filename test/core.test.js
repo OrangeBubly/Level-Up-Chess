@@ -209,10 +209,10 @@ test("consumables: crafted from materials, activated for a buff that applies to 
 
 test("resource drops: guaranteed per rewarded game, by time control, silk and gems on win milestones", () => {
   const { db, core, mk } = setup(), a = mk("alice", "alice"), games = [];
-  for (let i = 0; i < 10; i++) games.push(G("alice", "o" + i, "win")); // rapid games drop oak
+  for (let i = 0; i < 20; i++) games.push(G("alice", "o" + (i % 5) + "-" + i, "win")); // rapid games drop oak (5 opponents, within the per-opponent limit)
   const r = core.sync(a, games);
-  assert.equal(bal(db, a, "oak@1"), 30); assert.equal(bal(db, a, "silk@1"), 3); assert.equal(bal(db, a, "gem@1"), 1);
-  assert.deepEqual(r.drops, { "oak@1": 30, "silk@1": 3, "gem@1": 1 });
+  assert.equal(bal(db, a, "oak@1"), 60); assert.equal(bal(db, a, "silk@1"), 6); assert.equal(bal(db, a, "gem@1"), 1); // silk every 3rd win, a gem every 20th
+  assert.deepEqual(r.drops, { "oak@1": 60, "silk@1": 6, "gem@1": 1 });
   core.sync(a, [G("alice", "bz", "loss", { tc: "180" })]); assert.equal(bal(db, a, "iron@1"), 1); // a blitz loss: one iron
   for (const k of ["oak@1", "silk@1", "gem@1", "iron@1"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k));
   const lucky = setup({ rand: () => 0 }), b = lucky.mk("bob", "bob"); // a lucky win finds quality 3
@@ -647,10 +647,10 @@ test("editor: quests and merchant offers, with minimum pool sizes kept", () => {
 
 test("chest odds: rarest checked first, each gets exactly its chance, the rest is nothing", () => {
   const pick = r => (R.rollChest(C.CHESTS, r) || { id: "none" }).id;
-  assert.equal(pick(0), "gold"); assert.equal(pick(0.0299), "gold"); assert.equal(pick(0.03), "iron"); assert.equal(pick(0.1299), "iron");
-  assert.equal(pick(0.13), "wood"); assert.equal(pick(0.3799), "wood"); assert.equal(pick(0.38), "none"); assert.equal(pick(0.999), "none");
+  assert.equal(pick(0), "gold"); assert.equal(pick(0.0099), "gold"); assert.equal(pick(0.01), "iron"); assert.equal(pick(0.0499), "iron");
+  assert.equal(pick(0.05), "wood"); assert.equal(pick(0.1699), "wood"); assert.equal(pick(0.17), "none"); assert.equal(pick(0.999), "none");
   const n = { gold: 0, iron: 0, wood: 0, none: 0 }; for (let i = 0; i < 10000; i++) n[pick(i / 10000)]++;
-  assert.deepEqual(n, { gold: 300, iron: 1000, wood: 2500, none: 6200 });
+  assert.deepEqual(n, { gold: 100, iron: 400, wood: 1200, none: 8300 });
 });
 
 test("chests: only rewarded wins drop them; opening lays out loot stacks to pick from, saved until the picks are taken", () => {
@@ -661,11 +661,11 @@ test("chests: only rewarded wins drop them; opening lays out loot stacks to pick
   const o = core.openChest(a, "gold"), coins = bal(db, a, "coins");
   assert.ok(o.ach.includes("chest1")); assert.equal(o.draw.picks, C.CHEST_PICKS); assert.equal(o.draw.slots.length, C.CHEST_SLOTS);
   // rand 0: the fewest stacks (8): a coins stack with the least coins, then the first loot line at its minimum, quality 1
-  assert.equal(o.draw.slots.filter(Boolean).length, 8); assert.deepEqual(o.draw.slots[0], { id: "coins", n: 150 }); assert.deepEqual(o.draw.slots[1], { id: "iron", q: 1, n: 8 });
+  assert.equal(o.draw.slots.filter(Boolean).length, 8); assert.deepEqual(o.draw.slots[0], { id: "coins", n: 100 }); assert.deepEqual(o.draw.slots[1], { id: "iron", q: 1, n: 8 });
   assert.deepEqual(core.view(a).chestDraw, o.draw); assert.equal(core.view(a).chests.gold, 0); // saved: a reload shows the same chest
   core.adminGive(a, "chest:wood", 1); assert.throws(() => core.openChest(a, "wood"), e => e.code === "chest_open"); // one chest at a time
   assert.throws(() => core.pickChest(a, 26), e => e.code === "bad_slot"); assert.throws(() => core.pickChest(a, "0"), e => e.code === "bad_slot");
-  core.pickChest(a, 0); assert.equal(bal(db, a, "coins"), coins + 150);
+  core.pickChest(a, 0); assert.equal(bal(db, a, "coins"), coins + 100);
   assert.throws(() => core.pickChest(a, 0), e => e.code === "bad_slot"); // already taken
   const last = core.pickChest(a, 1); assert.equal(last.draw.picks, 0); assert.equal(bal(db, a, "iron@1"), 8);
   assert.equal(core.view(a).chestDraw, null); assert.throws(() => core.pickChest(a, 2), e => e.code === "no_chest");
@@ -673,8 +673,15 @@ test("chests: only rewarded wins drop them; opening lays out loot stacks to pick
   for (const k of ["coins", "iron@1", "chest:gold"]) assert.equal(bal(db, a, k), ledgerSum(db, a, k), k);
   // rand near 1: the most stacks, the most of each, the best quality, the last loot line
   const top = R.rollDraw(C.CHESTS.find(c => c.id === "gold"), () => 0.999), full = top.filter(Boolean);
-  assert.equal(full.length, 9); assert.ok(full.some(x => x.id === "coins" && x.n === 500)); assert.ok(full.filter(x => x.id !== "coins").every(x => x.q === 3 && x.id === "copper" && x.n === 14));
+  assert.equal(full.length, 9); assert.ok(full.some(x => x.id === "coins" && x.n === 300)); assert.ok(full.filter(x => x.id !== "coins").every(x => x.q === 3 && x.id === "copper" && x.n === 14));
   r = 0.5; core.openChest(a, "wood"); assert.ok(core.view(a).chestDraw.slots.filter(Boolean).length >= 6);
+});
+
+test("chests: at most a few drop per player each day, counted from their midnight", () => {
+  let t = 5000; const { core, mk } = setup({ rand: () => 0, now: () => t }), a = mk("alice", "alice"), wins = [];
+  for (let i = 0; i < 6; i++) wins.push(G("alice", "c" + i, "win", { t: 4000 + i })); // rand 0: every win would drop a gold chest
+  core.sync(a, wins); assert.equal(core.view(a).chests.gold, C.CHESTS_PER_DAY);
+  t += 86400; core.sync(a, [G("alice", "next", "win", { t: t - 10 })]); assert.equal(core.view(a).chests.gold, C.CHESTS_PER_DAY + 1); // a new day
 });
 
 test("item locks: a locked item can't be dismantled or crafted away; duplicates keep the best copy", () => {
@@ -698,9 +705,9 @@ test("editor: new materials work in recipes, prices, quests and chest loot, and 
   const m = core.saveContent("mat", { name: "Moonstone", r: 3, color: "#88CCFF" });
   assert.equal(m.id, "cm1"); assert.equal(C.MATS.cm1, "Moonstone"); assert.equal(C.MAT_INFO.cm1.color, "#88ccff"); assert.equal(C.NAMES.cm1, "Moonstone");
   assert.deepEqual(core.view(a).mats.cm1, [0, 0, 0]);
-  const ch = core.saveContent("chest", { name: "Moon Chest", color: "#334466", chance: 1, stacks: [1, 1], quality: [1, 0, 0], loot: [{ id: "cm1", min: 2, max: 3, weight: 1 }] });
+  const ch = core.saveContent("chest", { name: "Moon Chest", color: "#334466", chance: 0.5, stacks: [1, 1], quality: [1, 0, 0], loot: [{ id: "cm1", min: 2, max: 3, weight: 1 }] });
   assert.ok(C.CHESTS.some(c => c.id === ch.id)); assert.equal(core.view(a).chests[ch.id], 0);
-  core.sync(a, [G("alice", "mm1")]); assert.equal(core.view(a).chests[ch.id], 1); // rand 0: the rarest chest (1%) drops
+  core.sync(a, [G("alice", "mm1")]); assert.equal(core.view(a).chests[ch.id], 1); // rand 0: the rarest chest (0.5%) drops
   assert.deepEqual(core.openChest(a, ch.id).draw.slots[0], { id: "cm1", q: 1, n: 2 });
   assert.equal(core.pickChest(a, 0).draw.picks, 0); // nothing else in it: the chest closes after one pick
   assert.deepEqual(core.view(a).mats.cm1, [2, 0, 0]);
@@ -718,7 +725,7 @@ test("editor: chest odds and loot are checked, and held chests can't be deleted"
   const { core, mk } = setup(), a = mk("alice", "alice"), ok = { stacks: [6, 9], quality: [70, 25, 5] };
   core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 40, ...ok, loot: [{ id: "oak", min: 5, max: 9, weight: 3 }, { id: "coins", min: 10, max: 20, weight: 1 }] });
   assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40);
-  assert.throws(() => core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 90, ...ok, loot: [{ id: "oak", min: 1, max: 1, weight: 1 }] }), e => e.code === "too_many");
+  assert.throws(() => core.saveContent("chest", { id: "wood", name: "Oak Chest", color: "#a0692e", chance: 97, ...ok, loot: [{ id: "oak", min: 1, max: 1, weight: 1 }] }), e => e.code === "too_many");
   assert.equal(C.CHESTS.find(c => c.id === "wood").chance, 40); // refused change rolled back
   assert.throws(() => core.deleteContent("chest", "wood"), e => e.code === "in_use");
   for (const bad of [{ loot: [] }, { loot: [{ id: "coins", min: 1, max: 5, weight: 1 }] }, { loot: [{ id: "gold_ore", min: 1, max: 1, weight: 5 }] }, { loot: [{ id: "oak", min: 5, max: 2, weight: 5 }] },
@@ -728,7 +735,7 @@ test("editor: chest odds and loot are checked, and held chests can't be deleted"
   core.adminGive(a, "chest:" + c.id, 1); assert.throws(() => core.deleteContent("chest", c.id), e => e.code === "in_use");
   core.openChest(a, c.id); core.deleteContent("chest", c.id); assert.ok(!C.CHESTS.some(x => x.id === c.id));
   core.pickChest(a, core.view(a).chestDraw.slots.findIndex(Boolean)); // an open chest still pays out after its kind is gone
-  core.restoreContent("chest", "wood"); assert.equal(C.CHESTS.find(x => x.id === "wood").chance, 25);
+  core.restoreContent("chest", "wood"); assert.equal(C.CHESTS.find(x => x.id === "wood").chance, 12);
 });
 
 test("reviews: only your own rewarded games, once each, XP for the first few each day, kept on a reset", () => {
