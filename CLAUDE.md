@@ -7,6 +7,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `npm install`, then `npm start` (http://localhost:3000)
 - `npm test` runs the automated tests (`node --test`, no network). **Run it before every commit.**
 - Local testing without the real chess.com: run `node tools/fake-chesscom.js`, then start the site with `CHESSCOM_API=http://localhost:4100` (see the top of that file for adding games). Never set `CHESSCOM_API` in production (the server refuses to start).
+- Balance check: `node tools/balance-sim.js [days]` plays a casual, a regular and a grinding player through the real game code and prints what they earn and the first day they could afford each tier. Run it after changing drops, chests, recipes or prices.
 - Security check: `tools/pentest.js` attacks a fresh local copy (instructions at its top) and prints PASS/FAIL per check. Run it after security-related changes; it should end with 0 FAILED and no server errors. Never point it at the live site.
 
 ## Where things live
