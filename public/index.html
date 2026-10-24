@@ -221,8 +221,12 @@ function icoSrc(t,id){var k=t+":"+id,a=artId(t,id);return CAT&&CAT.art&&CAT.art[
 function ico(t,id){return'<img class="px" src="'+icoSrc(t,id)+'" alt="">'}
 /* ---------- sounds: made in the browser with the Web Audio API (no sound files), or your own files from assets/sfx ---------- */
 var AC=null,OUT=null,NOISE=null;
-function ac(){if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
- if(AC.state==="suspended")AC.resume();return AC}
+// The browser keeps page audio off until the player clicks or presses a key. A sound asked for before that (say, the
+// auto-sync chime while the page loads) would wait and then burst out at some later click, so it is dropped instead.
+// Sounds are also skipped while the tab is hidden.
+function ac(){var ua=navigator.userActivation;if(document.hidden)return null;
+ if(!AC){if(ua&&!ua.hasBeenActive)return null;var C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();var comp=AC.createDynamicsCompressor();OUT=AC.createGain();OUT.gain.value=.9;OUT.connect(comp);comp.connect(AC.destination)}
+ if(AC.state!=="running"){if(ua&&!ua.isActive)return null;AC.resume()}return AC}
 // one note: o = {f: pitch, f2: pitch to glide to, d: length, at: delay, v: volume, a: attack, type: wave shape}
 function note(o){var a=ac();if(!a)return;var t=a.currentTime+(o.at||0),osc=a.createOscillator(),g=a.createGain();osc.type=o.type||"sine";osc.frequency.setValueAtTime(o.f,t);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t+o.d);
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(o.v||.1,t+(o.a||.004));g.gain.exponentialRampToValueAtTime(.0001,t+o.d);osc.connect(g);g.connect(OUT);osc.start(t);osc.stop(t+o.d+.02)}
