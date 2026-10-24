@@ -1,4 +1,4 @@
-Third-party files used by the game review screen and the Learn tab. They are served as-is and kept separate from the site's own code.
+Third-party files used by the chess boards (game review and the Learn tab). They are served as-is and kept separate from the site's own code.
 
 stockfish/  Stockfish 19 (lite, single-threaded WebAssembly build), from the "stockfish" npm package v19.0.1 by Nathan Rugg.
             Licence: GNU GPL v3, see stockfish/Copying.txt.
@@ -12,3 +12,7 @@ openings/   openings.json, built by tools/build-openings.js from the Lichess ope
 
 puzzles/    puzzles.json, a starter set for the Learn tab, built by tools/build-puzzles.js from the Lichess puzzle database.
             Licence: public domain (CC0 1.0). Source: https://database.lichess.org/#puzzles
+
+pieces/     cburnett/, the chess piece set by Colin M.L. Burnett (the classic set also used by Lichess and Wikipedia),
+            copied unchanged from https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
+            Licence: GPLv2 or later (also offered under BSD and GFDL on Wikimedia Commons). Author: https://en.wikipedia.org/wiki/User:Cburnett

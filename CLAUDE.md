@@ -16,7 +16,7 @@ Node 22+ (`better-sqlite3` 13 needs it), Express 5, SQLite (`better-sqlite3`), o
 - `lib/content.js`: all game content as data: items, sets, recipes, potions, achievements.
 - `lib/db.js`: numbered migrations. `lib/chesscom.js`: serial, cached chess.com client.
 - `public/index.html`: the whole frontend (generated pixel art, synthesized sounds, all screens).
-- `public/vendor/`: third-party files served as-is (Stockfish WASM under GPL-3.0, chess.js under BSD-2, the Lichess opening book and puzzles under CC0); see its README. Keep the licence files with them. `tools/build-openings.js` rebuilds the opening book and `tools/build-puzzles.js` the puzzle set.
+- `public/vendor/`: third-party files served as-is (Stockfish WASM under GPL-3.0, chess.js under BSD-2, the Lichess opening book and puzzles under CC0, the cburnett chess pieces under GPLv2+); see its README. Keep the licence files with them. `tools/build-openings.js` rebuilds the opening book and `tools/build-puzzles.js` the puzzle set.
 - `test/core.test.js`: the test suite.
 
 ## Rules that must not be broken

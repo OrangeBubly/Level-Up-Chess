@@ -88,11 +88,11 @@ button .ic{width:15px;height:15px;vertical-align:-2px}
 .sw input:checked+i{background:var(--red)}.sw input:checked+i::after{left:18px;background:#fff}
 .res{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px}
 .bwrap{display:flex;gap:8px;max-width:460px}.board{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));flex:1;min-width:0;aspect-ratio:1;border-radius:6px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.35)}
-.bq{position:relative;min-width:0;min-height:0}.bq.lt{background:#e9edf2}.bq.dk{background:#8ea0b6}.bq.hl::after{content:"";position:absolute;inset:0;background:rgba(250,204,21,.42)}
-.pz{position:absolute;left:5%;top:5%;width:90%;height:90%;z-index:1;stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}
+.bq{position:relative;min-width:0;min-height:0}.bq.lt{background:#f0d9b5}.bq.dk{background:#b58863}.bq.hl::after{content:"";position:absolute;inset:0;background:rgba(205,210,60,.5)}
+.co{position:absolute;z-index:3;font:600 clamp(8px,2.3cqw,12px)/1 system-ui,sans-serif;pointer-events:none}.co.r{left:3px;top:3px}.co.f{right:3px;bottom:3px}.bq.lt .co{color:#b58863}.bq.dk .co{color:#f0d9b5}.board{container-type:inline-size}
+.pz{position:absolute;left:2%;top:2%;width:96%;height:96%;z-index:1;pointer-events:none;user-select:none}
 .pz.glow{filter:drop-shadow(0 0 3px var(--gc)) drop-shadow(0 0 7px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35));animation:glow 1.6s ease-in-out infinite alternate}
 @keyframes glow{from{filter:drop-shadow(0 0 2px var(--gc)) drop-shadow(0 0 4px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}to{filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc)) drop-shadow(0 2px 1.5px rgba(0,0,0,.35))}}
-.pz.w{fill:#fff;stroke:#1e293b}.pz.b{fill:#1e293b;stroke:#020617}.pz .dt{fill:none}.pz.w .dt{stroke:#1e293b}.pz.b .dt{stroke:#e2e8f0}.pz circle.dt{fill:currentColor;stroke:none}.pz.w circle.dt{color:#1e293b}.pz.b circle.dt{color:#e2e8f0}
 .arr{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .ebar{width:22px;flex:none;border-radius:6px;background:#1f2937;position:relative;overflow:hidden;border:1px solid var(--bd)}.ebar i{position:absolute;left:0;right:0;bottom:0;background:#f1f5f9;transition:height .3s}
 .ebar span{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:10px;font-weight:800;color:#ef4444;text-align:center;white-space:nowrap}
@@ -108,7 +108,8 @@ a.btn{display:inline-block;font-weight:700;text-decoration:none;border-radius:10
 .rep{width:100%;border-collapse:collapse;font-size:14px}.rep th{text-align:left;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);padding:4px 6px}.rep td{padding:7px 6px;border-top:1px solid var(--bd)}.rep td:not(:first-child),.rep th:not(:first-child){text-align:right;white-space:nowrap}
 .gck{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--bd);display:grid;place-items:center;font-weight:900;font-size:13px;color:#fff}.guide .q.ok .gck{background:#16a34a;border-color:#16a34a}.guide .q.ok b{text-decoration:line-through;opacity:.7}
 .pb .bq{cursor:pointer}.bq.sel::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.45)}.bq.hn::after{content:"";position:absolute;inset:0;background:rgba(34,197,94,.2);box-shadow:inset 0 0 0 4px #22c55e}.bq.bad::after{content:"";position:absolute;inset:0;background:rgba(220,38,38,.55)}
-.bq.tg::before{content:"";position:absolute;left:37%;top:37%;width:26%;height:26%;border-radius:50%;background:rgba(15,23,42,.3);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:3%;border-radius:50%;border:4px solid rgba(15,23,42,.3);z-index:2}
+.bq.tg::before{content:"";position:absolute;left:36%;top:36%;width:28%;height:28%;border-radius:50%;background:rgba(20,40,10,.28);z-index:2}.bq.tgx::before{content:"";position:absolute;inset:2%;border-radius:50%;border:5px solid rgba(20,40,10,.28);z-index:2}
+.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}.ocard{display:flex;flex-direction:column;gap:8px}.ocard .board{box-shadow:none;border-radius:4px}.ocard h3{margin:4px 0 0;font-size:17px}.ocard .row{margin-top:auto}
 .rbook{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:4px}.ptabs{margin:8px 0 4px}.ptabs button{font-size:14px;padding:8px 16px}
 /* extra animations: only with <html class="fx"> */
 html.fx body{transition:background-color .3s}
@@ -517,17 +518,10 @@ var VAL={p:1,n:3,b:3,r:5,q:9,k:0};
 function rvSac(c,i){var m=c.moves[i],v=VAL[m.piece],got=m.captured?VAL[m.captured]:0;if(!RV.lib||v<3||v-got<2)return false;try{var b=new RV.lib.Chess(c.fens[i+1]),caps=b.moves({verbose:true}).filter(function(x){return x.to===m.to});
  return caps.some(function(x){if(v-VAL[x.piece]>=2)return true;var t=new RV.lib.Chess(c.fens[i+1]);t.move(x);return!t.moves({verbose:true}).some(function(y){return y.to===m.to})})}catch(e){return false}}
 function badge(k,cls){var l=LBL[k];return l&&l[2]?'<span class="'+(cls||"bdg")+'" style="background:'+l[1]+'" title="'+l[0]+'">'+l[2]+"</span>":""}
-// the site's own flat piece set, drawn on a 100 x 100 grid; colours come from CSS (.pz.w / .pz.b), the eye and lines are .dt
-var BASE='<path d="M28 78h44a3 3 0 0 1 3 3v5a2 2 0 0 1-2 2H27a2 2 0 0 1-2-2v-5a3 3 0 0 1 3-3z"/>';
-var PIECES={
- p:'<circle cx="50" cy="27" r="11"/><rect x="38" y="39" width="24" height="6" rx="3"/><path d="M42 45h16c5 7 9 18 10 33H32c1-15 5-26 10-33z"/>'+BASE,
- r:'<path d="M31 16h9v7h6v-7h8v7h6v-7h9v15l-6 5v32l6 5v5H31v-5l6-5V36l-6-5z"/><path class="dt" d="M38 36h24"/>'+BASE,
- n:'<path d="M67 78C71 61 71 44 63 32C58 24 51 20 45 20L42 12L37 21C31 25 26 31 23 38L19 46C18 50 21 54 26 52L36 48C40 47 44 47 47 45C41 56 35 66 34 78Z"/><circle class="dt" cx="38" cy="31" r="2.6"/>'+BASE,
- b:'<circle cx="50" cy="10" r="4.5"/><path d="M50 15c-11 9-16 19-14 28 1 5 4 8 7 9h14c3-1 6-4 7-9 2-9-3-19-14-28z"/><path class="dt" d="M56 27l-9 10"/><rect x="38" y="52" width="24" height="6" rx="3"/><path d="M41 58h18c3 7 6 13 10 20H31c4-7 7-13 10-20z"/>'+BASE,
- q:'<circle cx="24" cy="25" r="4.5"/><circle cx="37" cy="18" r="4.5"/><circle cx="50" cy="15" r="4.5"/><circle cx="63" cy="18" r="4.5"/><circle cx="76" cy="25" r="4.5"/><path d="M24 30L33 61H67L76 30L63 47L60 22L50 43L40 22L37 47Z"/><rect x="31" y="61" width="38" height="7" rx="2.5"/><path d="M33 68h34l3 10H30z"/>'+BASE,
- k:'<path d="M47 5h6v6h6v6h-6v8h-6v-8h-6v-6h6z"/><path d="M50 27c-6 0-10 4-10 9 0 3 1 5 3 7-6-6-18-4-18 6 0 8 8 13 10 13h30c2 0 10-5 10-13 0-10-12-12-18-6 2-2 3-4 3-7 0-5-4-9-10-9z"/><rect x="33" y="62" width="34" height="7" rx="2.5"/><path d="M34 69h32l3 9H31z"/>'+BASE};
-// defines the pieces once as SVG symbols; each board square just points at one
-document.body.insertAdjacentHTML("beforeend",'<svg width="0" height="0" style="position:absolute" aria-hidden="true">'+Object.keys(PIECES).map(function(k){return'<symbol id="pz-'+k+'" viewBox="0 0 100 100">'+PIECES[k]+"</symbol>"}).join("")+"</svg>");
+// pieces: the cburnett set by Colin M.L. Burnett (GPLv2+), the classic look also used by Lichess; see public/vendor/README.txt
+function pieceSrc(color,type){return"/vendor/pieces/cburnett/"+color+type.toUpperCase()+".svg"}
+// board coordinates, like a printed board: rank numbers down the left edge, file letters along the bottom
+function coords(col,row,n){return(col===0?'<i class="co r">'+n[1]+"</i>":"")+(row===7?'<i class="co f">'+n[0]+"</i>":"")}
 function winPct(cp){cp=Math.max(-1000,Math.min(1000,cp));return 50+50*(2/(1+Math.exp(-0.00368208*cp))-1)}
 function evalTxt(e){if(!e)return"";if(e.mate!=null)return(e.mate>0?"+":"−")+"M"+Math.abs(e.mate);var v=e.cp/100;return(v>0?"+":v<0?"−":"")+Math.abs(v).toFixed(1)}
 async function rvList(){try{var r=await api("review/games");RV.list=r.games;RV.left=r.left;RV.xp=r.xp;RV.rep=r.repertoire}catch(e){RV.list=[];toast(e.message)}if(tab==="review")render()}
@@ -591,8 +585,8 @@ function rvBoard(c){c.slideNow=c.slideFor===c.ply;c.popNow=c.popFor===c.ply;c.sl
  // brilliant, best and blunder moves make the moved piece glow in the label colour
  var gl=c.ply&&["brilliant","best","blunder"].indexOf(c.cls[c.ply-1])>-1?c.cls[c.ply-1]:null;
  for(var r=0;r<8;r++){var x=0;for(var k=0;k<fen[r].length;k++){var ch=fen[r][k];if(/\d/.test(ch)){for(var n=0;n<+ch;n++)sq.push({r:r,c:x++})}else sq.push({r:r,c:x++,p:ch})}}
- var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s){var n=name(s),hl=last&&(last.from===n||last.to===n);
-  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1],c.popNow?"bdg pop":"bdg"):"")+(s.p?'<svg class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(last&&last.to===n&&c.slideNow?" slide":"")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]+";"+slideBy(c,last):last&&last.to===n&&c.slideNow?'" style="'+slideBy(c,last):"")+'" viewBox="0 0 100 100"><use href="#pz-'+s.p.toLowerCase()+'"/></svg>':"")+"</div>"}).join("");
+ var name=function(s){return f[s.c]+(8-s.r)},cells=(c.flip?sq.slice().reverse():sq).map(function(s,i){var n=name(s),hl=last&&(last.from===n||last.to===n);
+  return'<div class="bq '+((s.r+s.c)%2?"dk":"lt")+(hl?" hl":"")+'">'+coords(i%8,Math.floor(i/8),n)+(last&&last.to===n&&c.cls[c.ply-1]?badge(c.cls[c.ply-1],c.popNow?"bdg pop":"bdg"):"")+(s.p?'<img class="pz '+(s.p===s.p.toUpperCase()?"w":"b")+(last&&last.to===n&&c.slideNow?" slide":"")+(gl&&last.to===n?' glow" style="--gc:'+LBL[gl][1]+";"+slideBy(c,last):last&&last.to===n&&c.slideNow?'" style="'+slideBy(c,last):"")+'" src="'+pieceSrc(s.p===s.p.toUpperCase()?"w":"b",s.p)+'" alt="" draggable="false">':"")+"</div>"}).join("");
  var arrow="",prev=c.ply?c.ev[c.ply-1]:null;
  if(prev&&prev.best&&c.cls[c.ply-1]&&["best","brilliant","book"].indexOf(c.cls[c.ply-1])<0){var xy=function(s){var col=f.indexOf(s[0]),row=8-+s[1];if(c.flip){col=7-col;row=7-row}return[col+.5,row+.5]},a=xy(prev.best.slice(0,2)),z=xy(prev.best.slice(2,4));
   arrow='<svg class="arr" viewBox="0 0 8 8"><defs><marker id="ah" markerWidth="3" markerHeight="3" refX="1.6" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3z" fill="#16a34a"/></marker></defs><line x1="'+a[0]+'" y1="'+a[1]+'" x2="'+z[0]+'" y2="'+z[1]+'" stroke="#16a34a" stroke-width=".16" stroke-linecap="round" marker-end="url(#ah)" opacity=".85"/></svg>'}
@@ -657,12 +651,12 @@ function vLearn(){return'<h1>Learn</h1><p class="mu" style="margin:4px 0 8px">Ge
 function lrnHTML(){return LRN.sub==="puz"?pzHTML():opHTML()}
 function lrnPaint(){var el=document.getElementById("lrn");if(el&&tab==="learn")el.innerHTML=lrnHTML()}
 // a clickable board: click one of your pieces, then where it should go
-function lrnBoard(B){var f="abcdefgh",pos=B.ch.board(),tg={},out="";
+function lrnBoard(B,mini){var f="abcdefgh",pos=B.ch.board(),tg={},out="";
  if(B.sel)B.ch.moves({square:B.sel,verbose:true}).forEach(function(m){tg[m.to]=1});
  for(var r=0;r<8;r++)for(var c=0;c<8;c++){var rr=B.flip?7-r:r,cc=B.flip?7-c:c,n=f[cc]+(8-rr),p=pos[rr][cc],k="bq "+((rr+cc)%2?"dk":"lt");
   if(B.last&&(B.last.from===n||B.last.to===n))k+=" hl";if(B.hint&&B.hint.indexOf(n)>-1)k+=" hn";if(B.sel===n)k+=" sel";if(B.bad===n)k+=" bad";if(tg[n])k+=p?" tgx":" tg";
-  out+='<div class="'+k+'" data-lsq="'+n+'">'+(p?'<svg class="pz '+p.color+'" viewBox="0 0 100 100"><use href="#pz-'+p.type+'"/></svg>':"")+"</div>"}
- return'<div class="bwrap"><div class="board pb">'+out+"</div></div>"}
+  out+='<div class="'+k+'"'+(mini?"":' data-lsq="'+n+'"')+">"+(mini?"":coords(c,r,n))+(p?'<img class="pz" src="'+pieceSrc(p.color,p.type)+'" alt="" draggable="false">':"")+"</div>"}
+ return mini?'<div class="board">'+out+"</div>":'<div class="bwrap"><div class="board pb">'+out+"</div></div>"}
 function lrnTap(n){var B=LRN.sub==="puz"?LRN.pz&&LRN.pz.B:LRN.op&&LRN.op.B;if(!B||B.lock)return;
  if(B.sel&&B.sel!==n){var mv=B.ch.moves({square:B.sel,verbose:true}).filter(function(m){return m.to===n});if(mv.length){var from=B.sel;B.sel=null;(LRN.sub==="puz"?pzMove:opMove)(from,n,mv);return}}
  var p=B.ch.get(n);B.sel=p&&p.color===B.ch.turn()&&B.sel!==n?n:null;lrnPaint()}
@@ -708,6 +702,9 @@ function pzHTML(){var P=LRN.pz,s=pzStore();if(!P){if(LRN.pzErr)return'<div class
 // pushes the next one further away (1, 3, 7, 14, then 30 days); a mistake brings it back to tomorrow.
 var GAPS=[1,3,7,14,30];
 async function opStart(i,mode){var lib=await lrnLib();LRN.op={i:i,mode:mode,moves:LINES[i][2].split(" "),k:0,miss:0,msg:"",B:{ch:new lib.Chess(),flip:LINES[i][1]==="b"}};opNext()}
+// the card picture: the first OP_SHOW moves of the line, from the side you play
+var OP_SHOW=6;
+function opMini(L){var ch=new LRN.lib.Chess(),m=null;L[2].split(" ").slice(0,OP_SHOW).forEach(function(x){m=ch.move(x)});return lrnBoard({ch:ch,flip:L[1]==="b",last:m&&{from:m.from,to:m.to}},1)}
 function opMine(O){return(O.k%2===0)===(LINES[O.i][1]==="w")}
 function opNext(){var O=LRN.op,B=O.B;B.hint=null;if(O.k>=O.moves.length)return opDone();
  if(!opMine(O)){B.lock=true;lrnPaint();setTimeout(function(){if(LRN.op!==O)return;var m=B.ch.move(O.moves[O.k]);B.last={from:m.from,to:m.to};O.k++;B.lock=false;sfx("click");opNext()},O.k?500:350);return}
@@ -720,8 +717,9 @@ function opDone(){var O=LRN.op,L=LINES[O.i],all=lrnGet("luc-reps",{}),e=all[L[0]
  if(O.mode==="practice"){e.box=O.miss?0:Math.min(e.box+1,GAPS.length);e.due=Date.now()+GAPS[Math.max(e.box-1,0)]*864e5}else if(!e.due)e.due=Date.now();
  e.learned=1;all[L[0]]=e;lrnSet("luc-reps",all);if(!O.miss){sfx("discover");burst(["📖","✨","♟️"])}lrnPaint()}
 function opHTML(){var O=LRN.op,all=lrnGet("luc-reps",{}),now=Date.now();
- if(!O)return'<div class="card">'+LINES.map(function(L,i){var e=all[L[0]],st=!e?"New":e.due<=now?'<b style="color:#d97706">Due for practice</b>':"Next practice "+new Date(e.due).toLocaleDateString();
-  return'<div class="q"><span class="pchip '+L[1]+'" style="flex:none"></span><div><b>'+esc(L[0])+'</b><div class="mu">You play '+(L[1]==="w"?"white":"black")+" · "+Math.ceil(L[2].split(" ").length/2)+" moves · "+st+'</div></div><button class="'+(e?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(e?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div>'}).join("")+"</div>";
+ if(!O){if(!LRN.lib){lrnLib().then(lrnPaint);return'<p class="mu">Loading openings…</p>'}
+  return'<div class="ogrid">'+LINES.map(function(L,i){var e=all[L[0]],st=!e?"New":e.due<=now?'<b style="color:#d97706">Due for practice</b>':"Next practice "+new Date(e.due).toLocaleDateString();
+   return'<div class="card ocard">'+opMini(L)+"<h3>"+esc(L[0])+'</h3><div class="mu">You play '+(L[1]==="w"?"white":"black")+" · "+Math.ceil(L[2].split(" ").length/2)+" moves<br>"+st+'</div><div class="row"><button class="'+(e?"g":"")+'" data-la="op:'+i+':learn">Learn</button><button class="'+(e?"":"g")+'" data-la="op:'+i+':practice">Practise</button></div></div>'}).join("")+"</div>"}
  var L=LINES[O.i],list="";for(var j=0;j<O.k;j++)list+=(j%2?"":'<span class="mu">'+(j/2+1)+".</span> ")+esc(O.moves[j])+" ";
  var head=O.done?(O.miss?"Line finished, with "+O.miss+" mistake"+(O.miss>1?"s":"")+".":"Line complete! 🎉")+(O.mode==="practice"?" Next practice "+(function(d){return d===1?"tomorrow":"in "+d+" days"})(GAPS[Math.max((all[L[0]]||{box:0}).box-1,0)])+".":" Now try it from memory with Practise.")
   :O.msg||(O.mode==="learn"?"Play the marked move.":opMine(O)?"Your move. What comes next in this line?":"Waiting for the reply…");

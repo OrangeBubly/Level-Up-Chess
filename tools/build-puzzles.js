@@ -1,12 +1,12 @@
 "use strict";
 // Builds public/vendor/puzzles/puzzles.json, the starter puzzle set for the Learn tab.
 // Source: the Lichess puzzle database (CC0, public domain): https://database.lichess.org/#puzzles
-// Usage: node tools/build-puzzles.js [megabytes to read, default 3]   (needs Node 22.15+ for zstd)
+// Usage: node tools/build-puzzles.js [megabytes to read, default 25] [puzzles per 100 rating points, default 40]   (needs Node 22.15+ for zstd)
 // The full file is about 300 MB, so this reads only its start (one download) and keeps well-liked, well-tested puzzles,
 // up to PER_BAND for every 100 rating points. Each puzzle is checked with chess.js: every solution move must be legal.
 // In the database the position is BEFORE the opponent's move: the first move is theirs, the rest is the solution.
 const fs = require("fs"), path = require("path"), zlib = require("zlib");
-const URL_ = "https://database.lichess.org/lichess_db_puzzle.csv.zst", MB = +process.argv[2] || 3, PER_BAND = 10;
+const URL_ = "https://database.lichess.org/lichess_db_puzzle.csv.zst", MB = +process.argv[2] || 25, PER_BAND = +process.argv[3] || 40;
 const out = path.join(__dirname, "../public/vendor/puzzles/puzzles.json");
 (async () => {
   if (!zlib.zstdDecompressSync) throw new Error("This Node.js has no zstd support; use Node 22.15 or newer.");
